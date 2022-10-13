@@ -1,6 +1,6 @@
 # C++
 
-# Riešenie chybových stavov
+## Riešenie chybových stavov
 
 *Peter Koscelanský <cpp@eset.sk>* <!-- .element: class="author" -->
 

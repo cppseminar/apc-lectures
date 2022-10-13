@@ -5,12 +5,11 @@
   "private": true,
   "scripts": {
     "build": "webpack",
-    "start": "webpack && serve ./dist"
+    "start": "webpack && serve ./public"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "path-browserify": "^1.0.1",
     "reveal.js": "^4.3.1",
