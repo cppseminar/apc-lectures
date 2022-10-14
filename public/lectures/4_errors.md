@@ -266,7 +266,7 @@ Nepoužívajte C štýl
 
 Nepoužívajte `const_cast`
 </li>
-<li class="fragment"
+<li class="fragment">
 
 Nepoužívajte `reinterpret_cast` 
 </li>
@@ -725,7 +725,7 @@ std::pair<bool, std::string> get_string() {
 ## Skutočný optional
 
 * Pridaný v C++17
-    * `boost::optional` nie je na 100% komptaibilný
+    * `boost::optional` nie je na 100% kompatibilný
     * Abseil optional je a funguje v C++11
 
 ```cpp
