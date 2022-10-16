@@ -455,5 +455,99 @@ public:
 
 Namiesto tohto treba `namespace` aj vôbec. Statické funkcie nie sú veľmi rozšírené v C++.
 
+
+## Pristupovanie k statickým metódam
+
+```cpp
+int main(int argc, char* argv[]) {
+    std::vector<std::string> strings;
+
+    StringUtils().Join(strings, '.'); // bad
+
+    StringUtils a; //even worse
+    a.Join(strings, '.');
+
+    StringUtils::Join(strings, '.'); // OK
+}
+```
+
+Rovnako sa pristupuje aj k verejným statickým členským premenným.
+
+---
+
+## `namespace`
+
+* Na zoskupenie funkcií nepoužívame triedy, ale `namespace`
+* Hlavne na riešenie konfliktov, nie hierarchie
+
+<table style="width: 80%">
+<tr>
+<td>
+
+```cpp
+namespace GoodProject {
+    void Fun() { };
+}
+
+namespace BetterProject {
+    void Fun() { };
+}
+```
+</td>
+<td>
+
+```cpp
+int main() {
+    //Fun(); // error
+    GoodProject::Fun();
+    BetterProject::Fun();
+}
+
+```
+</td>
+</tr>
+
+
+## Globálny namespace
+
+* Existuje jeden globálny `namespace` `::`
+
+```cpp
+::std::string s; // absolute path
+```
+
+* Pomocou `using namespace` môžeme vytiahnuť symboly do aktuálneho namespace
+
+```cpp
+using namespace BetterProject;
+
+int main() {
+    Fun(); // BetterProject::Fun
+    GoodProject::Fun();
+    BetterProject::Fun();
+    ::GoodProject::Fun();
+}
+```
+
+---
+
+## Konštanty v triedach
+
+```cpp
+class Cache {
+    static const size_t DEFAULT_CACHE_SIZE = 100;
+    
+    Cache(size_t size = DEFAULT_CACHE_SIZE) { };
+};
+```
+
+* Pekné je, ak sú nejak oddelené od ostatných premenných (`ALL_CAPS`, alebo `kPascalCase`, ...)
+* Používame iba ak konštanty naozaj patria do triedy
+* Môžu nebyť `static`, potom ich je nutné inicializovať v konštruktore
+
+---
+
+# Piliere OOP
+
 ---
 
