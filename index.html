@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>APC prezentácie</title>
+    <style type="text/css">
+        .reveal p { text-align: left; }
+
+        .reveal p:has(img) { text-align: center; }
+
+        .reveal small {
+            color: rgb(70, 70, 70);
+            font-size: 1em !important; 
+        }
+
+        .reveal .author {
+            position: absolute;
+            bottom: -20%;
+            right: 0%;
+        }
+
+        .reveal .showall code {
+            max-height: 100%;
+        }
+
+        .reveal td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- For some reason vertical regex ^\r?\n\r?\n does not work for both CRLF + LF :( -->
+            <section data-markdown="/lectures/index.md"
+                     data-separator-vertical="(?:^\r\n\r\n)|(?:^\n\n)"></section>
+        </div>
+    </div>
+    <script language="javascript" type="text/javascript">
+        const urlParams = new URLSearchParams(window.location.search)
+        const slides = urlParams.get('slides')
+        if (slides != null) {
+            const divSlides = document.getElementsByClassName('slides')
+            divSlides[0].children[0].setAttribute('data-markdown', '/lectures/' + slides)
+        }
+    </script>
+    <script src="/main.js"></script>
+</body>
