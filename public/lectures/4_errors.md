@@ -312,7 +312,6 @@ int main() {
 ## Bugy
 
 ![Bug in my code? It is a features](/lectures/4_errors/bug-feature.png)
-<!-- .element: class="center" -->
 
 * Logické chyby, naša aplikácia nerobí to čo má
 * Abnormálne ukončenie („pád aplikácie“)
@@ -367,7 +366,6 @@ int main() {
 > error C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS.
 
 ![Failed debug abort](/lectures/4_errors/debug-abort.png)
-<!-- .element: class="center" -->
 
 
 ## `scanf_s` (C only)
@@ -497,7 +495,6 @@ std::string join_path(const char* dir, const char* file) {
 ## Zlyhaný assert
 
 ![Failed assert](/lectures/4_errors/failed-assert.png)
-<!-- .element: class="center" -->
 
 * Hlási podmienku, súbor a číslo riadku
 * Pozor aby sa nám nedostali do produkčného buildu
@@ -1123,7 +1120,6 @@ bool TryConvertToInt64(const char* input, int64_t& output) {
 ---
 
 ![Revelation why exceptions are great](/lectures/4_errors/revelation.png)
-<!-- .element: class="center" -->
 
 ---
 
