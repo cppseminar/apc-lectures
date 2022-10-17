@@ -41,7 +41,7 @@
 
 * Simula (*1967*)
 
-![Simula logo](/lectures/5_oop/simula-logo.png)
+![Simula logo](./lectures/5_oop/simula-logo.png)
 
 * C++ je ním priamo ovplyvnené
 * OOP sa stalo veľmi populárne
@@ -97,7 +97,7 @@ Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `p
 
 ## Programovanie s objektami
 
-<!-- .slide: data-background-image="/lectures/5_oop/puzzle.png" data-background-opacity="0.2" -->
+<!-- .slide: data-background-image="./lectures/5_oop/puzzle.png" data-background-opacity="0.2" -->
 
 * Všetko je objekt
 * Objekty medzi sebou interagujú a tým tvoria program
@@ -109,9 +109,9 @@ Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `p
 
 ## Realita
 
-<!-- .slide: data-background-image="/lectures/5_oop/puzzle.png" data-background-opacity="0.2" -->
+<!-- .slide: data-background-image="./lectures/5_oop/puzzle.png" data-background-opacity="0.2" -->
 
-![Morpheus trashing OOP](/lectures/5_oop/morpheus.png)
+![Morpheus trashing OOP](./lectures/5_oop/morpheus.png)
 
 * OOP nie je vždy odpoveď na všetky problémy
 * Často sú lepšie riešenia
@@ -125,7 +125,7 @@ Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `p
 * Obyčajné funkcie sú často lepšie 
 * Objekty nie sú namespace!
 
-![Rube goldberd](/lectures/5_oop/rube-goldberg.png)
+![Rube goldberd](./lectures/5_oop/rube-goldberg.png)
 
 ---
 
@@ -285,7 +285,7 @@ int main() {
 * `operator[]` je potrebný na správne zdeštruovanie všetkých objektov vytvorených pomocou `new[]`
 * MSVC ukladá počet alokácií pred vráteným blokom pamäte
 
-![new of arrays](/lectures/5_oop/new[].png)
+![new of arrays](./lectures/5_oop/new[].png)
 
 * `new[]` vráti `0x0052D344` v príklade vyššie
 * `04 00 00 00` v predchádzajúcom čísle je vlastne veľkosť poľa
@@ -548,7 +548,7 @@ class Cache {
 
 ---
 
-![Piliere oop - abstraction, encapsilation, inheritance, polymorphism](/lectures/5_oop/pillars-of-oop.png)
+![Piliere oop - abstraction, encapsilation, inheritance, polymorphism](./lectures/5_oop/pillars-of-oop.png)
 
 ---
 
@@ -636,7 +636,7 @@ Konštruktor by mal hneď ako zístí, že je niečo zle vyhodiť výjnimku. **F
 * Triedy môžu tvoriť hierarchie, kde nová trieda je založená na starej a rozširuje ju pridaním funkcionality
 * C++ dokonca podporuje viacnásobnú dedičnosť (nateraz ignorujeme)
 
-![Sequences inheritance diagram](/lectures/5_oop/sequence.png)
+![Sequences inheritance diagram](./lectures/5_oop/sequence.png)
 
 ---
 
@@ -718,7 +718,7 @@ class Y : public X {
 </td>
 <td>
 
-![Memory layout](/lectures/5_oop/memory-layout.png)
+![Memory layout](./lectures/5_oop/memory-layout.png)
 </td>
 </tr>
 </table>
@@ -729,7 +729,7 @@ class Y : public X {
 * `/d1 reportAllClassLayout`
 * `/d1 reportSingleClassLayout<name>`
 
-![reportAllClassLayout](/lectures/5_oop/reportSingleClassLayout.png)
+![reportAllClassLayout](./lectures/5_oop/reportSingleClassLayout.png)
 
 * `/d1 reportSingleClassLayoutRGBA`
 * Ako môžeme vidieť celá naša trieda `RGBA` má `16` bajtov a `RGB` má `3` bajty, teda kompilátor zarovnal `double` alpha na 8 bajtov.
@@ -1057,7 +1057,7 @@ int main() {
     * Každý `new` musí mať svoj `delete`
 * Inak máme na krku resource leak (memory leak)
 
-![Pacman memory](/lectures/5_oop/pacman-memory.png)
+![Pacman memory](./lectures/5_oop/pacman-memory.png)
 
 ---
 
@@ -1340,7 +1340,7 @@ class Base {
 * Každý objekt, ktorý je polymorfný (aspoň jedna virtuálna funkcia) má v sebe jeden smerník na tabuľku
 * Volanie virtuálnych metód potom funguje tak, že sa pozrie do tabuľku vyberie sa s nej smerník na funkcia a zavolá sa
 
-![__vfptr](/lectures/5_oop/vfptr.png)
+![__vfptr](./lectures/5_oop/vfptr.png)
 
 ---
 
@@ -1390,7 +1390,7 @@ Tabuľka virtuálnych funkcií sa inicializuje po skonštrovaní.
 
 ## Virtuálne metódy v konštruktoroch a deštruktoroch
 
-![Grumpy cat no](/lectures/5_oop/grumpy-no.png)
+![Grumpy cat no](./lectures/5_oop/grumpy-no.png)
 
 **Jednoducho nie**
 <!-- .element: class="fragment" -->
