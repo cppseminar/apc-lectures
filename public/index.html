@@ -31,7 +31,7 @@
     <div class="reveal">
         <div class="slides">
             <!-- For some reason vertical regex ^\r?\n\r?\n does not work for both CRLF + LF :( -->
-            <section data-markdown="/lectures/index.md"
+            <section data-markdown="./lectures/index.md"
                      data-separator-vertical="(?:^\r\n\r\n)|(?:^\n\n)"></section>
         </div>
     </div>
@@ -40,8 +40,8 @@
         const slides = urlParams.get('slides')
         if (slides != null) {
             const divSlides = document.getElementsByClassName('slides')
-            divSlides[0].children[0].setAttribute('data-markdown', '/lectures/' + slides)
+            divSlides[0].children[0].setAttribute('data-markdown', './lectures/' + slides)
         }
     </script>
-    <script src="/main.js"></script>
+    <script src="./main.js"></script>
 </body>
