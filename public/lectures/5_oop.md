@@ -661,6 +661,7 @@ public:
     double alpha;
 };
 ```
+<!-- .element: class="showall" -->
 
 * Znak `":"` sa používa na odvodenie triedy od rodičovskej triedy (*base class*)
 * Kľučové slovo `public` znamená, že rodič je viditeľný pre používateľov potomka (v postate sa vždy používa `public`)
