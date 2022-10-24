@@ -189,8 +189,8 @@ private:
 <td>
 <div class="fragment">
 
-* Kopirovací konštruktor je viacmenej dobre
-* Kopírovací konštruktor už nie
+* Kopírovací konštruktor je viacmenej dobre
+* Kopírovací operátor priradenia už nie
     * Dáta v `this` by nám mohli pri priradený odíjsť bez uvolnenia
     * Nie je dobre
 </div>
@@ -314,7 +314,7 @@ int main() {
 
 ## `const` je dôležité
 
-Operátory sú iba vlania funkcií, takže je veľmi dôležité, aby sme mali signatúry presné. 
+Operátory sú iba volania funkcií, takže je veľmi dôležité, aby sme mali signatúry presné. 
 
 ```cpp
 MyClass& operator=(MyClass&);
@@ -390,6 +390,7 @@ UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
     return result;
 }
 ```
+<!-- .element: class="showall" -->
 
 * `friend` v triede je na to aby sme vedeli pristúpiť z operátora aj k privátnym premenným
 * Ľavá strana operátora je explicitne uvedená ako prvý parameter
@@ -416,6 +417,7 @@ UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
     return lhs += rhs;
 }
 ```
+<!-- .element: class="showall" -->
 
 V operátore `+` si môžem dovoliť `return` operátora `+`, lebo operátor `+=` vracia vlastne samého seba a keďže operátor vracia hodnotu a nie referenciu, tak sa mi automaticky vyrobí kópia. 
 
@@ -432,7 +434,10 @@ Foo operator+(Foo lhs, const Foo& rhs);
 Foo operator+(Foo lhs, Foo rhs);
 ```
 
+<div class="fragment">
+
 Správne sú posledné dva. “Najlepší” variant je tretí, kopírovaním prvého parametru môže optimalizátor vykonať optimalizácie (`move`), ktoré inak nemôže. 
+</div>
 
 ---
 
@@ -458,6 +463,7 @@ int main() {
   std::cout << t << std::endl;
 }
 ```
+<!-- .element: class="showall" -->
 
 ---
 
@@ -470,10 +476,10 @@ int main() {
 ```cpp
 class PtrVector {
 public:
-    int& operator[](size_t i) { return *m_vec[i]; }
-    const int& operator[](size_t i) const { return *m_vec[i]; }
+    int& operator[](size_t i) { return *vec_[i]; }
+    const int& operator[](size_t i) const { return *vec_[i]; }
 private:
-    std::vector<int*> m_vec;
+    std::vector<int*> vec_;
 };
 ```
 
