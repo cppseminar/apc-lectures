@@ -10,7 +10,6 @@
 
 * Objekty ako hodnota
 * Preťažovanie operátorov
-* Globálne a statické premenné
 * Štandardné algoritmy
     * Iterátory
     * Ranges
@@ -248,6 +247,7 @@ Buffer& operator=(const Buffer& rhs) {
     auto* tmp = data_;
     try {
       data_ = new std::byte[rhs.size_];
+      delete tmp; // release old buffer
     } catch (const std::exception&) {
       data_ = tmp;
       throw;
@@ -329,7 +329,7 @@ Toto nie je operátor priradenia a preto nám kompilátor automaticky vygeneruje
 ```cpp
 class UInt128 {
 public:
-  UInt128 operator+(const UInt128& rhs) {
+  UInt128 operator+(const UInt128& rhs) const {
     UInt128 result(*this); // we copy this
     result.a += rhs.a;
     result.b += rhs.b;
@@ -408,13 +408,13 @@ public:
     return *this;
   }
 
-  friend UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs);
 private:
   uint64_t a, b;
 };
 
 UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
-    return lhs += rhs;
+  auto result(lhs);
+  return result += rhs;
 }
 ```
 <!-- .element: class="showall" -->
@@ -436,7 +436,7 @@ Foo operator+(Foo lhs, Foo rhs);
 
 <div class="fragment">
 
-Správne sú posledné dva. “Najlepší” variant je tretí, kopírovaním prvého parametru môže optimalizátor vykonať optimalizácie (`move`), ktoré inak nemôže. 
+Správne sú posledné dva. "Najlepší" variant je tretí, kopírovaním prvého parametru môže optimalizátor vykonať optimalizácie (`move`), ktoré inak nemôže. 
 </div>
 
 ---
@@ -497,7 +497,7 @@ private:
 ```cpp
 struct LineNumPair {
 public:
-  bool operator<(const LineNumPair &rhs) { return m_num < rhs.m_num; }
+  bool operator<(const LineNumPair &rhs) const { return m_num < rhs.m_num; }
 
 private:
   std::string m_line;
@@ -703,7 +703,7 @@ std::vector<int> b;
 std::copy(a.begin(), a.end(), b.begin());
 ```
 
-Priklad vyššie nebude fungovať, lebo v prvom kroku sa v podstate urobí `*b.begin() = *a.begin()` a `b` nemá žiadnu prvky, takže priradenie do `b.begin()` je nedefinované.
+Príklad vyššie nebude fungovať, lebo v prvom kroku sa v podstate urobí `*b.begin() = *a.begin()` a `b` nemá žiadnu prvky, takže priradenie do `b.begin()` je nedefinované.
 <!-- .element: class="fragment" -->
 
 ```cpp
@@ -888,7 +888,7 @@ assert(it == vec.begin() + 1);
 * Naša starosť aby bol vector utriedený
 
 ```cpp
-std::vector<int> vec = { 1, 2, 3, 0, 5 };
+std::vector<int> vec = { 1, 2, 3, 5 };
 assert(std::is_sorted(vec.begin(), vec.end()));
 
 bool found = std::binary_search(vec.begin(), vec.end(), 4);
@@ -990,7 +990,7 @@ void erase_all(std::vector<int>& vec, int value) {
 
 ```cpp
 void erase_all(std::vector<int>& vec, int value) {
-    for (size_t i = vec.size(); i >= 0; --i) {
+    for (size_t i = vec.size() - 1; i >= 0; --i) {
         if (vec[i] == value) {
             vec.erase(vec.begin() + i);
         }
@@ -999,22 +999,6 @@ void erase_all(std::vector<int>& vec, int value) {
 ```
 
 * Nie je dobre, lebo je tam nekonečný cyklus, size_t nikdy nebude menší ako 0.  
-<!-- .element: class="fragment" -->
-
-
-## Mazanie viacerých prvkov
-
-```cpp
-void erase_all(std::vector<int>& vec, int value) {
-    for (size_t i = vec.size() - 1; i > 0; --i) {
-        if (vec[i - 1] == value) {
-            vec.erase(vec.begin() + i - 1);
-        }
-    }
-}
-```
-
-* Nie je dobre, lebo size - 1 môže podtiecť a máme skoro nekonečný cyklus.  
 <!-- .element: class="fragment" -->
 
 
@@ -1047,7 +1031,7 @@ void erase_all(std::vector<int>& vec, int value) {
 }
 ```
 
-* `erase` vracia iterátor na ďalší prvok, ktorý nasledoval po zmazanom
+* `erase` vracia iterátor na ďalší prvok, ktorý nasleduje po zmazanom
 
 
 ## Erase-remove idiom
@@ -1055,7 +1039,7 @@ void erase_all(std::vector<int>& vec, int value) {
 * Najlepšie riešenie je použiť tento štandardný postup
 * Algoritmus `remove` reorganizuje prvky, tak že prvky rovné zadanej hodnote sa presunú na koniec
 
-![erase remove idiom](./lectures/5_values_algo/erase-remove.png)
+![erase remove idiom](./lectures/6_values_algo/erase-remove.png)
 
 ```cpp
 void erase_remove(std::vector<int>& vec, int value) {
@@ -1132,7 +1116,7 @@ int main(int argc, const char** argv) {
 }
 ```
 
-Od C++14/17 existujú voľne stojace funkcie ako `begin`, `end` a `size` aj pre `T[]` .
+Od C++14/17 existujú voľne stojace funkcie ako `std::begin`, `std::end` a `std::size` aj pre `T[]` .
 
 ---
 
@@ -1147,7 +1131,7 @@ int main(int argc, const char** argv) {
     int arr[] = { 3, 1, 2 };
     //int arr2[3] = arr; will not compile
     int arr2[3];
-    memcpy(arr2, arr, std::size(arr));
+    memcpy(arr2, arr, sizeof(arr));
     // hope they have the same size
 
     std::array<int, 3> std_arr = { 3, 1, 2 };
