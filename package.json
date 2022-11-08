@@ -4,13 +4,14 @@
   "description": "APC slides in reveal.js",
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "start": "webpack && serve ./public",
-    "deploy": "webpack && gh-pages -d public"
+    "build": "marp ./public/bonus/coroutines/coroutines.md --html && webpack",
+    "start": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && serve ./public",
+    "deploy": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && gh-pages -d public"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@marp-team/marp-cli": "^2.2.0",
     "css-loader": "^6.7.1",
     "gh-pages": "^4.0.0",
     "path-browserify": "^1.0.1",

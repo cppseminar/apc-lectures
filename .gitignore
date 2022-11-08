@@ -131,3 +131,4 @@ dist
 
 # our bundle
 public/main.js
+public/bonus/coroutines/coroutines.html
