@@ -8,4 +8,4 @@
 
 ### Bonus
 
-* [Korutiny](./bonus/coroutines/coroutines.html) - *[Priklad cpp](./bonus/coroutines/coroutines.cpp)*
+* [Korutiny](./bonus/coroutines/coroutines.html) - *[Príklad cpp](./bonus/coroutines/coroutines.cpp)*
