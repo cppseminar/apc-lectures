@@ -464,9 +464,11 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 ```
+<div class="fragment">
 
 * Používame temporary premennú po tom, čo skončil riadok na ktorom bola vytvorená
 * Konštantné referencie predlžujú scope temporary premenných
+</div>
 
 ---
 
@@ -1180,10 +1182,6 @@ struct S {
 
 ---
 
-# Automicky generovaný move konštruktor
-
----
-
 ## Automatické generovanie
 
 * Kompilátor vygeneruje move konštruktor a move operátor priradenia iba ak je to na 100% bezpečné
@@ -1228,3 +1226,290 @@ MyClass &operator=(MyClass &&rhs) {
 ---
 
 ## Je toto validná move implementácia?
+
+```cpp [7-8|]
+class A { /*implementation*/ };
+class B { /*implementation*/ };
+ 
+class C {
+public:
+  C(C &&other) 
+    : a(std::move(other.a))
+    , b(other.b) {}
+ 
+  C &operator=(C &&rhs) {
+    a = std::move(rhs.a);
+    b = rhs.b;
+    return *this;
+  }
+private:
+  A a;
+  B b;
+};
+```
+<!-- .element: class="showall" -->
+
+* Copy je validná implementácia move
+<!-- .element: class="fragment" -->
+* Pre niektore typy sa ani nedá inak
+<!-- .element: class="fragment" -->
+* Move je iba optimalizacia
+<!-- .element: class="fragment" -->
+
+---
+
+## Nekopirovateľné typy
+
+* Pre niektoré typy môže byť veľmi ťažké, až nemožné naimplmentovať copy
+    * `std::ifstream`
+    * `std::unique_ptr`
+* Move sa ale takme vždy dá naimplementovať
+
+```cpp
+std::unique_ptr<int> f(std::unique_ptr<int> i) {
+    std::unique_ptr<int> ret(new int);
+    *ret = *i + 1;
+    return ret;
+}
+
+int main() {
+    std::unique_ptr<int> a(new int(0));
+    // f(a); fail to compile
+    a = f(std::move(a));
+}
+```
+
+---
+
+## Štandardná knižnica a move
+
+* Move je všede v štandardnej knižnici
+* Vector sa snaží urbiť move, keď sa reallokuje
+* `push_back` môže movnuť prvky do vectora
+* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dájú movnuť
+* Veľa funkcionality funguje automaticky a tam kde sa robila kópia sa od C++11 začal robiť move
+* Stačilo prekompilovať novým kompilátorom a mali sme rýchlosť zadarmo
+
+---
+
+## Move vectora
+
+```cpp
+int main() {
+    std::vector<std::string> v(1000000, std::string(1000, 'a'));
+ 
+    // one million strings with one thousand characters will be 
+    // copied, that is roughly one billion bytes, it can take 
+    // a while
+    auto copy = v;
+ 
+    // three pointers are copied 
+    auto move = std::move(v);
+}
+```
+
+* Move vie veľmi zmenšiť potrebu kopírovania
+* Môžu z toho ale vzniknúť aj bugy
+
+---
+
+# RVO a NRVO
+
+---
+
+## Nasledujúci kód urobí copy, alebo move?
+
+```cpp
+std::string f() {
+    return std::string("New string");
+}
+ 
+int main() {
+    std::string s = f();
+}
+```
+
+Je lepšie takto?<!-- .element: class="fragment" -->
+
+```cpp
+void f(std::string &s) { 
+    s.assign("New string"); 
+}
+ 
+int main() {
+    std::string s;
+    f(s);
+}
+```
+<!-- .element: class="fragment" -->
+
+
+**Zle napísané kompilátry by mohli urobiť kópiu (pred C++11), alebo move (po C++11). Ale už v starom svete (pred C++11) sa prvý kus kódu transformoval na niečo ekvivaletné druhém kusu kódu.**
+
+
+## copy a move
+
+* Kópia vie byť veľmi drahá, pokojne aj desiatky megabytov a desiatky sekúnd
+* Move je výrazne rýchlejší, na záver sa len presunie pár pointrov
+* Existuje ale RVO a NRVO, ktoré nám vyoptimalizuje aj tých pár bajtov
+* Musíme pre to ale už niečo urobiť
+
+---
+
+## Return value optimization (RVO)
+
+* Standard comitee si uvedomovala, že C++ je o rýchlosti
+* Kopírovanie je ale veľmi drahé
+* Problém, je že funkcie môžu mať side effecty a preto nemôžu volanie kopírovaceho konštruktora len tak vypustiť
+* Alebo môžu? Čo ak zakážeme copy konštruktoru side effects<!-- .element: class="fragment" -->
+* Potom by sme mohli objek priamo skonštruovať kde má byť a kópiu vôbec nevolať<!-- .element: class="fragment" -->
+
+
+## Return value optimization (RVO)
+
+* Kopírovací a move konštruktor podľa štandardu nemôžu mať side effects
+* Objekt sa vytvorí priamo v stacku volajúcej funkcie
+* Aplikuje sa ak vraciame z funkcie vždy nový objekt
+* Povinné v C++17
+
+```cpp
+std::string f(int i) {
+    if (i < 10) {
+        return "Less than 10";
+    } else {
+        return "Greater or eq 10";
+    }
+}
+```
+
+
+## Príklad na zlé použitie
+
+```cpp [3|5-6|8|11]
+std::string func(const std::string& s) {
+    if (s.empty()) {
+        return "Default value";
+    } else {
+        std::string result;
+        std::cin >> result;
+        if (!std::cin) {
+            return "Default value";
+        }
+
+        return result;
+    }
+}
+```
+
+---
+
+## Named return value optimization (NRVO)
+
+* V každom bode kde sa vracia z funkcie vracajme tú istú premennú
+* Ideálne definujeme jednu návratovú premennú a vraciame len tú 
+
+```cpp
+std::string f(int i) {
+    std::string result;
+    if (i % 2) {
+        result = "Odd";
+    } else {
+        result = "Even";
+    }
+    return result;
+}
+ 
+int main() { 
+    std::string s = f(0); 
+}
+```
+
+
+## ... transformuje kompilátor ako
+
+```cpp
+void f(int i, std::string &ret_val) {
+    if (i % 2) {
+        result = "Odd";
+    } else {
+        result = "Even";
+    }
+}
+ 
+int main() {
+    std::string s;
+    f(0, s);
+}
+```
+
+* Funkcia môže mať viacero returnov, ale vždy sa musí vracať tá istá premenná
+
+---
+
+## RVO a NRVO manuál
+
+* Vždy používajte návratovú hodnotu, nie výstupné parametre
+* Copy, alebo move nesmú mať side effecty
+* Nepoužíva sa v debug builde, to že to nevidíte počas debugovania neznamená, že to nebude v release kóde
+
+
+## RVO a NRVO manuál
+
+* Preferujme kratšie funkcia (väčšia šanca, že nám to výjde)
+* Ak sa dá vracajme buď vždy nový objekt, alebo vždy tú istú lokálnu premennú
+* Nepreháňajme to, move je už aj tak dostatočne rýchly
+
+
+## `std::move` môže pokaziť NRVO
+
+```cpp
+std::string f(int i) {
+    std::string result;
+    std::getline(std::cin, result);
+    result += "\n";
+
+    return std::move(result);
+}
+```
+
+* `std::move` v tomto prípade pokazí NRVO
+* Štandard pri *copy ellision* vyžaduje aby boli typy úplne rovnaké, čo tu nie sú
+    * Návratová hodnota je `std::string`
+    * Výsledok `std::move` je `std::string&&`
+
+---
+
+## Čo je zle s nasledujúcim kódom?
+
+```cpp
+class buffer {
+public:
+    buffer(buffer &&other);
+    /*...*/
+};
+ 
+int main() {
+    std::vector<buffer> v;
+
+    for (int i = 0; i < 100; ++i) {
+        v.push_back(buffer(i));
+    }
+}
+```
+
+<div class="fragment">
+
+* `push_back` môže realokovať pamäť
+* Rovnako ak nastane výnimka počas `push_back` mal by sa vector vrátiť po stavu ako pred volaním
+* S move, ktorý môže vyhodiť výnimku je toto nemožné
+* Preto vector použije v tomto prípade radšej kópiu
+* Preto move operácie musia byť `noexcept`, inak nemajú až taký zmysel
+</div>
+
+Notes: Ak vector nemá kópiu, ale iba noexcept(false) move, tak bohužial push_back nevie toto úplne splniť a môže sa stať že po zlyhanom push_back ostane vector v nešpecifikovanom stave.
+
+---
+
+# ĎAKUJEM
+
+## Otázky?
