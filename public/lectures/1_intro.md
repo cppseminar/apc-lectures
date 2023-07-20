@@ -10,9 +10,10 @@
 
 * Ciele predmetu
 * Podmienky absolvovania
-* Prerkvizity
+* Prerekvizity
 * Moderné C++
 * Ľahký úvod do C++
+* C vs. C++
 
 ---
 
@@ -25,7 +26,7 @@
 * C++ s nami ešte chvíľu ostane
 * Pokusy o nahradenie inými jazykmi tu boli, ale viac menej všetky zlyhali
 * Zameriame sa na implementácie riešení problémov v C++, nie na návrh riešení
-* Dôraz bude aj na „výzor“ kódu a na jeho bezpečnosť ("škaredý kód" môže mať ťažšie získať plný počet bodov)
+* Dôraz bude aj na "výzor" kódu a na jeho bezpečnosť ("škaredý kód" môže mať ťažšie získať plný počet bodov)
 
 ---
 
@@ -62,6 +63,7 @@ ISBN-13: 978-0136816485
 
 ## Literatúra
 
+* TODO update this
 * Stránka predmetu
 * <https://cppseminar.eset.sk>
 
@@ -103,7 +105,7 @@ ISBN-13:  978-3967309201
 
 ## Výsledok nášho snaženia
 
-* C++ v roku 2022
+* C++ v roku 2023
 * Beautiful code
 * Fun! (sort of 😀)
 
@@ -165,7 +167,7 @@ V podstate by ste mali byť schopný "čítať" program v C.
 
 ## Algoritmy
 
-* Na cvičeniach ani skúške nebudem priamo od vás chcieť vymýšľať/študovať algoritmy (maximálne ako bonus), no veľmi odporúčam algoritmy dátové štruktúry poznať
+* Na cvičeniach ani skúške nebudeme priamo od vás chcieť vymýšľať/študovať algoritmy (maximálne ako bonus), no veľmi odporúčam algoritmy dátové štruktúry poznať
 * Ak ste také predmety nemali, tak odporúčam si ich dať 
 * Ak ste aj mali, odporúčam si ich dať viacej
 
@@ -181,9 +183,8 @@ V podstate by ste mali byť schopný "čítať" program v C.
 * Úloha, naprogramujte aplikáciu, ktorá najprv načíta čísla zo vstupu (prázdny riadok bude koniec zadávania) a potom ich vypíše ich druhú mocninu usporiadanú podľa veľkosti
 * Level: Prvý ročník stredná škola
 
----
 
-```cpp
+```c
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -208,7 +209,6 @@ int main() {
 ```
 <!-- .element: class="showall" -->
 
----
 
 ## Problémy
 
@@ -249,11 +249,9 @@ int main() {
         printf("%d", arr[i]);
     }
 }
-
 ```
 <!-- .element: class="showall" -->
 
----
 
 ## Problémy
 
@@ -291,7 +289,6 @@ int main() {
 
 Tiež môžeme použiť getchar a potom putchar, ale nejaký veľmi špeciálny formátovací reťazec, niečo ako `*[^\n]s%` (tento isto nefunguje, ale niečo na ten spôsob)
 
----
 
 ## Problémy
 
@@ -331,6 +328,12 @@ int main() {
 }
 ```
 <!-- .element: class="showall" -->
+
+
+* Dáta ukádáme do dynamického poľa (`std::vector`)
+* Ako buffer na čítanie vstupu použijeme `std::string`
+* Keďže používamé `std::sort` nemusime programovať porovnávaciu funkciu
+* Na výpis používame `std::cout`
 
 ---
 
@@ -451,7 +454,7 @@ int main() {
     * komunitu
     * idiomy
 * Lepšie by bolo povedať, že C++ si udržiava (pokiaľ je to možné) kompatibilitu s C
-* Preto integrovať C kód do C++ je veľmi jednoduché
+* Preto integrovať C kód do C++ (a naopak) je veľmi jednoduché
 </div>
 <div style="flex: 3;">
 
@@ -465,12 +468,11 @@ int main() {
 
 * Je pravda, že C++ používalo metaprogramovanie pomocou templatov
 * Kedysi bolo dosť dôležité poznať tieto triky, neboli iné štandardizované konštrukcie
-* Sú to ale dva dosť rozdielne jazyky, ktoré majú vlastné
-    * štandardy
-    * komunitu
-    * idiomy
-* Lepšie by bolo povedať, že C++ si udržiava (pokiaľ je to možné) kompatibilitu s C
-* Preto integrovať C kód do C++ je veľmi jednoduché
+* Dnes sa bežné programy obíjdu bez týchto konštrukcií
+* Samozrejme metaprogramovanie má svoje miesto
+    * micro optimalizácie
+    * tvorba knižníc
+    * *zjednodušenie kódu*
 
 ---
 
@@ -513,17 +515,25 @@ int main() {
 
 # C++ jazyk
 
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
 * Core language
     * Type system
     * Control flow
     * “C layer”
     * Memory model
+</div>
+<div style="flex: 1;">
+
 * Štandardná knižnica
     * Containers
     * Strings
     * Concurrency and atomics
     * Files and streams
     * Regular expressions
+</div>
+</div>
 
 ---
 
@@ -610,7 +620,7 @@ note: EAFP = easier to ask forgiveness than permission
 * C++ ho nemá 
 * Ak máte pocit, že vám v C++ chýba garbage collector, tak ste niečo urobili veľmi nedobre
 
-> C++ is my favorite garbage collected language because it generates so little garbage.
+> C++ is my favorite garbage collected language because it generates so little garbage.  
 >           — Bjarne Stroustrup
 
 ---
@@ -628,7 +638,7 @@ note: EAFP = easier to ask forgiveness than permission
 
 ## Kompatibilita s C
 
-* C funkcie sa daju priamo volať z C++
+* C funkcie sa dajú priamo volať z C++
 * Rovnako sa dajú z C++ programu "exportovať" funkcie, ktoré majú C linkage
 * Preto je možné volať z ľubovoľného programovacieho jazyka C++ (asi každý má podporu pre C)
 
@@ -1027,7 +1037,7 @@ std::end(path_fragments), [](__in const std::string& val) {
 
 ---
 
-## manipulácia stringov
+## Manipulácia stringov
 
 * Ťažké a veľmi rozvláčne v C
 
