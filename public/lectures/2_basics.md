@@ -6,7 +6,20 @@
 
 ---
 
-# Hello world
+## Obsah
+
+* Hello world!
+* Typy, základné operácie a funkcie
+* Základné zložené typy
+* Smerníky a referencie
+* Príkazy na riadene programu
+* Kompilácia
+* Coding style
+* Konštanty
+
+---
+
+# Hello world!
 
 ```cpp
 #include <iostream>
@@ -196,6 +209,93 @@ Na MS Windows Visual Studio.  `long` je 8 na gcc.
 
 ---
 
+## Neinicializované premenné
+
+* Vždy inicializujte všetky premenné
+    * Niektoré majú zmysluplný defaultný konštruktor 
+    * Niektoré treba inicializovať explicitne
+
+```cpp
+int i = 4; // OK explicit
+std::string s = "string"; // OK explicit
+int j; // wrong 
+std::string t; // OK, string has constructor 
+
+int *p = nullptr; //OK
+int *r; // wrong
+```
+
+---
+
+## Deklarácia premenných
+
+* Vždy deklarujte premenné najneskôr ako sa dá
+    * Premenné patria do najvnútornejšieho scope-u
+    * Toto pravidlo podporuje predchádzajúce
+
+```cpp
+int i = 0; // wrong
+for (i = 0; i < 10; ++i) { } 
+
+for (int j = 0; j < 10; ++j) { } // OK
+```
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 7;">
+
+```cpp
+int k = 0;
+for (int i = 0; i < 10; ++i)
+{
+    k = i * i;
+    // use k
+}
+```
+</div>
+<div style="flex: 1;">
+❌
+</div>
+</div>
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 7;">
+
+```cpp
+for (int i = 0; i < 10; ++i) {
+    int k = i * i;
+    // use k
+}
+```
+</div>
+<div style="flex: 1;">
+✅
+</div>
+</div>
+
+
+### Existuje jedna výnimka 
+
+* V cykloch, ktoré sú krátke a vykonávajú sa často, môžeme ušetriť veľa alokácií ak presunieme niektoré premenné pred cyklus (stále ich treba inicializovať)
+
+```cpp
+for (int i = 0; i < n; ++i) {
+    std::string bad = "Very long... string";
+    // use string
+}
+```
+
+```cpp
+std::string good;
+for (int i = 0; i < n; ++i) {
+    good.assign("Very long... string");
+    // use string
+}
+```
+
+* Neplatí pre typy ako `int`, `double` a smerníky. Ich inicializácia nič nestojí. 
+
+---
+
 ## C++ špeciality
 
 <div style="display: flex; align-items: center;">
@@ -252,8 +352,8 @@ auto* ptr = i; // compilation error  
 
 ## Pridlhé názvy typov 
 
-* Týka sa hlavne šablón (template)
-* Slovo auto umožní odstrániť veľa nezaujímavého písania a šumu
+* Týka sa hlavne šablón (`template`s)
+* Slovo `auto` umožní odstrániť veľa nezaujímavého písania a šumu
 * Netreba to ale preháňať
 
 ```cpp
@@ -272,10 +372,56 @@ int main() {
 
 ---
 
+## Almost always use `auto`
+
+* Herb Sutter prišiel s myšlienkou, že vždy by sme mali používať `auto`
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
+```cpp
+short i = 7;
+std::string s = "default";
+short* = &i;
+```
+</div>
+<div style="flex: 1;">
+
+```cpp
+auto i = short(7);
+auto s = std::string("default");
+auto* = &i;
+```
+</div>
+</div>
+
+* Vyzerá to, že by to mohlo byť menej efektívne (kópia?) ale v skutočnosti si s tým kompilátor poradí
+* Výhodou je, že typ nemôže ostať neinicializovaný, keďže `auto x;` je chyba kompilácie
+* Rovnako ak zmeníme jeden typ, pomocou `decltype` vieme automaticky upraviť ďalšie
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
+```cpp
+float f = 1.23;
+float g = f - 1;
+```
+</div>
+<div style="flex: 1;">
+
+```cpp
+auto f = 1.23f;
+decltype(f) g = f - 1;
+```
+</div>
+</div>
+
+---
+
 ## Základné operácie
 
 * Všetky `+`, `-`, `*`, `/`, `%`, `++`, `--`, `|`, `&`, `^`, `&&`, `||`, `==`, `!=`, `<=`, `>=`, `<`, `>`, `=`, `?:`, `!`, `~` pracujú ako sa od nich očakáva, dokonca sú preťažené pre zložitejšie typy (tam kde to dáva zmysel)
-* Precedencia je definovaná v štandarde, pri pochybách je lepšie použiť zátvorky
+* Precedencia je definovaná v štandarde, pri pochybnostiach je lepšie použiť zátvorky
 * **PROTIP**: Nikdy neignorujte upozornenia kompilátora (ako napríklad priradenie v `if` príkaze)
 
 
@@ -402,6 +548,8 @@ if (i & 2 == 2) {
 }
 ```
 
+<div class="fragment">
+
 Áno. `==` má vyššiu precedencia ako `&`.
 
 ```cpp
@@ -419,6 +567,7 @@ if (i == 2 || i == 3) {
   std::cout << "i is 2 or 3.\n";
 }
 ```
+</div>
 
 ---
 
@@ -446,8 +595,11 @@ Ternárny operátor sa vyhodnocuje trochu inak v C
 ```cpp
 int a, b;
 // fill up a
+
 a>=0? b=1 : b=2;
 ```
+
+<div class="fragment">
 
 V C sa nedá skompilovať
 
@@ -460,6 +612,7 @@ C++ má iné pravidlá
 ```cpp
 a >= 0 ? (b = 1) : (b = 2); // OK C++
 ```
+</div>
 
 ---
 
@@ -481,20 +634,26 @@ void print_rectangle(int a, int b) {
 
 Ak má funkcia návratový typ, potom musí obsahovať aspoň jeden return.
 
+
 ### Aký je výsledok nasledujúceho kódu
 
 ```cpp
 int a = 1; 
 int k = std::max(++a, a++);
 ```
+<div class="fragment">
 
 Jedna z často vyskytujúcich odpovedí je 2, pretože výsledkom prefixového inkrementu je už zväčšená hodnota 
 
 ```cpp
 int k = std::max(2, 1);
 ```
+</div>
+
+<div class="fragment">
 
 Poradie vyhodnocovania parametrov funkcie je nedefinované (nešpecifikované od C++17)
+</div>
 
 
 ### Sekvencovanie (order of evaluation)
@@ -502,7 +661,7 @@ Poradie vyhodnocovania parametrov funkcie je nedefinované (nešpecifikované od
 * Sequence points v predchádzajúcich štandardoch
 * Napríklad: Parametre funkcie sú sekvencované pred volaním funkcie. 
 * Veľmi zjednodušene: Medzi dvoma bodmi sa môže jedna premenná zmeniť nanajvýš raz
-* V podstate: Ak nepoužívate veľmi exotické konštrukcie a vyhýbate sa ++/-- v rámci komplikovaných výrazov, tak je všetko v poriadku. 
+* V podstate: Ak nepoužívate veľmi exotické konštrukcie a vyhýbate sa `++`/`--` v rámci komplikovaných výrazov, tak je všetko v poriadku. 
 
 ---
 
@@ -667,6 +826,9 @@ p.X = q.X; // undefined, initialize we must
 
 ##  Null smerník
 
+<div style="display: flex; align-items: center;">
+<div style="flex: 6;">
+
 * Adresa (`0`) je rezervovaná ako neplatná 
 * Užitočné na identifikáciu neinicializovaného smerníka 
 * Dereferencia invalidného smerníka je nedefinovaná
@@ -674,9 +836,13 @@ p.X = q.X; // undefined, initialize we must
    * `NULL`, makro z jazyka C
    * `0`, starý C++ typ
    * `nullptr`, preferované v moderných C++
-
-![wrestler dereferencing a null pointer](./lectures/2_basics/null_pointer.png)
-<https://www.youtube.com/watch?v=HSmKiws-4NU>
+</div>
+<div style="flex: 4;">
+<a href="https://www.youtube.com/watch?v=HSmKiws-4NU">
+  <img src="./lectures/2_basics/null_pointer.jpg" alt="wrestler dereferencing a null pointer" />
+</a>
+</div>
+</div>
 
 
 ## Základné operácie so smerníkami
@@ -712,6 +878,9 @@ ptr = NULL;
 
 ### Operator `->`
 
+<div style="display: flex;">
+<div style="flex: 1;">
+
 ```cpp
 struct MyStruct {
     int a;
@@ -731,6 +900,8 @@ int main() {
   std::cout << cptr->a;
 }
 ```
+</div>
+<div style="flex: 1;">
 
 ```cpp
 struct MyStruct
@@ -751,6 +922,8 @@ int main() {
   std::cout << cptr.a;
 }
 ```
+</div>
+</div>
 
 Referencie nemôžu byť neinicializované. Neexistuje taká vec ako neplatná referencia.
 
@@ -814,19 +987,22 @@ ptr = ptr - 4; // first element
    * Pretečenie *Buffer overflow*
    * Dereferencovanie nulového smerníka
 
-  
+
 ### Je nasledujúci výraz platný C++? Ak áno aký je výsledok?
 
 ```cpp
 std::cout << 2["ABCDE"] << std::endl;
 ```
 
-* `operator[]` *subscript operator* je definovaný ako `a[b] = *(a + b)`
+<div class="fragment">
+
+`operator[]` *subscript operator* je definovaný ako `a[b] = *(a + b)`
 
 ```cpp
 std::cout << *(2 + "ABCDE") << std::endl;
 std::cout << *("ABCDE" + 2) << std::endl;
 ```
+</div>
 
 ---
 
@@ -955,11 +1131,17 @@ struct
 
 ---
 
-A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines.
+<div style="display: flex; align-items: center;">
+<div style="flex: 6;">
 
--- Ralph Waldo Emerson
+> A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines.  
+>   
+> — Ralph Waldo Emerson
+</div>
+<div style="flex: 4;">
 
 ![Ralph Waldo Emerson](./lectures/2_basics/Ralph-Waldo-Emerson-1860.webp)
+</div>
 
 ---
 
@@ -977,6 +1159,9 @@ A foolish consistency is the hobgoblin of little minds, adored by little statesm
 
 * Z dvoch ekvivalentných prístupov si vyberieme ten efektívnejší
 
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
 ```cpp
 std::vector<int> v;
 v.push_back(1);
@@ -984,12 +1169,16 @@ v.push_back(2);
 // ...
 v.push_back(10);
 ```
+</div>
+<div style="flex: 1;">
 
 ```cpp
 std::vector<int> v = {
     1, 2, /* ... */ 10,
 };
 ```
+</div>
+</div>
 
 * Kus kódu vľavo môže v skutočnosti urobiť niekoľko alokácií (a teda aj kopírovania), kód vpravo je aj prehľadnejší aj urobí iba jednu alokáciu
 
@@ -1001,32 +1190,6 @@ std::vector<int> v = {
 * (no code = no bugs)
 * Vyhýbajte sa "write only" algoritmom
 * Ak je niečo pomalé, treba to najprv odmerať (profiler) a potom meniť
-
-```cpp
-// Nebol eset, musime getnut
-WCHAR		BufferW[256];
-UINT_PTR	nSize = sizeof(BufferW);
-if (NODPROT_OK == CCIoctl(0, 0, CCI_GET_STRING, &dwStringId, sizeof(dwStringId), BufferW, sizeof(BufferW), &nSize))
-{
-	size_t	nStrLen;
-	TCHAR * pStringT;
- 
-	nStrLen = wcslen(BufferW);
-	pStringT = (TCHAR*)malloc((nStrLen + 1) * sizeof(pStringT[0]));
- 
-	if (NULL != pStringT)
-	{
-		MakeNativeStringFromUnicode(BufferW, pStringT, nStrLen+1);
-		EnterCriticalSection(&m_CriticalSection);
-		// Este jeden check, co ak to uz neikto nastavil
-		if (NULL == m_Strings[dwStringId])
-			m_Strings[dwStringId] = pStringT;
-		else
-			free(pStringT);
-		LeaveCriticalSection(&m_CriticalSection);
-	}
-}
-```
 
 ---
 

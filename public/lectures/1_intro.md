@@ -9,11 +9,11 @@
 ## Obsah
 
 * Ciele predmetu
-* Podmienky absolvovania
+* Organizácia štúdia
 * Prerekvizity
-* Moderné C++
 * Ľahký úvod do C++
 * C vs. C++
+* Moderné C++
 
 ---
 
@@ -54,8 +54,7 @@ ISBN-13: 978-0136816485
 Časti prístupné online - <https://isocpp.org/tour>
 </div>
 <div style="flex: 3;">
-
-![A Tour of C++ (3rd edition)](./lectures/1_intro/Tour3English-large.jpg)
+  <img src="./lectures/1_intro/Tour3English-large.jpg" alt="A Tour of C++ (3rd edition)" style="width: 70%;" />
 </div>
 </div>
 
@@ -79,8 +78,7 @@ ISBN-13: 978-1798834060
 <https://www.cppindetail.com/>
 </div>
 <div style="flex: 3;">
-
-![C++17 In detail](./lectures/1_intro/cpp17indetail.png)
+  <img src="./lectures/1_intro/cpp17indetail.png" alt="C++17 In detail" style="width: 70%;" />
 </div>
 </div>
 
@@ -96,8 +94,7 @@ ISBN-13:  978-3967309201
 <https://cppstd20.com/>
 </div>
 <div style="flex: 3;">
-
-![C++20 - The Complete Guide](./lectures/1_intro/covercpp20opt255x317.png)
+  <img src="./lectures/1_intro/covercpp20opt255x317.png" alt="C++20 - The Complete Guide" style="width: 70%;" />
 </div>
 </div>
 
@@ -113,16 +110,104 @@ ISBN-13:  978-3967309201
 
 ---
 
-## Hodnotenie predmetu
-
-Prednášky, cvičenia a skúška
+# Organizácia štúdia
 
 ---
 
-TODO
+## Kontakt
+
+<ul>
+  <li>
+    Kontaktná e-mail adresa je
+    <p style="font-size: larger; text-align: center;">
+      <a href="mailto:cpp@eset.sk">cpp@eset.sk</a>
+    </p>
+  </li>
+  <li>
+    <a href="cppseminar.eset.sk">Stránka predmetu</a>
+    <ul>
+      <li>Oznamy</li>
+      <li>Užitočné linky</li>
+      <li>Úlohy</li>
+    </ul>
+  </li>
+</ul>
 
 ---
 
+## Rozvrh
+
+* Prednášky budú každý týždeň 
+    * Pondelok TODO, trvanie 1,5 hod
+    * Miestnosť TODO na FIIT
+* Cvičenia budú každý týždeň
+    * 1. skupina TODO
+    * 2. skupina TODO
+    * 3. skupina TODO
+    * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita +-16 ľudí 
+    * Prvý krát môžete prísť na ľubovoľné cvičenie, ak bude problém s kapacitou nejak to vyriešime
+
+---
+
+## Dochádzka
+
+* Prednášky aj cvičenia sú nepovinné, nebudeme kontrolovať dochádzku
+* Na niektorých cvičeniach ale budú úlohy a testy, tak tam odporúčame príjsť
+
+![Travolta looking very confused](./lectures/1_intro/travolta.gif)
+
+---
+
+## Hodnotenie
+
+* Rozdelenie hodnotenia
+   * Počas semestra sa bude dať získať 60 bodov
+   * Na skúške potom zvyšných 40 bodov
+* Známkovanie
+   * A (100-92)
+   * B (91-83)
+   * C (82-74)
+   * D (73-65)
+   * E (64-56)
+* Žiadna časť predmetu nie je povinná, takže ak budete mať zo semestra viacej ako 55 bodov, tak na skúšku ani nemusíte chodiť a máte E
+
+---
+
+## Skuška
+
+* Pozostáva z dvoch častí
+   * Test na preskúšanie teórie (ako rozumiete C++)
+   * Programovanie
+* Na konci semestra bude "testovacia" skúška, aby ste si to mohli vyskúšať
+
+* Teoreticky sa toto rozdelenie ešte môže zmeniť
+
+---
+
+## Projekt
+
+* Počas semestra budeme mať aj jeden väčší projekt
+* Predstavený bude niekedy v prvých týždňoch semestra
+* Bude sa dať získať 20 bodov, plus nejaký bonus
+
+---
+
+## Cvičenia
+
+* Občas budú úlohy a testy (vždy dopredu oznámime)
+* Teoretické testy 
+   * 2 x 10 bodov
+   * Desať otázok so 4 možnosťami
+   * Na papier
+* Praktické úlohy
+   * 2 x 10 bodov
+   * Odovzdávanie bude cez náš portál
+   * Na vlastných PC, alebo na tých čo sú v učebni
+* Inak sa budeme venovať tomu čo sa prebralo na prednáške
+* Zadanie a konzultácie projektu budú tiež na cvičeniach
+
+---
+ 
 # Prerekvizity
 
 ---
@@ -131,33 +216,31 @@ TODO
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
-
-* Ideálne v C, alebo priamo C++
-* Akýkoľvek programovací jazyk bude stačiť, ale bude veľa práce 
-* Budeme používať C++, nie C
+  
+* Predpokladáme aspoň základnú znalosť programovania v C, alebo rovno C++
+* Pravdepodobne sa dá predmet zvládnuť aj keď poznáte skôr iné jazyky
+* Musíte ale poznať základné koncepty
 </div>
-<div style="flex: 1;">
-
-![My code doesn't work I have no idea why](./lectures/1_intro/code-works.png)
-</div>
+  <div style="flex: 1;">
+    <img src="./lectures/1_intro/code-works.png" alt="My code doesn't work I have no idea why" />
+  </div>
 </div>
 
 ---
 
 ## Koncepty, ktoré by ste mali ovládať
 
-* *Typy* – int, char, string
-* *Control flow* – if, for, while
-* *Funkcie*
-* Letmo sa týchto tém dotkneme, ale určite sa im nebude venovať do hĺbky
-
-V podstate by ste mali byť schopný "čítať" program v C.
+* Čo sú to *typy* – `int`, `char`, `string`
+* Ako funguje *control flow* – `if`, `for`, `while`
+* *Funkcie* a ich volanie, *rekurzia*
+* Letmo sa týchto tém dotkneme na nasledujúcej prednáške, ale určite sa im nebude venovať do hĺbky
+* V podstate by ste mali byť schopný "čítať" program v C
 
 ---
 
 ## Platforma
 
-* Budeme používať MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí Community edition)
+* Budeme používať MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí [Community edition](https://visualstudio.microsoft.com/vs/community/))
 * Všetko by malo fungovať aj na iných platformách (Linux, Mac)
 * C++20 kompatibilný kompilátor
 * Pre VS2022 máme pripravený aj template, ktorý všetko nastaví ako má
@@ -168,8 +251,14 @@ V podstate by ste mali byť schopný "čítať" program v C.
 ## Algoritmy
 
 * Na cvičeniach ani skúške nebudeme priamo od vás chcieť vymýšľať/študovať algoritmy (maximálne ako bonus), no veľmi odporúčam algoritmy dátové štruktúry poznať
-* Ak ste také predmety nemali, tak odporúčam si ich dať 
-* Ak ste aj mali, odporúčam si ich dať viacej
+* Ak ste také predmety nemali, tak odporúčam si ich dať
+* Môžeme od vas ale chcieť algoritmy naimplementovať
+
+---
+
+<!-- .slide: data-background-image="./lectures/1_intro/DALL·E 2023-07-24 00.32.08 - elephant in the barely lit room.png" data-background-opacity="0.2" -->
+
+<img class="fragment" src="./lectures/1_intro/ChatGPT_logo.svg" alt="Chat-GPT logo" width="400" />
 
 ---
 
@@ -177,12 +266,36 @@ V podstate by ste mali byť schopný "čítať" program v C.
 
 ---
 
-## Hello world!
+## Čítanie čísel
 
-* Musíme niekde začať s programovaním
-* Úloha, naprogramujte aplikáciu, ktorá najprv načíta čísla zo vstupu (prázdny riadok bude koniec zadávania) a potom ich vypíše ich druhú mocninu usporiadanú podľa veľkosti
-* Level: Prvý ročník stredná škola
+<ul>
+  <li>Musíme niekde začať, tak skúsme niečo jednoduché</li>
+  <li class="fragment">Úloha, naprogramujte aplikáciu, ktorá najprv načíta čísla zo vstupu (prázdny riadok bude koniec zadávania) a potom ich vypíše ich druhú mocninu usporiadanú podľa veľkosti</li>
+  <li class="fragment">Level prvý ročník stredná škola</li>
+</ul>
 
+
+### Pseudokód (Python)
+
+```py
+numbers = []
+while True:
+    num = input("")
+    if num == "":
+        break
+
+    number = int(num)
+    numbers.append(number)
+
+sorted_squares = sorted([num**2 for num in numbers])
+
+for square in sorted_squares:
+    print(square)
+```
+
+---
+
+## Najprv C
 
 ```c
 #include <stdio.h>
@@ -207,18 +320,46 @@ int main() {
     }
 }
 ```
-<!-- .element: class="showall" -->
 
 
 ## Problémy
 
-* Nefunguje to 😉
-* Prázdny string to neukončí
-* 1024 určite nie je dostatok
+<ul>
+  <li>Nefunguje to 😉</li>
+  <li class="fragment" style="display: flex;">
+    <div style="flex: 2;">
+
+```c
+int n = 0;
+while (scanf("%d", &arr[n]) > 0) {
+    ++n;
+```
+</div>
+    <div style="flex: 3;">
+
+Prázdny string to neukončí, `scanf` totiž čaká na aspoň jeden nonwhitespace znak aby z neho naformátoval číslo.
+    </div>
+  </li>
+  <li class="fragment" style="display: flex;">
+    <div style="flex: 2;">
+
+```c
+int main() {
+    int arr[1024];
+    int n = 0;
+```
+</div>
+    <div style="flex: 3;">
+      Takýto veľký buffer určite nebude stačiť, vystavuje sa tým bezpečnostným problémom (buffer overflow).
+    </div>
+  </li>
+</ul>
 
 ---
 
-```cpp
+## Použijeme `malloc`
+
+```c
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -250,52 +391,106 @@ int main() {
     }
 }
 ```
-<!-- .element: class="showall" -->
 
 
 ## Problémy
 
-* Stále to nefunguje
-* Začína to byť celkom komplikované
+<ul>
+  <li>Stále to nefunguje 😎</li>
+  <li class="fragment" style="display: flex;">
+<div style="flex: 2;">
+
+```cpp [2]
+char buf[128];
+while (scanf("%s", buf) > 0) {
+    if (buf[0] == 0)
+```
+</div>
+    <div style="flex: 3;">
+
+Prázdny string to neukončí, `scanf` totiž čaká na aspoň jeden nonwhitespace znak ak aj chceme `%s`.
+</div>
+  </li>
+  <li class="fragment" style="display: flex;">
+<div style="flex: 2;">
+
+```cpp [2]
+int n = 0;
+char buf[128];
+while (scanf("%s", buf) > 0) {
+```
+</div>
+    <div style="flex: 3;">
+      Ak by to aj šlo, máme to ďalší fixný buffer.
+    </div>
+  </li>
+  <li class="fragment" style="display: flex;">
+<div style="flex: 2;">
+
+```cpp [2]
+   break;
+arr[n] = atoi(buf);
+++n;
+```
+</div>
+    <div style="flex: 3;">
+      <code>atoi</code> môže zlyhať.
+    </div>
+  </li>
+  <li class="fragment" style="display: flex;">
+<div style="flex: 2;">
+
+```cpp [2]
+    cap += 1024;
+    arr = (int*)realloc(arr, cap);
+}
+```
+</div>
+    <div style="flex: 3;">
+
+`realloc` nepoužívame dobre, tiež môže zlyhať.
+    </div>
+  </li>
+  <li class="fragment">
+    Zaćína to byť dosť komplikované a labilné.
+  </li>
+</ul>
 
 ---
 
-```cpp
-int main() {
-    int cap = 1024;
-    int* arr = (int*)malloc(cap);
-    int n = 0;
-    char buf[128];
-    while (fgets(buf, sizeof(buf), stdin) != NULL) {
-        if (buf[0] == '\n')
-            break;
-        arr[n] = atoi(buf);
-        ++n;
-        if (n == cap) {
-            cap += 1024;
-            arr = (int*)realloc(arr, cap);
-        }
-    }
-    for (int i = 0; i < n; ++i) {
-        arr[i] *= arr[i];
-    }
-    qsort(arr, n, sizeof(int), cmpfunc);
-    for (int i = 0; i < n; ++i) {
-        printf("%d ", arr[i]);
-    }
+## Chat-GPT
+
+```c [|6|10|15|2,4]
+int main() {
+    int numbers[100];
+    int count = 0;
+    char input[100];
+        
+    while (fgets(input, sizeof(input), stdin) != NULL) {
+        if (input[0] == '\n')
+            break;
+        
+        numbers[count] = atoi(input);
+        count++;
+    }
+    
+    for (int i = 0; i < count; i++) {
+        numbers[i] = pow(numbers[i], 2);
+    }
+    
+    qsort(numbers, count, sizeof(int), compare);
+    
+    for (int i = 0; i < count; i++) {
+        printf("%d\n", numbers[i]);
+    }
+    
+    return 0;
 }
 ```
-<!-- .element: class="showall" -->
 
-Tiež môžeme použiť getchar a potom putchar, ale nejaký veľmi špeciálny formátovací reťazec, niečo ako `*[^\n]s%` (tento isto nefunguje, ale niečo na ten spôsob)
+* `include`, funkcia `compare` a komentáre vynechané kvôli prehľadnosti
 
-
-## Problémy
-
-* Realloc nepoužívame dobre
-* Atoi môže zlyhať
-* Celé je to dosť labilné a potrebovalo by to zrobustniť
-* Skúsime C++
+note: `fgets` číta po koniec riadku, nie je to ale OK, lebo ak tam niekto napráska viacej cifier ako 100, tak už nie sme podľa zadania.
 
 ---
 
@@ -327,10 +522,9 @@ int main() {
     }
 }
 ```
-<!-- .element: class="showall" -->
 
 
-* Dáta ukádáme do dynamického poľa (`std::vector`)
+* Dáta ukladáme do dynamického poľa (`std::vector`)
 * Ako buffer na čítanie vstupu použijeme `std::string`
 * Keďže používamé `std::sort` nemusime programovať porovnávaciu funkciu
 * Na výpis používame `std::cout`
@@ -366,49 +560,41 @@ int main() {
     }
 }
 ```
-<!-- .element: class="showall" -->
 
 ---
 
-## C++ cca rok 2020
+## C++ cca rok 2022
 
 ```cpp
-import <string>;
-import <iostream>;
-import <vector>;
-import <algorithm>;
-import <ranges>;
+import <iostream>;
+import <vector>;
+import <string>;
+import <algorithm>;
 
-int main() {
-    std::vector<int> arr;
-    std::string buf;
+int main() {
+    std::vector<int> numbers;
+    std::string input;
+    
+    while (std::getline(std::cin, input) && !input.empty()) {
+        numbers.push_back(std::stoi(input));
+    }
 
-    while (std::getline(std::cin, buf)) {
-        if (buf == "")
-            break;
+    std::ranges::transform(numbers, numbers.begin(), [](int number) { return number * number; });
 
-        arr.push_back(std::stoi(buf));
-    }
+    std::ranges::sort(numbers);
 
-    std::vector<int> output;
-    std::ranges::copy(
-        std::ranges::views::transform(arr, [](auto i) { return i * i; }),
-        std::back_inserter(output)
-    );
-
-    std::ranges::sort(output);
-    std::ranges::for_each(output, [](auto i) { std::cout << i << " "; });
+    for (int number : numbers) {
+        std::cout << number << std::endl;
+    }
 }
 ```
-<!-- .element: class="showall" -->
 
 
 ## Problémy
 
-* Nefunguje to
-    * MSVC fungujú importy, ale nejdú dobre tie ranges
-    * Gcc ranges plus mínus idú, ale importy nie 
-* Aj na to preba milión experimental prepínačov
+* Pre úspešné skompilovanie treba pridať rôzne experimental prepínače
+* Na MSVC je potrebné zapnúť podporu modulov a generovanie header unitov
+* Aj 3 roky po oficiálnom zapracovaní modulov do štandardu je to bieda 😢
 
 ---
 
@@ -513,7 +699,7 @@ int main() {
 
 ---
 
-# C++ jazyk
+## Rozdelenie C++
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -768,7 +954,7 @@ public:
 };
 ```
 
-note: A::f je virtual a preto sa nedá dediť od A bez toho aby sme ju definovali.
+note: `A::f` je `virtual` a preto sa nedá dediť od `A` bez toho aby sme ju definovali.
 
 ---
 
@@ -847,7 +1033,7 @@ void SortCxx(size_t n) {
 }
 ```
 </div>
-<div style="flex: 3; font-size: calc(2 * var(--r-main-font-size));">
+<div class="fragment" style="flex: 3; font-size: calc(2 * var(--r-main-font-size));">
 
 10,2s
 </div>
@@ -872,7 +1058,7 @@ void SortC(size_t n) {
 
 ```
 </div>
-<div style="flex: 3; font-size: calc(2 * var(--r-main-font-size));">
+<div class="fragment" style="flex: 3; font-size: calc(2 * var(--r-main-font-size));">
 
 16,4s
 </div>
@@ -912,7 +1098,7 @@ int cmp_int(const void* a, const void* b) {
 #define SQUARE(x) x * x;
 ```
 
-<div style="display: flex;">
+<div class="fragment" style="display: flex;">
 <div style="flex: 1;">
 
 ```c
@@ -931,7 +1117,9 @@ if (1*1; > 100) {
 </div>
 </div>
 
-* Ak aj odstránime `;` stále sú tam problémy
+<div class="fragment">
+
+Ak aj odstránime `;` stále sú tam problémy
 
 <div style="display: flex;">
 <div style="flex: 1;">
@@ -947,8 +1135,9 @@ int x = 1 + 1*1 + 1;
 ```
 </div>
 </div>
+</div>
 
-<div style="display: flex;">
+<div class="fragment" style="display: flex;">
 <div style="flex: 1;">
 
 ```c
@@ -964,8 +1153,9 @@ Sequencing problems 😢
 
 ### Inline funkcie
 
-* Kompilátor je pravdepodobne lepší ako my v rozhodovaní ktoré funkcie inlinovať
-* V C++ existovali klúčové slovo `inline`, v minuloti služilo na inline funkcie, dnes už skôr iné významy
+<ul>
+  <li>Kompilátor je pravdepodobne lepší ako my v rozhodovaní ktoré funkcie inlinovať</li>
+  <li class="fragment">V C++ existovali klúčové slovo <code>inline</code>, v minuloti služilo na inline funkcie, dnes už skôr iné významy
 
 ```c
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -976,12 +1166,14 @@ template<typename T> inline T max(T a, T b) {
     return a > b ? a : b;
 }
 ```
-
-* Najlepšie je použiť štandardnú knižnicu
+</li>
+  <li class="fragment">Najlepšie je použiť štandardnú knižnicu
 
 ```cpp
 int k = std::max({ 1, 3, 4, 8, 10, -1 });
 ```
+</li>
+</ul>
 
 ---
 
@@ -990,7 +1182,7 @@ int k = std::max({ 1, 3, 4, 8, 10, -1 });
 * C neposkytuje veľa nástrojov na uľahčenie správy pamäte
 * Programátori majú preto tendenciu používať pamäť na zásobníku (stack), keďže tá sa sama uprace po opustení aktuálneho frame-u
 
-<div style="display: flex; align-items: center;">
+<div class="fragment" style="display: flex; align-items: center;">
 <div style="flex: 1;">
 
 ```c
@@ -1030,7 +1222,7 @@ std::vector<std::string> path_fragments;
 
 // remove empty strings from path fragments
 path_fragments.erase(std::remove_if(std::begin(path_fragments), 
-std::end(path_fragments), [](__in const std::string& val) {
+std::end(path_fragments), [](const std::string& val) {
     return val.empty();
 }), std::end(path_fragments));
 ```
@@ -1060,147 +1252,147 @@ std::string file_name = name + ".txt";
 
 ---
 
-# Tips & tricks
-
----
-
-## Neinicializované premenné
-
-* Vždy inicializujte všetky premenné
-    * Niektoré majú zmysluplný defaultný konštruktor 
-    * Niektoré treba inicializovať explicitne
-
-```cpp
-int i = 4; // OK explicit
-std::string s = "string"; // OK explicit
-int j; // wrong 
-std::string t; // OK, string has constructor 
-
-int *p = nullptr; //OK
-int *r; // wrong
-```
-
----
-
-## Deklarácia premenných
-
-* Vždy deklarujte premenné najneskôr ako sa dá
-    * Premenné patria do najvnútornejšieho scope-u
-    * Toto pravidlo podporuje predchádzajúce
-
-```cpp
-int i = 0; // wrong
-for (i = 0; i < 10; ++i) { } 
-
-for (int j = 0; j < 10; ++j) { } // OK
-```
-
-```cpp
-int k = 0;
-for (int i = 0; i < 10; ++i)
-{
-    k = i * i;
-    // use k
-}
-```
-✔
-
-```cpp
-for (int i = 0; i < 10; ++i) {
-    int k = i * i;
-    // use k
-}
-```
-❌
-
-
-### Existuje jedna výnimka 
-
-* V cykloch, ktoré sú krátke a vykonávajú sa často, môžeme ušetriť veľa alokácií ak presunieme niektoré premenné pred cyklus (stále ich treba inicializovať)
-
-```cpp
-for (int i = 0; i < n; ++i) {
-    std::string bad = "Very long... string";
-    // use string
-}
-```
-
-```cpp
-std::string good;
-for (int i = 0; i < n; ++i) {
-    good.assign("Very long... string");
-    // use string
-}
-```
-
-* Neplatí pre typy ako int, double a smerníky. Ich inicializácia nič nestojí. 
-
----
-
 # Quick quiz 
 
 ---
 
 ## Shortest C++ program?
 
+<div style="display: flex;">
+  <div style="flex: 1;">
+
 ```cpp
 int main() { }
 ```
-
-* Aká je hodnota vrátená z funkcie `main`?
+  </div>
+  <div style="flex: 1;">
 
 ```cpp
 int main() {
     return 0;
 }
 ```
+  </div>
+</div>
 
-* Ak návratová hodnota nie je špecifikovaná, použije sa `0` ako implicitná návratová hodnota z funkcie `main`.
+<ul>
+  <li class="fragment">
 
-* Môžeme namiesto int použiť void?
+Aká je hodnota vrátená z funkcie `main`?
+  </li>
+  <li class="fragment">
+
+Ak návratová hodnota nie je špecifikovaná, použije sa `0` ako implicitná návratová hodnota z funkcie `main`.
+  </li>
+  <li class="fragment">
+
+Môžeme namiesto int použiť `void`?
 
 ```cpp
 void main() { }
 ```
+  </li>
+  <li class="fragment">
 
-* No
+Nie, štandard umožňuje iba `int` ako návratovú hodnotu.
+  </li>
+</ul>
 
 ---
 
 ## Parametre funkcie main
 
-* Ktoré z nasledujúcich prototypov funkcie main sú platné v C++ programe?
+<ul>
+  <li>
+
+Ktoré z nasledujúcich prototypov funkcie main sú platné v C++ programe?
 
 ```cpp
 int main() { } // 1
 int main(int argc) // 2
-int main(int argc, char** argv)
-int main(int argc, char* argv[])
-int main(int argc, char** argv, char** x)
+int main(int argc, char** argv) // 3
+int main(int argc, char* argv[]) // 4
+int main(int argc, char** argv, char** x) // 5
 ```
+  </li>
+  <li class="fragment">
 
-* V podstate sú všetky dobré, ale iba bez parametrov a (`int`, `char**`) musia dovoľovať všetky implementácie, ostatné sú *implementation defined*.
+V podstate sú všetky dobré, ale iba bez parametrov a (`int`, `char**`) musia dovoľovať všetky implementácie, ostatné sú *implementation defined*.
+  </li>
+</ul>
 
+---
 
 ## `argc` a `argv`
 
-* Čo je `argc`? 
-* Počet parametrov predaných z prostredia do programu (počet konzolových parametrov +1). 
+<ul>
+  <!-- we need this to compensate for default margin and i do not want to create new one off class -->
+  <style scoped>
+    p {
+        margin: 0.3em !important;
+    }
+  </style>
+  <li style="display: flex; align-items: center;">
+    <div style="flex: 2;">
 
-* Čo je `argv`?
-* Pole parametrov predaných z prostredia do programu (konzolové parametre + ...). 
+Čo je `argc`?
+    </div>
+    <div class="fragment" style="flex: 2;">
 
-* Akú hodnotu má `argv[0]`?
-* Názov programu alebo `""`.
+Počet parametrov predaných z prostredia do programu (počet konzolových parametrov +1).
+    </div>
+  </li>
+  <li style="display: flex;">
+    <div style="flex: 2;">
 
-* Akú hodnotu má `argv[1]`?
-* Prvý parameter. 
+Čo je `argv`?
+    </div>
+    <div class="fragment" style="flex: 2;">
 
-* Akú hodnotu má `argv[argc-1]`? 
-* Posledný parameter. 
+Pole parametrov predaných z prostredia do programu (konzolové parametre + ...).
+    </div>
+  </li>
+  <li style="display: flex;">
+    <div style="flex: 2;">
 
-* Akú hodnotu má `argv[argc]`? 
-* `0` (`NULL`) 
+Akú hodnotu má `argv[0]`?
+    </div>
+    <div class="fragment" style="flex: 2;">
+
+Názov programu alebo `""`.
+    </div>
+  </li>
+  <li style="display: flex;">
+    <div style="flex: 2;">
+
+Akú hodnotu má `argv[1]`?
+    </div>
+    <div class="fragment" style="flex: 2;">
+
+Prvý parameter.
+    </div>
+  </li>
+  <li style="display: flex;">
+    <div style="flex: 2;">
+
+Akú hodnotu má `argv[argc-1]`?
+    </div>
+    <div class="fragment" style="flex: 2;">
+
+Posledný parameter.
+    </div>
+  </li> 
+  <li style="display: flex;">
+    <div style="flex: 2;">
+
+Akú hodnotu má `argv[argc]`?
+    </div>
+    <div class="fragment" style="flex: 2;">
+
+`0` (`NULL`)
+    </div>
+  </li> 
+</ul>
 
 ---
 

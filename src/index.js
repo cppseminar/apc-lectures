@@ -15,6 +15,7 @@ let deck = new Reveal({
    pdfSeparateFragments: false,
    width: 1440,
    height: 900,
+   margin: 0.08
 })
 
 deck.initialize()
