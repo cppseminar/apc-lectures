@@ -608,7 +608,9 @@ int main() {
 * Zčasti za to môže meno C++
     * postfix increment vracia pôvodnú hodnotu 😉
 * Zčasti krkolomné skratky, ktoré komunita používa (RAII, SFINAE, ADL, ODR, ...)
-* Pravdepodobne aj neexistencia jednotného package managera a buildovacieho systému
+* Pravdepodobne aj neexistencia jednotného toolingu
+   * package manager
+   * build system
 
 ---
 
@@ -932,7 +934,6 @@ s = 19.84;
 
 * Dedičnosť (inheritance), zapúzdrenosť (encapsulation) a polymorfizmus (polymorphism) sú plne podporované
 * Viacnásobná dedičnosť sa dá tiež použiť
-* <small>Iné systémovo špecifické prístupy</small>
 
 
 ### Nasledujuci kód sa neskompiluje, prečo?
@@ -1155,7 +1156,7 @@ Sequencing problems 😢
 
 <ul>
   <li>Kompilátor je pravdepodobne lepší ako my v rozhodovaní ktoré funkcie inlinovať</li>
-  <li class="fragment">V C++ existovali klúčové slovo <code>inline</code>, v minuloti služilo na inline funkcie, dnes už skôr iné významy
+  <li class="fragment">V C++ existovalo klúčové slovo <code>inline</code>, v minuloti služilo na inline funkcie, dnes má už skôr iné významy
 
 ```c
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
