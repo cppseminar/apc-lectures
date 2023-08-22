@@ -1848,7 +1848,392 @@ Výsledkom `*r` je `int`, takže sa modifikovať dá, výsledok `*c` je `const i
 
 ## Pamäť 
 
-TOTO nejak ukazat ako to funguje...
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <style scoped>
+      td {
+        font-family: monospace;
+      }
+      .address {
+        font-size-adjust: 0.2;
+      }
+      .current {
+        background-color: red;
+      }
+      </style>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x00010000</td>
+        <td>0xdeadbeef</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x0badc0de</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000003</td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x0badc0de</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000003</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x0badc0de</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+int* p = nullptr;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000003</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x00000000</td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+int* p = nullptr;
+p = &a;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000003</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td><span style="color: red;">0x00010000</span></td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+int* p = nullptr;
+p = &a;
+*p = 8;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td><span style="color: red;">0x00000008</span></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x00010000</td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+int* p = nullptr;
+p = &a;
+*p = 8;
+p = &dummy;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000008</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td><span style="color: red;">0x0000fffc</span></td>
+      </tr>
+      <tr>
+        <td><span style="color: red;">➡</span></td>
+        <td class="address">0x0000fff4</td>
+        <td>0xc0ffeeee</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+---
+
+## Pamäť 
+
+<!-- .slide: data-auto-animate -->
+
+<div style="display: flex;">
+  <div data-id="code" style="flex: 1; text-align: left;">
+
+```cpp
+int a = 3;
+int dummy;
+int* p = nullptr;
+p = &a;
+*p = 8;
+p = &dummy;
+float f = 2.7;
+```
+  </div>
+  <div data-id="memory" style="flex: 1; text-align: left;">
+    <table>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x00010000</td>
+        <td>0x00000008</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fffc</td>
+        <td>0xcdcdcdcd</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff8</td>
+        <td>0x0000fffc</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="address">0x0000fff4</td>
+        <td>0x402ccccd</td>
+      </tr>
+      <tr>
+        <td colspan="3">...</td>
+      </tr>
+    </table>
+  </div>
+</div>
 
 ---
 
@@ -2388,95 +2773,14 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 
 ## Kompilátor a linker
 
-<style scoped>
-  .stage-source {
-    grid-area: source;
-  }
-  .stage-preprocessed {
-    grid-area: preprocessed;
-  }
-  .stage-object {
-    grid-area: object;
-  }
-  .stage-executable {
-    grid-area: executable;
-  }
-  .container {
-    height: 70vh;
-    font-size: smaller;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    column-gap: 1em;
-    row-gap: 1em;
-    align-content: stretch;
-    grid-template-areas: 
-      "source object"
-      "preprocessed executable";
-  }
-  .file {
-    font-size: medium;
-    width: 50px;
-    height: 50px;
-    background-color: green;
-    margin: 10px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 50px;
-  }
-  .stage {
-    border: 4px solid red;
-    padding: 1ex;
-  }
-  .cpp::after {
-    content: ".cpp";
-  }
-  .h::after {
-    content: ".h";
-  }
-</style>
-<div data-id="wrapper" class="container" style="margin: 2em;">
-  <div data-id="source" class="stage stage-source">
-    Source files
-    <div data-id="source-files" style="display: flex; width: 100%; flex-wrap: wrap;">
-      <div data-id="file0" class="file h"></div>
-      <div data-id="file1" class="file h"></div>
-      <div data-id="file2" class="file h"></div>
-      <div data-id="file3" class="file cpp"></div>
-      <div data-id="file4" class="file cpp"></div>
-      <div data-id="file5" class="file cpp"></div>
-      <div data-id="file6" class="file cpp"></div>
-      <div data-id="file7" class="file">
-        .asm
-      </div>
-      <div data-id="file8" class="file">
-        .asm
-      </div>
-    </div>
+<div style="display: flex;">
+  <div style="flex: 1; text-align: left;">
+    <span data-id="begin">Začiatok kompilácie</span>
   </div>
-  <div data-id="preprocessed" class="stage stage-object">
-    Preprocessed files
-    <div data-id="preprocessed-files" style="display: flex;">
-    </div>
-  </div>
-  <div data-id="object" class="stage stage-preprocessed">
-    Object files
-    <div data-id="preprocessed-files" style="display: flex;">
-    </div>
-  </div>
-  <div data-id="executable" class="stage stage-executable">
-    Executables/library
-    <div data-id="preprocessed-files" style="display: flex;">
-      <div data-id="preprocessed-files-cpp"></div>
-      <div data-id="preprocessed-files-other"></div>
-    </div>
+  <div style="flex: 1; text-align: left;">
+    Na začiatku kompilácie máme spravidla zdrojové súbory <code>*.cpp</code> a hlavičkové súbory <code>*.h</code>.
   </div>
 </div>
-
-* Na začiatku máme
-   * Hlavičkové súbory (`*.h`)
-   * Zdrojové súbory (`*.cpp`)
-   * Iné, napríklad assembler súbory
 
 ---
 
@@ -2484,40 +2788,78 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 
 ## Kompilátor a linker
 
-<div data-id="wrapper" class="container" style="margin: 2em;">
-  <div data-id="source" class="stage stage-source">
-    Source files
-    <div data-id="source-files" style="display: flex;">
-    </div>
+<div style="display: flex;">
+  <div style="flex: 1; text-align: left;">
+    <span data-id="begin"><small>Začiatok kompilácie</small></span><br/>
+    <span data-id="preprocess">Preprocessing...</span>
   </div>
-  <div data-id="preprocessed" class="stage stage-object">
-    Preprocessed files
-    <div data-id="preprocessed-files" style="display: flex;">
-      <div data-auto-animate-delay=1 data-id="file3" class="file cpp"></div>
-      <div data-auto-animate-delay=2 data-id="file4" class="file cpp"></div>
-      <div data-auto-animate-delay=1 data-id="file5" class="file cpp"></div>
-      <div data-auto-animate-delay=3 data-id="file6" class="file cpp"></div>
-      <div data-auto-animate-delay=1 data-id="file7" class="file">
-        .asm
-      </div>
-      <div data-auto-animate-delay=1 data-id="file8" class="file">
-        .asm
-      </div>
-    </div>
-  </div>
-  <div data-id="object" class="stage stage-preprocessed">
-    Object files
-    <div data-id="object-files" style="display: flex;">
-    </div>
-  </div>
-  <div data-id="executable" class="stage stage-executable">
-    Executables/library
-    <div data-id="executable-files" style="display: flex;">
-    </div>
+  <div style="flex: 1; text-align: left;">
+    Potom sa spustí C preprocesor, ten</br>
+    <ul style="margin-left: 2em;">
+      <li>expanduje makrá</li>
+      <li>includuje hlavičkové súbory.</li>
+    </ul></br>
+    Po tejto fáze ostanú iba zdrojové súbory, ktoré už neobsahujú žiadnu direktívu preprocesora.
   </div>
 </div>
 
-Preprocessing...
+---
+
+<!-- .slide: data-auto-animate -->
+
+## Kompilátor a linker
+
+<div style="display: flex;">
+  <div style="flex: 1; text-align: left;">
+    <span data-id="begin"><small>Začiatok kompilácie</small></span><br/>
+    <span data-id="preprocess"><small>Preprocessing...</small></span><br/>
+    <span data-id="compile">Compiling...</span>
+  </div>
+  <div style="flex: 1; text-align: left;">
+    Fáza kompilácie vyrobí zo zdrojových súborov machine code. Počas kompilácie sa robia aj všetky kontroly syntaxe, typov, ... Ak to od kompilátora chceme, urobí sa aj optimalizácia kódu. Výstupom sú objektové súbory <code>*.obj</code>, ktoré obsahujú inštrukcie pre procesor, ale niektoré funkcie ešte nemusia byť známe.
+  </div>
+</div>
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+## Kompilátor a linker
+
+<div style="display: flex;">
+  <div style="flex: 1; text-align: left;">
+    <span data-id="begin"><small>Začiatok kompilácie</small></span><br/>
+    <span data-id="preprocess"><small>Preprocessing...</small></span><br/>
+    <span data-id="compile"><small>Compiling...</small></span><br/>
+    <span data-id="link">Linking...</span>
+  </div>
+  <div style="flex: 1; text-align: left;">
+    Linker spojí objektové súbory do jednej výstupnej binárky. Jeho úloha je urobiť relokácie, teda pofixovať adresy funkcií v objektových súboroch (ak je v jednom objektovom súbore referenciu na funkciu v inom objektovom súbore). V istých prípadoch môže robiť aj optimalizácie (vyhadzovať funkcie, ktoré sa nikdy nevolajú...).
+  </div>
+</div>
+
+---
+
+<!-- .slide: data-auto-animate -->
+
+## Kompilátor a linker
+
+<div style="display: flex;">
+  <div style="flex: 1; text-align: left;">
+    <span data-id="begin"><small>Začiatok kompilácie</small></span><br/>
+    <span data-id="preprocess"><small>Preprocessing...</small></span><br/>
+    <span data-id="compile"><small>Compiling...</small></span><br/>
+    <span data-id="link"><small>Linking...</small></span><br/>
+    <span>Koniec kompilácie</span>
+  </div>
+  <div style="flex: 1; text-align: left;">
+    Výstupom je spravidla binárka</br>
+    <ul style="margin-left: 2em;">
+      <li>spustitelný súbor (<code>*.exe</code>)</li>
+      <li>dynamická knižnica (<code>*.dll</code>, <code>*.so</code>).</li>
+    </ul></br>
+  </div>
+</div>
 
 ---
 
