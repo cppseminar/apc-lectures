@@ -1899,7 +1899,6 @@ Výsledkom `*r` je `int`, takže sa modifikovať dá, výsledok `*c` je `const i
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -1944,7 +1943,6 @@ int a = 3;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -1990,7 +1988,6 @@ int dummy;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -2037,7 +2034,6 @@ int* p = nullptr;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -2085,7 +2081,6 @@ p = &a;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -2134,7 +2129,6 @@ p = &a;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
@@ -2184,7 +2178,6 @@ p = &dummy;
   </div>
 </div>
 
----
 
 ## Pamäť 
 
