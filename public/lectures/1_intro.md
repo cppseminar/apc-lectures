@@ -138,12 +138,12 @@ ISBN-13:  978-3967309201
 ## Rozvrh
 
 * Prednášky budú každý týždeň 
-    * Pondelok TODO, trvanie 1,5 hod
-    * Miestnosť TODO na FIIT
+    * Pondelok 11:00, trvanie 1,5 hod
+    * Miestnosť -1.65 (Aula Minor) na FIIT
 * Cvičenia budú každý týždeň
-    * 1. skupina TODO
-    * 2. skupina TODO
-    * 3. skupina TODO
+    * 1. skupina utorok 14:00
+    * 2. skupina utorok 16:00
+    * 3. skupina streda 15:00
     * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita +-16 ľudí 
     * Prvý krát môžete prísť na ľubovoľné cvičenie, ak bude problém s kapacitou nejak to vyriešime
 
