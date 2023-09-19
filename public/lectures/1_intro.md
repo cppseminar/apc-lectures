@@ -369,7 +369,7 @@ int cmpfunc (const void * a, const void * b) {
 
 int main() {
     int cap = 1024;
-    int* arr = (int*)malloc(cap);
+    int* arr = (int*)malloc(cap * sizeof(int));
     int n = 0;
     char buf[128];
     while (scanf("%s", buf) > 0) {
@@ -379,7 +379,7 @@ int main() {
         ++n;
         if (n == cap) {
             cap += 1024;
-            arr = (int*)realloc(arr, cap);
+            arr = (int*)realloc(arr, cap * sizeof(int));
         }
     }
     for (int i = 0; i < n; ++i) {
