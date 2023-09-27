@@ -790,7 +790,7 @@ private:
 
 ![Iterators between containers and algorithms](./lectures/3_scope_class/iterators.png)
 
-* Interátory poskytujú jednotný interface na prácu s kontainermi, ten potom algoritmy využívajú 
+* Interátory poskytujú jednotný interface na prácu s kontajnermi, ten potom algoritmy využívajú 
 * Ak máme n kontainerov a m algoritmov
 
 <p style="font-size: larger; text-align: center;">
@@ -814,3 +814,466 @@ private:
 # vector
 
 ---
+
+## `std::vector<T>`
+
+* Abstrakcia nad dynamickým poľom (`T` môže byť akýkoľvek typ)
+* Garantovane lineárna pamäť (od C++11)
+* Vector sa stará o alokávie svojej pamäti, automaticky zväčšuje keď treba a dealokuje v deštruktore 
+
+<table style="font-size: 70%;">
+  <tr>
+    <th>Operácia</th>
+    <th>Zložitosť</th>
+    <th>Poznámka</th>
+  </tr>
+  <tr>
+    <td>insert</td>
+    <td>O(n)</td>
+    <td>O(1) amortizovane pri vkladaní na koniec</td>
+  </tr>
+  <tr>
+    <td>erase</td>
+    <td>O(n)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>search</td>
+    <td>O(n)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>access</td>
+    <td>O(1)</td>
+    <td><code>operator[]</code></td>
+  </tr>
+</table>
+
+---
+
+## Expanzia vectora
+
+* Vector štandardne narastá v násobkoch
+   * 2 gcc a cland
+   * 1.5 MSVC
+* Nikdy nezmenší svoju naalokovanú pamäť (treba explicitne volať `shrink_to_fit`, ale ani to nie je garantované)
+* Ak nastane realokácia, tak každý iterátor (smerník, referencia), ktorý ukazoval na prvok vectora je neplatný
+* Preto je veľmi zlé manipulovať s vectorom počas iterovania cezeň 
+* Skoro vždy chcete použiť vector
+
+---
+
+## Reportovanie chýb
+
+* Ak zlyhá alokácia pamäte, tak vector vyhadzuje výnimku `std::bad_alloc`
+* Používať neplatný iterátor, alebo indexovanie mimo hraníc je nedefinované
+* Funkcia `at` robí to isté ako `operator[]`, ale vyhadzuje výnimku `std::out_of_range`
+
+```cpp
+std::vector<int> vec = { 1, 2, 3, 4, 5 };
+vec.resize(100); // may throw bad_alloc
+
+vec.at(200) = 0; // will throw out_of_range
+vec[200] = 0; // undefined
+```
+
+---
+
+## Preťažovanie funkcií
+
+![vector insert overloads from cppreference.com](./lectures/3_scope_class/insert_overload.png)
+
+* Môžu existovať funkcie s rovnakým názvom, ale rôznymi parametrami
+* Kompilátor potom vyberie správnu na základe parametrov volania
+* V štandarde je veľa preťažených funkcií
+* Nie je odporúčané to preháňať, štandard robia desiatky odborníkov a aj tak sa niekedy pomýlia
+
+---
+
+## Operácie nad vectorom
+
+<table style="font-size: 70%;">
+  <tr>
+    <th>Metóda</th>
+    <th>Zložitosť</th>
+    <th>Poznámka</th>
+  </tr>
+  <tr>
+    <td><code>push_back</code></td>
+    <td>O(1)</td>
+    <td>Vloží prvok na koniec vectora, amortizovaná zložitosť</td>
+  </tr>
+  <tr>
+    <td><code>insert</code></td>
+    <td>O(n)</td>
+    <td>Vloží prvok(y) ma zadanú pozíciu definovanú iterátorom</td>
+  </tr>
+  <tr>
+    <td><code>erase</code></td>
+    <td>O(n)</td>
+    <td>Zmaže prvok(y) definované iterátorom</td>
+  </tr>
+  <tr>
+    <td><code>empty</code></td>
+    <td>O(1)</td>
+    <td>Test, či je vector prázdny</td>
+  </tr>
+  <tr>
+    <td><code>front</code>/<code>back</code></td>
+    <td>O(1)</td>
+    <td>Vráti prvý/posledný prvok, ak prázdny tak nedefinované</td>
+  </tr>
+  <tr>
+    <td><code>size</code>/<code>capacity</code></td>
+    <td>O(1)</td>
+    <td>Vráti veľkosť/kapacitu vectora</td>
+  </tr>
+  <tr>
+    <td><code>resize</code>/<code>reserve</code></td>
+    <td>O(n)</td>
+    <td>Zmení veľkosť/kapacitu vectora</td>
+  </tr>
+  <tr>
+    <td><code>clear</code></td>
+    <td>O(n)</td>
+    <td>Odstráni všetky prvky z vectora (ale neuvoľní pamäť), O(1) pre primitívny typy</td>
+  </tr>
+  <tr>
+    <td><code>shrink_to_fit</code></td>
+    <td>O(n)</td>
+    <td>Uvoľní nepoužitú pamäť, O(1) pre primitívny typy</td>
+  </tr>
+  <tr>
+    <td><code>begin</code>/<code>end</code></td>
+    <td>O(1)</td>
+    <td>Podpora iterátorov</td>
+  </tr>
+</table>
+
+
+## Príklad
+
+```cpp
+void main(int argc, char* argv[]) {
+    std::vector<int> params;
+    params.reserve(argc - 1);
+    for (int i = 1; i < argc; ++i) {
+        params.push_back(strtol(argv[i], nullptr, 0));
+    }
+
+    for (size_t i = 0; i < params.size(); ++i) {
+        if (params[i] < 0) // abs
+            params[i] = -params[i];
+    }
+
+    params.resize(5); // if more than 5, shrink, otherwise pad with 0
+    params.insert(params.end(), { 43, 44 }); // insert_range
+
+    for (const auto& i : params)
+    {
+        std::cout << i << " ";
+    }
+    // vector automatically deallocate memory
+}
+```
+
+
+## Nedefinované správanie
+
+```cpp
+std::vector<int> v = { 1, 2, 5, 8};
+for (int i : v) {
+    if (i % 2 != 0) {
+        v.push_back(i);
+    }
+}
+
+for (auto i = v.begin(); i != v.end(); ++i) {
+    if (*i % 2 != 0) {
+        v.push_back(*i);
+    }
+}
+```
+
+Nikdy by to ani neskončilo a navyše to spôsobí nedefinované správanie. 
+
+---
+
+## Pamäť vectora
+
+![vector insert overloads from cppreference.com](./lectures/3_scope_class/vector_memory.png)
+
+---
+
+# string
+
+---
+
+## `std::basic_string<T>`
+
+* Reprezentuje jeden reťazec znakov
+* Neexistuje Unicode podpora
+* Stále je to STL kontainer, takže na nim všetky algoritmy pracujú správne
+* String vie svoju veľkosť a kapacitu
+* V postate je to taký lepší std::vector<char> s pár funkciami navyše
+* `std::string` je `std::basic_string<char>`
+
+
+## Operácie
+
+* Väčšina toho čo podporuje `vector` je prítomná s rovnakou sématikou
+    * `push_back`, `insert`, `resize`, `reserve`, ...
+    * Zložitosti sú rovnaké
+* Špecifické string operácie často pracujú s indexami a nie iterátormi
+
+<table style="font-size: 70%;">
+  <tr>
+    <th>Metóda</th>
+    <th>Zložitosť</th>
+    <th>Popis</th>
+  </tr>
+  <tr>
+    <td><code>substr</code></td>
+    <td>O(n)</td>
+    <td>Vráti substring, rozsah je definovaný indexami (nie iterátormi)</td>
+  </tr>
+  <tr>
+    <td><code>find</code></td>
+    <td>O(n)</td>
+    <td>Nájde znak alebo reťazec, vráti pozíciu, alebo <code>std::string::npos</code> (-1)</td>
+  </tr>
+  <tr>
+    <td><code>append</code></td>
+    <td>O(n+m)</td>
+    <td>Pridá na koniec znak, alebo celý reťazec</td>
+  </tr>
+  <tr>
+    <td><code>operator+=</code></td>
+    <td>O(n+m)</td>
+    <td>Alias pre <code>append</code></td>
+  </tr>
+  <tr>
+    <td><code>replace</code></td>
+    <td>O(n+m)</td>
+    <td>Nahradí podreťazec iným reťazcom</td>
+  </tr>
+</table>
+
+
+## Voľne stojace funkcie
+
+<table style="font-size: 70%;">
+  <tr>
+    <th>Funkcia</th>
+    <th>Zložitosť</th>
+    <th>Popis</th>
+  </tr>
+  <tr>
+    <td><code>operator+</code></td>
+    <td>O(n+m)</td>
+    <td>Konkatenácia dvoch stringov, vráti nový string</td>
+  </tr>
+  <tr>
+    <td><code>std::to_string</code></td>
+    <td>O(1)</td>
+    <td>Konverzia číselných typov na string</td>
+  </tr>
+</table>
+
+---
+
+## Hľadanie v reťazcoch
+
+```cpp
+auto str = std::string("Hello World!");
+size_t n = str.find("orl"); // 7
+n = str.find("ell", 4); // -1 std::string::npos, start at 4
+n = str.rfind("o", 10); // 7, reverse search start at 10 backwards
+n = str.rfind("ld", std::string::npos); // 9,  reverse search start at end backwards
+n = str.find_first_of("aeiou"); // 1
+n = str.find_last_not_of("el", 3); // 0, start at 3 and go backwards
+```
+
+* Existuje aj tretí parameter (`_Count`), ale správa sa čudne...
+
+```cpp
+str = "aaaabbbccd";
+n = str.find("bbb", 2, 2); // 4
+n = str.rfind("ccc", std::string::npos, 2); // 7?
+n = str.find_first_not_of("abcd", 0, 3); // 9?
+```
+
+* Count je vlastne veľkosť stringu, ktorý sa hladá
+
+---
+
+## Novinky v C++20
+
+* V C++20 stringu pribudli funkcia, ktoré sa doteraz nahradzovali custom kódom, alebo boostom
+
+```cpp
+auto str = std::string("This is C++20 string");
+bool b = str.starts_with("This"); // true
+b = str.ends_with("string."); // false
+//b = str.contains("is"); // true C++23 :) 
+```
+
+---
+
+## Pamäť stringu
+
+![vector insert overloads from cppreference.com](./lectures/3_scope_class/string_memory.png)
+
+---
+
+## `std::string` a C reťazce
+
+* Neexistuje spôsob ako iba priradiť C reťazec do stringu, vždy sa udeje kópia
+
+```cpp
+std::string s;
+s = "Null terminated"; // copy string
+```
+
+* Použiť string ako null terminated reťazec je jednoduché
+
+```cpp
+char c[100];
+strcpy_s(c, s.c_str()); // const char*
+strcat_s(c, s.data()); // char*
+```
+
+---
+
+## split
+
+```cpp
+std::string path = R"(C:\Windows\System32\drivers\etc)";
+ 
+std::vector<string> fragments;
+ 
+size_t start = 0;
+while (true) {
+    auto pos = path.find('\\', start);
+ 
+    auto length = pos == std::string::npos ? std::string::npos : pos - start;
+    fragments.push_back(path.substr(start, length));
+    if (pos == std::string::npos)
+        break;
+ 
+    start = pos + 1;
+}
+```
+
+* `substr` vždy vytvorí kópiu, to je v poriadku pre malé stringy (SSO), ale môže byť problém pre väčšie
+
+
+## join
+
+```cpp
+std::vector<std::string> fragments =
+{
+    "Hello", " ", "C++", "20"
+};
+ 
+std::string joined;
+for (const auto& i : fragments) {
+    if (!joined.empty())
+    {
+        joined += '|'; // or append(1, '|')
+    }
+ 
+    joined.append(i); // or += i
+}
+```
+
+* Nikdy nepoužívame s = s + a;, ale s += a;
+* Zamedzíme tým kopírovaniu
+
+---
+
+## `string` ako buffer
+
+```cpp
+std::string s(100, '\0');
+strcpy(s.data(), "This is C string");
+strcat(s.data(), " evan concatenation works!");
+
+std::cout << s.size() << '\n'; // 100
+
+s.resize(strlen(s.c_str())); // update the size
+
+std::cout << s.size() << '\n'; // 42
+```
+
+---
+
+# Predávanie parametrov do funkcií
+
+---
+
+## Predávanie hodnotou a smerníkom
+
+```cpp
+// by value, can be slow
+void f(std::string x) { }
+
+// just pointer, should we check for null?
+// callee can modify
+void g(std::string* x) { }
+
+// just pointer, should we check for null?
+// callee cannot modify
+void h(const std::string* x) { }
+```
+
+```cpp
+std::string s = "Test";
+f(s);
+g(&s);
+h(&s);
+```
+
+* Niektorí preferujú verziu so smerníkom, lebo to zanecháva stopu pri volaní, takmer nikto ale nepreferuje verziu s konštantným smerníkom, lepšie je ...
+
+
+## Predávanie cez referenciu
+
+```cpp
+// by value, can be slow
+void f(std::string x) { }
+
+// just pointer, should we check for null?
+// callee can modify
+void g(std::string& x) { }
+
+// just pointer, should we check for null?
+// callee cannot modify
+void h(const std::string& x) { }
+```
+
+```cpp
+std::string s = "Test";
+f(s);
+g(s);
+h(s);
+```
+
+* Volajúci nevidí rozdiel
+* Volaný sa nemusí strachovať o `nullptr`, aj prístup k premenným má ako `x.` a nie `x->`
+
+---
+
+## Usmernenia
+
+* Volanie hodnotou nemusí byť zle
+   * Hlavne pre typy bez konštruktorov do pár (desiatok) bajtov
+   * Ani inokedy nie je zlé, ale to už musíte čo to vedieť o C++, takže si to necháme na neskôr
+* Inak preferujte `const&`
+* Bez `const` iba ak potrebujete výstupný parameter, čo by ste veľmi nemali
+
+---
+
+# ĎAKUJEM
+
+## Otázky?
