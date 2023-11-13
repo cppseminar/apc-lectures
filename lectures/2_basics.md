@@ -952,7 +952,7 @@ char terminator = s[5];
 </div>
 <div style="flex: 2;">
   
-`first` má hodnotu `'A'`, `last` je `'E'` a `terminator` je `'\0`
+`first` má hodnotu `'A'`, `last` je `'E'` a `terminator` je `'\0'`
 </div>
 </div>
 
@@ -1119,7 +1119,7 @@ point p = { 7, 9 };
 </div>
     <div style="flex: 3;">
   
-Členské premenné štruktúry vieme priamo inicializovať pomocou `{}`. *aggredate initialization*
+Členské premenné štruktúry vieme priamo inicializovať pomocou `{}`. *aggregate initialization*
 </div>
   </li>
   <li style="display: flex;">
@@ -1657,13 +1657,13 @@ ptr[10]
 int a[10] = { 1 };
 int *ptr = a;
 int **ptrptr = &ptr;
-ptrptr[0][0] = 0;
+ptrptr[0][0] = 2;
 ```
 </div>
     <div style="flex: 3;">
 
 ```cpp
-**ptrptr == 1
+**ptrptr == 2
 ```
 
 Polia sa dajú implicitne konvertovať na smerníky. Vieme vyrobiť aj smerník na smerník.

@@ -920,6 +920,7 @@ buffer &operator=(buffer &&rhs) {
 
     free(ptr);
     size = rhs.size;
+    rhs.size = 0;
     ptr = rhs.ptr;
     rhs.ptr = nullptr;
     return *this;
@@ -941,7 +942,7 @@ buffer &operator=(buffer &&rhs) {
 
     free(ptr);
 
-    size = rhs.size;
+    size = std::exchange(rhs.size, 0);
     ptr = std::exchange(rhs.ptr, nullptr);
     return *this;
 }
@@ -1170,8 +1171,7 @@ struct S {
     S(S&& other) {
         s = std::move(other.s);
         i = other.i;
-        p = std::move(other.p);
-        free(other.p);
+        p = std::exchange(other.p, 0);
     }
 };
 ```
@@ -1227,9 +1227,9 @@ MyClass &operator=(MyClass &&rhs) {
 
 ## Je toto validná move implementácia?
 
-```cpp [7-8|]
-class A { /*implementation*/ };
-class B { /*implementation*/ };
+```cpp [|7-8]
+class A { /* implementation */ };
+class B { /* implementation */ };
  
 class C {
 public:
@@ -1247,7 +1247,6 @@ private:
   B b;
 };
 ```
-<!-- .element: class="showall" -->
 
 * Copy je validná implementácia move
 <!-- .element: class="fragment" -->
@@ -1284,9 +1283,9 @@ int main() {
 ## Štandardná knižnica a move
 
 * Move je všede v štandardnej knižnici
-* Vector sa snaží urbiť move, keď sa reallokuje
+* Vector sa snaží urobiť move, keď sa realokuje
 * `push_back` môže movnuť prvky do vectora
-* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dájú movnuť
+* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dajú movnuť
 * Veľa funkcionality funguje automaticky a tam kde sa robila kópia sa od C++11 začal robiť move
 * Stačilo prekompilovať novým kompilátorom a mali sme rýchlosť zadarmo
 
@@ -1358,11 +1357,11 @@ int main() {
 
 ## Return value optimization (RVO)
 
-* Standard comitee si uvedomovala, že C++ je o rýchlosti
+* Standard committee si uvedomovala, že C++ je o rýchlosti
 * Kopírovanie je ale veľmi drahé
 * Problém, je že funkcie môžu mať side effecty a preto nemôžu volanie kopírovaceho konštruktora len tak vypustiť
 * Alebo môžu? Čo ak zakážeme copy konštruktoru side effects<!-- .element: class="fragment" -->
-* Potom by sme mohli objek priamo skonštruovať kde má byť a kópiu vôbec nevolať<!-- .element: class="fragment" -->
+* Potom by sme mohli objekt priamo skonštruovať kde má byť a kópiu vôbec nevolať<!-- .element: class="fragment" -->
 
 
 ## Return value optimization (RVO)
