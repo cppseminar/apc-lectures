@@ -10,343 +10,9 @@
 
 * Ľahký úvod do C++
 * C vs. C++
+* História C++
 * Moderné C++
-
----
-
-# Náš prvý program
-
----
-
-## Čítanie čísel
-
-<ul>
-  <li>Musíme niekde začať, tak skúsme niečo jednoduché</li>
-  <li class="fragment">Úloha, naprogramujte aplikáciu, ktorá najprv načíta čísla zo vstupu (prázdny riadok bude koniec zadávania) a potom ich vypíše ich druhú mocninu usporiadanú podľa veľkosti</li>
-  <li class="fragment">Level prvý ročník stredná škola</li>
-</ul>
-
-
-### Pseudokód (Python)
-
-```py
-numbers = []
-while True:
-    num = input("")
-    if num == "":
-        break
-
-    number = int(num)
-    numbers.append(number)
-
-sorted_squares = sorted([num**2 for num in numbers])
-
-for square in sorted_squares:
-    print(square)
-```
-
----
-
-## Najprv C
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-
-int cmpfunc (const void * a, const void * b) {
-   return ( *(int*)a - *(int*)b );
-}
-
-int main() {
-    int arr[1024]; // will be enough for everyone
-    int n = 0;
-    while (scanf("%d", &arr[n]) > 0) {
-        ++n;
-    }
-    for (int i = 0; i < n; ++i) {
-        arr[i] *= arr[i];
-    }
-    qsort(arr, n, sizeof(int), cmpfunc);
-    for (int i = 0; i < n; ++i) {
-        printf("%d", arr[i]);
-    }
-}
-```
-
-
-## Problémy
-
-<ul>
-  <li>Nefunguje to 😉</li>
-  <li class="fragment" style="display: flex;">
-    <div style="flex: 2;">
-
-```c
-int n = 0;
-while (scanf("%d", &arr[n]) > 0) {
-    ++n;
-```
-</div>
-    <div style="flex: 3;">
-
-Prázdny string to neukončí, `scanf` totiž čaká na aspoň jeden nonwhitespace znak aby z neho naformátoval číslo.
-    </div>
-  </li>
-  <li class="fragment" style="display: flex;">
-    <div style="flex: 2;">
-
-```c
-int main() {
-    int arr[1024];
-    int n = 0;
-```
-</div>
-    <div style="flex: 3;">
-      Takýto veľký buffer určite nebude stačiť, vystavuje sa tým bezpečnostným problémom (buffer overflow).
-    </div>
-  </li>
-</ul>
-
----
-
-## Použijeme `malloc`
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-
-int cmpfunc (const void * a, const void * b) {
-   return ( *(int*)a - *(int*)b );
-}
-
-int main() {
-    int cap = 1024;
-    int* arr = (int*)malloc(cap * sizeof(int));
-    int n = 0;
-    char buf[128];
-    while (scanf("%s", buf) > 0) {
-        if (buf[0] == 0)
-            break;
-        arr[n] = atoi(buf);
-        ++n;
-        if (n == cap) {
-            cap += 1024;
-            arr = (int*)realloc(arr, cap * sizeof(int));
-        }
-    }
-    for (int i = 0; i < n; ++i) {
-        arr[i] *= arr[i];
-    }
-    qsort(arr, n, sizeof(int), cmpfunc);
-    for (int i = 0; i < n; ++i) {
-        printf("%d", arr[i]);
-    }
-}
-```
-
-
-## Problémy
-
-<ul>
-  <li>Stále to nefunguje 😎</li>
-  <li class="fragment" style="display: flex;">
-<div style="flex: 2;">
-
-```cpp [2]
-char buf[128];
-while (scanf("%s", buf) > 0) {
-    if (buf[0] == 0)
-```
-</div>
-    <div style="flex: 3;">
-
-Prázdny string to neukončí, `scanf` totiž čaká na aspoň jeden nonwhitespace znak ak aj chceme `%s`.
-</div>
-  </li>
-  <li class="fragment" style="display: flex;">
-<div style="flex: 2;">
-
-```cpp [2]
-int n = 0;
-char buf[128];
-while (scanf("%s", buf) > 0) {
-```
-</div>
-    <div style="flex: 3;">
-      Ak by to aj šlo, máme to ďalší fixný buffer.
-    </div>
-  </li>
-  <li class="fragment" style="display: flex;">
-<div style="flex: 2;">
-
-```cpp [2]
-   break;
-arr[n] = atoi(buf);
-++n;
-```
-</div>
-    <div style="flex: 3;">
-      <code>atoi</code> môže zlyhať.
-    </div>
-  </li>
-  <li class="fragment" style="display: flex;">
-<div style="flex: 2;">
-
-```cpp [2]
-    cap += 1024;
-    arr = (int*)realloc(arr, cap);
-}
-```
-</div>
-    <div style="flex: 3;">
-
-`realloc` nepoužívame dobre, tiež môže zlyhať.
-    </div>
-  </li>
-  <li class="fragment">
-    Zaćína to byť dosť komplikované a labilné.
-  </li>
-</ul>
-
----
-
-## Chat-GPT
-
-```c [|6|10|15|2,4]
-int main() {
-    int numbers[100];
-    int count = 0;
-    char input[100];
-        
-    while (fgets(input, sizeof(input), stdin) != NULL) {
-        if (input[0] == '\n')
-            break;
-        
-        numbers[count] = atoi(input);
-        count++;
-    }
-    
-    for (int i = 0; i < count; i++) {
-        numbers[i] = pow(numbers[i], 2);
-    }
-    
-    qsort(numbers, count, sizeof(int), compare);
-    
-    for (int i = 0; i < count; i++) {
-        printf("%d\n", numbers[i]);
-    }
-    
-    return 0;
-}
-```
-
-* `include`, funkcia `compare` a komentáre vynechané kvôli prehľadnosti
-
-note: `fgets` číta po koniec riadku, nie je to ale OK, lebo ak tam niekto napráska viacej cifier ako 100, tak už nie sme podľa zadania.
-
----
-
-## C++ cca rok 1999
-
-```cpp
-#include <string>
-#include <iostream>
-#include <vector>
-#include <algorithm>
-
-int main() {
-    std::vector<int> arr;
-    std::string buf;
-
-    while (std::getline(std::cin, buf)) {
-        if (buf == "")
-            break;
-        arr.push_back(std::stoi(buf));
-    }
-
-    for (std::vector<int>::iterator it = arr.begin(); it != arr.end(); ++it) {
-        *it *= *it;
-    }
-
-    std::sort(arr.begin(), arr.end());
-    for (std::vector<int>::iterator it = arr.begin(); it != arr.end(); ++it) {
-        std::cout << *it << ' ';
-    }
-}
-```
-
-
-* Dáta ukladáme do dynamického poľa (`std::vector`)
-* Ako buffer na čítanie vstupu použijeme `std::string`
-* Keďže používamé `std::sort` nemusime programovať porovnávaciu funkciu
-* Na výpis používame `std::cout`
-
----
-
-## C++ cca rok 2012
-
-```cpp
-#include <string>
-#include <iostream>
-#include <vector>
-#include <algorithm>
-
-int main() {
-    std::vector<int> arr;
-
-    std::string buf;
-    while (std::getline(std::cin, buf)) {
-        if (buf == "")
-            break;
-
-        arr.push_back(std::stoi(buf));
-    }
-
-    for (auto& i : arr) {
-        i *= i;
-    }
-
-    std::sort(std::begin(arr), std::end(arr));
-    for (auto& i : arr) {
-        std::cout << i << ' ';
-    }
-}
-```
-
----
-
-## C++ cca rok 2022
-
-```cpp
-import <iostream>;
-import <vector>;
-import <string>;
-import <algorithm>;
-
-int main() {
-    std::vector<int> numbers;
-    std::string input;
-    
-    while (std::getline(std::cin, input) && !input.empty()) {
-        numbers.push_back(std::stoi(input));
-    }
-
-    std::ranges::transform(numbers, numbers.begin(), [](int number) { return number * number; });
-
-    std::ranges::sort(numbers);
-
-    for (int number : numbers) {
-        std::cout << number << std::endl;
-    }
-}
-```
-
-
-## Problémy
-
-* Pre úspešné skompilovanie treba pridať rôzne experimental prepínače
-* Na MSVC je potrebné zapnúť podporu modulov a generovanie header unitov
-* Aj 3 roky po oficiálnom zapracovaní modulov do štandardu je to bieda 😢
+* Budúcnosť C++
 
 ---
 
@@ -388,7 +54,7 @@ int main() {
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
 
-* C++ sa na začiatku volalo C with classes
+* C++ sa v počiatkoch volalo C with classes
 * Sú to ale dva dosť rozdielne jazyky, ktoré majú vlastné
     * štandardy
     * komunitu
@@ -407,7 +73,7 @@ int main() {
 ## C++ je plné metaprogramovania 
 
 * Je pravda, že C++ používalo metaprogramovanie pomocou templatov
-* Kedysi bolo dosť dôležité poznať tieto triky, neboli iné štandardizované konštrukcie
+* Kedysi bolo dosť dôležité poznať tieto triky, neboli iné štandardizované spôsoby
 * Dnes sa bežné programy obíjdu bez týchto konštrukcií
 * Samozrejme metaprogramovanie má svoje miesto
     * micro optimalizácie
@@ -441,8 +107,6 @@ int main() {
 * V 1979 *Bjarne Stroustrup* začal pracovať na C s triedami
 * V 1983 jazyk premenoval na C++ a pridal virtuálne funkcie, preťažovanie operátorov a veľa ďalšieho
 * Prvý veľký ISO štandard bol C++98/03
-* Major update v 2011 C++11, pridané type inference, lambdy, rval references
-* Ďalšie revízie C++14, C++17, C++20, C++23
 * <https://isocpp.org/>
 </div>
 <div style="flex: 3;">
@@ -450,6 +114,46 @@ int main() {
 <img src="./lectures/1_intro/bjarne.png" alt="Bjarne Stroustrup" width="100%" />
 </div>
 </div>
+
+
+### C++11
+
+* **Lambda funkcie** – Umožňujú definovať anonymné funkcie priamo v kóde.
+* **Rvalue referencie** a Move semantika – Optimalizuje kopírovanie a presuny objektov.
+* `auto` – Automatická dedukcia typu premenných.
+* **range-based for loop** – Jednoduchší zápis cyklov pre kontajnery.
+* `std::unique_ptr` a `std::shared_ptr` – Inteligentné ukazovatele na správu pamäte.
+* `constexpr` – Umožňuje výpočty počas kompillácie, nie za behu programu.
+* `std::thread` – Natívna podpora pre viacvláknové programovanie.
+
+
+### C++14
+
+* Bugfix C++11
+* C++14 zjednodušil, zjednotil a optimalizoval použitie C++11 koncepcií.
+* **Generické lambda funkcie** 
+
+
+### C++17
+
+* `std::optional` – Pre bezpečnú prácu s hodnotami, ktoré môžu byť neplatné.
+* `std::variant` – Typovo bezpečná alternatíva k unionom pre rôzne typy hodnôt.
+* `std::any` – Umožňuje uložiť ľubovoľný typ do jedného kontajnera.
+* **Structured bindings** – Umožňuje jednoduché rozbalenie štruktúrnych dát do viacerých premenných.
+* **Filesystem knižnica** – Podpora pre prácu so súborovým systémom.
+* **Polymorfné alokátory** – Flexibilný a efektívny mechanizmus na správu pamäte, ktorý je nezávislý od konkrétneho alokátora.
+* **Paralelné algoritmy** – Priamo v algoritmoch zo štandardnej knižnice.
+
+
+### C++20
+
+* **Koncepty (Concepts)** – Umožňujú špecificky obmedziť typy v šablónach.
+* **Ranges** – Nová knižnica na prácu s rozsahmi dát (array, vector, ...).
+* **Korutiny (Coroutines)** – Podpora pre asynchrónne operácie a sekvencie.
+* **Moduly** – Zlepšujú kompiláciu a organizáciu kódu.
+* `std::span` – Nevlastniace zobrazenie na sekvencie dát.
+* **three-way comparison (<=>)** – Automatizuje definovanie porovnávanie.
+* `std::format` – Nová formátovacie knižnica.
 
 ---
 
@@ -665,7 +369,6 @@ float Q_rsqrt(float number)
     return y;
 }
 ```
-<!-- .element: class="showall" -->
 
 
 ### Aký je výsledok nasledujúceho programu?
@@ -964,7 +667,7 @@ char macro[1024];
 </div>
 
 
-### C++ používa primitíva, ktorá samy spravujú pamäť
+### C++ používa primitíva, ktoré samy spravujú pamäť
 
 * `std::string` je objekt zodpovedný za reprezentáciu jedného reťazca, stará sa o inteligentnú správu pamäte a schováva implementačné detaily
 * `std::vector`, `std::map`, `std::list` – kontajnery 
@@ -1002,6 +705,247 @@ strcat_s(file_name, file_name_len, ".txt");
 std::string name = "example";
 std::string file_name = name + ".txt";
 ```
+
+---
+
+# Budúcnosť
+
+---
+
+## Vývoj C++
+
+* Aktuálne je nastavený model, každé tri roky nová verzia
+* Do C++ sa hlavne pridáva, odoberanie je s ohľadom na obrovské codebase problematické
+* Kompilátory sú ale občas pozadu
+
+---
+
+## Iné jazyky
+
+* C++ je veľmi starý programovací jazyk
+* Pokusom o nahradenie bolo a je viacero
+* **D** bol myslený ako priamy nástupca, aktuálne je popularita veľmi nízka
+* **Go** je viacej high level (má napríklad garbage collector) jazyk postavený okolo goroutines, s príchodom cloudu sa začal použivať vo väčšej miere
+* **Rust** NIST odporúča C a C++ nepoužívať v kritických systémoch, veľmi ľahko sa dá urobiť nepovolená pamäťová operácia, ako jednu z náhrad odporúčil Rust. Výhodou je v celku unikátny model vlastníctva pamäte, ktorý umožnuje mať bezpečnú aplikáciu aj bez garbagge collectoru.
+
+---
+
+## C++2 (Syntax 2)
+
+* Expiriment od [Herba Suttera](https://github.com/hsutter/cppfront)
+* Nová C++ syntax, ktorá zjednodušuje a odstraňuje nebezpečné konštrukcie (resp. ich robí explicitnými)
+* "Kompilátor" preloží súbor, kde sa nachádza aj pôvodná syntax aj nová do pôvodnej
+
+```cpp
+#include <iostream>                             // Cpp1
+#include <string_view>                          // Cpp1
+
+N: namespace = {                                        // Cpp2
+    hello: (msg: std::string_view) =                    // Cpp2
+        std::cout << "Hello, (msg)$!\n";                // Cpp2
+}                                                       // Cpp2
+
+int main() {                                    // Cpp1
+    auto words = std::vector{ "Alice", "Bob" }; // Cpp1
+    N::hello( words[0] );                       // Cpp1
+    N::hello( words[1] );                       // Cpp1
+    std::cout << "... and goodnight\n";         // Cpp1
+}
+```
+
+---
+
+## Carbon
+
+* Nový programovací jazyk od [Chadlera Carrutha](https://github.com/chandlerc) z Google
+* Ako C++ je v podstate kompatibilné s C, tak Carbon chce byť kompatibilný s C++
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
+```c++
+// C++ code used in both Carbon and C++:
+#include <stdfloat>
+
+struct Circle {
+  std::float32_t r;
+};
+
+// Carbon exposing a function for C++:
+package Geometry;
+import Cpp library "circle.h";
+import Math;
+
+fn PrintTotalArea(circles: [Cpp.Circle]) {
+  var area: f32 = 0;
+  for (c: Cpp.Circle in circles) {
+    area += Math.Pi * c.r * c.r;
+  }
+  Print("Total area: {0}", area);
+}
+```
+</div>
+<div style="flex: 1;">
+
+```c++
+// C++ calling Carbon:
+#include <vector>
+#include "circle.h"
+#include "geometry.carbon.h"
+
+auto main() -> int {
+  std::vector<Circle> circles = {{1.0}, {2.0}};
+  // A Carbon slice supports implicit construction
+  // from `std::vector`, similar to `std::span`.
+  Geometry::PrintTotalArea(circles);
+  return 0;
+}
+```
+</div>
+</div>
+
+---
+
+# LLMs
+
+---
+
+## Náhodné číslo
+
+> C99 , máme len funkciu rand, ako urobiť aby sme  dostali číslo od 0 do 99 vrátane. 
+
+
+### Výsledok
+
+```c [|5]
+// Inicializácia generátora náhodných čísel
+srand(time(NULL)); // Inicializácia so súčasným časom
+
+// Generovanie náhodného čísla v rozsahu 0 až 99
+int random_number = rand() % 100; // Získa číslo od 0 do 99
+
+// Výpis náhodného čísla
+printf("Náhodné číslo: %d\n", random_number);
+```
+
+
+### ...pokračovanie konverzácie
+
+> Je to bezpečné? 
+
+
+### Výsledok
+
+```c [|7]
+srand(time(NULL));
+
+// Generate random number until it falls within the desired range
+int random_number;
+do {
+    random_number = rand();
+} while (random_number >= RAND_MAX - (RAND_MAX % 100));
+
+random_number %= 100;
+
+printf("Random number: %d\n", random_number);
+```
+
+note: RAND_MAX teoreticky môže byť 32, alebo podobné malé číslo. 
+
+
+### To isté v C++
+
+> C++20, máme len standardnú knižnicu, ako urobiť aby sme dostali náhodné číslo od 0 do 99 vrátane. 
+
+```cpp
+// Inicializácia generátora náhodných čísel
+std::random_device rd;  // Získanie náhodného zariadenia
+std::mt19937 gen(rd());  // Inicializácia generátora Mersenne Twister
+std::uniform_int_distribution<> dis(0, 99);  // Rozdelenie na celé čísla od 0 do 99
+
+// Generovanie náhodného čísla
+int random_number = dis(gen);
+```
+
+---
+
+## Čítanie `int` zo stdin
+
+> C99, napíš funkciu, ktorá nemá žiadne parametre a vráti uint32_t, ktorý prečíta zo stdin. 
+
+
+### Výsledok
+
+```c
+uint32_t number;
+// Prečítaj číslo zo stdin
+if (scanf("%u", &number) != 1) {
+    // Ak sa nepodarí prečítať číslo, vráť 0 alebo môžeš spracovať chybu iným spôsobom
+    fprintf(stderr, "Chyba pri čítaní čísla.\n");
+    return 0; // Alebo iná hodnota indikujúca chybu
+}
+return number;
+```
+
+note: scanf pri overflow je undefined
+
+
+### ...pokračovanie konverzácie
+
+> Je to bezpečné? 
+
+
+### Výsledok
+
+```c [|1|11]
+char buffer[32]; // Buffer na načítanie vstupu
+uint32_t number;
+
+// Prečítaj riadok zo stdin
+if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+    // Pokús sa previesť reťazec na číslo
+    char *endptr;
+    number = strtoul(buffer, &endptr, 10); // Prevedenie na unsigned long
+
+    // Over, či sme prečítali celé číslo a či nie je pretečené
+    if (endptr == buffer || *endptr != '\n' || number > UINT32_MAX) {
+        fprintf(stderr, "Chyba: Neplatný vstup.\n");
+        return 0; // Alebo iná hodnota indikujúca chybu
+    }
+    return number;
+} else {
+    fprintf(stderr, "Chyba pri čítaní vstupu.\n");
+    return 0; // Alebo iná hodnota indikujúca chybu
+}
+```
+
+note: buffer malý, nekontroluje sa, či sme načítali celý riadok, number > UINT32_MAX nikdy nenastane.
+
+
+### To isté v C++
+
+> C++20, napíš funkciu, ktorá nemá žiadne parametre a vráti uint32_t, ktorý prečíta zo stdin. 
+
+```cpp [|11-13]
+uint32_t value;
+std::cout << "Zadajte nezáporné celé číslo (uint32_t): ";
+while (true) {
+    std::cin >> value;
+
+    // Skontrolujeme, či bol vstup úspešný a či je hodnota v platnom rozsahu
+    if (std::cin.good()) {
+        break; // Vstup bol úspešný
+    }
+    else {
+        std::cin.clear(); // Obnovíme stav cin
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignorujeme zlý vstup
+        std::cout << "Neplatný vstup. Skúste to znova: ";
+    }
+}
+return value;
+```
+
+note: cin si okontroluje overflow
 
 ---
 
