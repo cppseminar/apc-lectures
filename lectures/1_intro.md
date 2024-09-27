@@ -1,6 +1,6 @@
 # C++
 
-## Úvod do predmetu
+## Úvod
 
 *Peter Koscelanský <cpp@eset.sk>* <!-- .element: class="author" -->
 
