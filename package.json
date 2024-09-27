@@ -6,7 +6,7 @@
   "scripts": {
     "build": "marp ./public/bonus/coroutines/coroutines.md --html && webpack",
     "start": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && serve ./public",
-    "deploy": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && gh-pages -d public"
+    "deploy": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && gh-pages -d public --dotfiles"
   },
   "author": "",
   "license": "MIT",
