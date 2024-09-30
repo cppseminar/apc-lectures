@@ -86,6 +86,15 @@ Systémový hlavičkový súbor.
 </div>
 </div>
 
+
+## `import`
+
+* Z iných jazykov ste možno zvyknutý zvyknutí na `import`, `using` alebo `require`
+* Tieto sa celkom podobajú na `#include`, ale sú zásadne iné (`#include` je preprocesorový príkaz, ktorý vloží obsah súboru do zdrojového kódu)
+* V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
+* Použivajú kľúčové slovo `import` a `export`
+* Bohužial nie sú ešte dostupné vo všetkých kompilátoroch a je to také experimentálne
+
 ---
 
 ## Namespace `std::`
@@ -147,6 +156,19 @@ Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne po
 
 ---
 
+## Typy
+
+* C++ je staticky typovaný jazyk (podobne ako C)
+* Preto pred prvým použitím premennej musíme definovať jej typ
+* Deklarácie typu sú podbne ako v C
+* Syntax je `typ` `názov` `= hodnota` `;`, kde `hodnota` je voliteľná
+
+```cpp
+int i; // signed integer uninitialized (0 or undefined)
+```
+
+---
+
 ## Primitívne typy
 
 * Všetky typy z jazyka C sú podporované
@@ -171,6 +193,7 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 * `long` je na niektorej platforme 32bit a na inej 64bit, podobne aj `size_t`
 * Riešia to typy definované v súbor `#include <cstdint>`
 * Nemusia byť definované na všetkých platformách (`CHAR_BITS == 8`)
+* Odporúčame zvyknúť si skoro vždy používať tieto typy
 
 ```cpp
 int8_t i8 = 127;
@@ -203,7 +226,7 @@ std::cout << sizeof(double) << '\n'; // 8
 </div>
 <div style="flex: 1;">
 
-Na MS Windows Visual Studio.  `long` je 8 na gcc.
+Na MS Windows Visual Studio. `long` je 8 na gcc.
 </div>
 
 ---
@@ -412,14 +435,14 @@ auto* = &i;
 
 ```cpp
 float f = 1.23;
-float g = f - 1;
+float g = 0;
 ```
 </div>
 <div style="flex: 1;">
 
 ```cpp
 auto f = 1.23f;
-decltype(f) g = f - 1;
+decltype(f) g = 0;
 ```
 </div>
 </div>
