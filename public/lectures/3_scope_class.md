@@ -8,117 +8,13 @@
 
 ## Obsah
 
-* Konštanty
 * Scope
 * Triedy a objekty
 * Životnosť premenných
+* Konštanty
 * Základné objekty zo štandardnej knižnice
    * `std::vector`
    * `std::string`
-
----
-
-# Konštanty
-
----
-
-## Konštanty
-
-* Z istého pohľadu programovanie je o udržiavaný invariantov a konštantnosť hodnôt a premenných môže pri tom veľmi pomôcť
-* Konštantné dáta môžu byť pristupované z viacerých vlákien bez obavy o nedefinované správanie (data race)
-* V C++ existuje viacero spôsobov ako definovať koncept konštanty 
-   * `const`
-   * `constexpr`
-   * `#define`
-   * `enum`
-
----
-
-## `#define`
-
-* Preprocesorové makrá môžu byť použité ako konštanty
-* Makrá sú expandované ešte pred samotnou kompiláciou, fungujú preto mimo typového systému v podstate iba textovo 
-* Číselné konštanty sa lepšie vyjadrujú pomocou `constexpr`, alebo `enum`-u
-* Občas užitočné pri reťazcoch 
-   * Zreťazovanie (concatenation) počas kompilácie
-
-```cpp
-#define DIRECTORY "C:"
-#define FILENAME "log.txt"
-#define SEPARATOR "\\"
-#define PATH DIRECTORY SEPARATOR FILENAME
- 
-void main() {
-  std::cout << PATH << std::endl; // "C:\log.txt"
-}
-
-```
-
----
-
-## `constexpr`
-
-* Konštanty počas kompilácie
-* Užitočné ak potrebujeme *compile time constant* (napríklad veľkosť pola)
-* V niektorých kontextoch `constexpr` implikuje `const`
-
-```cpp
-const int compute_size_1(int a) { return 2 * a*a; }
-constexpr int compute_size_2(int a) { return 2 * a*a; }
- 
-int main() {
-  int x[compute_size_1(7)]; // error
-
-  int y[compute_size_2(7)]; // OK
-}
-```
-
----
-
-## `const`
-
-* `const` znamená, že "objekt" sa nesmie meniť
-* Dá sa obísť pomocou `const_cast`-u
-* PROTIP: Nikdy nezahadzujte z objektov const
-* Užitočné pri referenciách a smerníkoch (hlavne pri parametroch do funkcií)
-
-```cpp
-const int f(int a, const int& b, int& c) {
-  int i = 1;
-  const int j = 2;
-  i = j;
-  // j = i; // will not compile
-  return i;
-}
-```
-
-```cpp
-void g() {
-  int a = 3;
-  // it is OK, that f return const int
-  // it will be copied, so no problem
-  int i = f(1, 2, a); 
-}
-```
-
-
-### `const` a globálne objekty
-
-* Globálne premenné sú vždy inicializované na `0` (*zero initialized*)
-* Výnimkou sú `const` objekty, ktoré musia byť inicializované hodnotou
-* Väčšinou sú umiestnené do pamäti iba na čítanie a preto pokus o zápis spôsobí access violation
-
-```cpp
-int v;
-const int c = 1;
- 
-void main() {
-  std::cout << v << " " << c << std::endl; // 0 1
-  
-  //c = 2; // will not compile
-  *const_cast<int*>(&c) = 4; // will compile
-}
-```
 
 ---
 
@@ -172,7 +68,8 @@ void f() {
 
 ## Scope
 
-* Scope je abstraktný koncept definovaný v štandarde, ale v princípe je to všetko ohraničené `{}`
+* Scope je abstraktný koncept definovaný v štandarde
+* Veľmi zhruba je to všetko ohraničené `{}`
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 6;">
@@ -200,11 +97,52 @@ void f() {
 ![Scopes diagram](./lectures/3_scope_class/scopes.png)
 </div>
 
+
+## Globálny scope
+
+* Globálny scope zahŕňa celý program
+* Všetko, čo nie je v žiadnom inom scope je v globálnom scope
+
+```cpp
+int i = 0; // in global scope
+
+int main() { // in global scope
+    int j = 0; // in scope of function main
+}
+```
+
+
+## Uzatvárajúci scope
+
+* Angl. *enclosing scope*
+* Majmenší uzatvárajúci scope, ktorý obsahuje daný daný bod programu sa nazýva *immendiate scope*
+
+```cpp
+int a = 0;
+{ // X
+  int b = 0;
+  { // Y
+    int c = 0;
+  }
+}
+```
+
+* Pre deklaráciu `c` je uzatvárajúci scope `Y`, `X` aj globálny scope, immendiate scope je `Y`
+* Pre deklaráciu `b` je uzatvárajúci scope `X`, globálny scope, immendiate scope je `X`
+* Pre deklaráciu `a` je uzatvárajúci scope globálny scope, immendiate scope je tiež globálny scope
+
+
+## Viazanie
+
+* Každá deklarácia žije vo svojom immendiate scope, tento sa nazýva aj cieľový (angl. *target*) scope
+* Všetky premenné (mená), ktoré deklarácia zavádza sú viazané na tento scope
+
 ---
 
 ## Viditeľnosť
 
-* Premenné sú viazané na scope, v ktorom boli deklarované, každý vnorený scope deklarovaný neskôr môže tiež túto premennú používať 
+* Premenné sú viazané na scope, v ktorom boli deklarované
+* Každý vnorený scope deklarovaný neskôr môže tiež túto premennú používať 
 * Kompilátor to vynucuje 
 * Pravidlo sme už spomínali **Vždy deklarujte premenné v najvnorenejšom scope ako sa dá.**
 
@@ -271,6 +209,8 @@ while (true) {
 * Pri tomto nekonečnom cykle si môžeme vybrať, oba spôsoby sú v poriadku
 </div>
 
+note: nekonečný cyklus je inak viacmenej undefined
+
 ---
 
 # Objektovo orientované programovanie
@@ -317,7 +257,7 @@ private: // modifikator pristupu
 
 ```cpp
 widget::widget(const char* s)
-    : data(10) // inicializacny list v konstruktor
+    : data(10) // inicializacny list v konstruktore
     , str(s) {
 }
  
@@ -412,8 +352,8 @@ private:
 };
 ```
 
-* Nejednoznačnosť je vyriešená explicitným použitím this smerníka.
-* Konštantné funkcie majú konštantný this smerník, preto nevedia meniť členské premenné.
+* Nejednoznačnosť je vyriešená explicitným použitím `this` smerníka.
+* Konštantné funkcie majú konštantný `this` smerník, preto nevedia meniť členské premenné.
 
 ---
 
@@ -449,7 +389,7 @@ private:
 ## `const std::string&`?
 
 * Na predchádzajúcom slide je uvedená konštantná referencia na štandardný `string`
-* Zatiaľ nás nemusí trápiť, čo to presne je, iba si môžete zapamäť, že ak do funkcie dávam std::string (resp. akýkoľvek zložitý objekt), tak ho predám ako `const&`, kód bude výrazne rýchlejší
+* Zatiaľ nás nemusí trápiť, čo to presne je, iba si môžete zapamäť, že ak do funkcie dávam `std::string` (resp. akýkoľvek zložitý objekt), tak ho predám ako `const&`, kód bude výrazne rýchlejší
 * Nemusí sa kopírovať celý objekt
 
 <div class="fragment" style="display: flex; align-items: center;">
@@ -745,6 +685,142 @@ private:
 
 ---
 
+# Konštanty
+
+---
+
+## Konštanty
+
+* Z istého pohľadu programovanie je o udržiavaný invariantov a konštantnosť hodnôt a premenných môže pri tom veľmi pomôcť
+* Konštantné dáta môžu byť pristupované z viacerých vlákien bez obavy o nedefinované správanie (data race)
+* V C++ existuje viacero spôsobov ako definovať koncept konštanty 
+   * `const`
+   * `constexpr`
+   * `#define`
+   * `enum`
+
+---
+
+## `#define`
+
+* Preprocesorové makrá môžu byť použité ako konštanty
+* Makrá sú expandované ešte pred samotnou kompiláciou, fungujú preto mimo typového systému v podstate iba textovo 
+* Číselné konštanty sa lepšie vyjadrujú pomocou `const`, alebo `enum`-u
+* Občas užitočné pri reťazcoch 
+   * Zreťazovanie (concatenation) počas kompilácie
+
+```cpp
+#define DIRECTORY "C:"
+#define FILENAME "log.txt"
+#define SEPARATOR "\\"
+#define PATH DIRECTORY SEPARATOR FILENAME
+ 
+void main() {
+  std::cout << PATH << std::endl; // "C:\log.txt"
+}
+
+```
+
+---
+
+## `const`
+
+* `const` znamená, že "objekt" sa nesmie meniť
+* Dá sa obísť pomocou `const_cast`-u
+* PROTIP: Nikdy nezahadzujte z objektov const
+* Užitočné pri referenciách a smerníkoch (hlavne pri parametroch do funkcií)
+
+```cpp
+const int f(int a, const int& b, int& c) {
+  int i = 1;
+  const int j = 2;
+  i = j;
+  // j = i; // will not compile
+  return i;
+}
+```
+
+```cpp
+void g() {
+  int a = 3;
+  // it is OK, that f return const int
+  // it will be copied, so no problem
+  int i = f(1, 2, a); 
+}
+```
+
+
+### `const` a globálne objekty
+
+* Globálne premenné sú vždy inicializované na `0` (*zero initialized*)
+* Výnimkou sú `const` objekty, ktoré musia byť inicializované hodnotou
+* Väčšinou sú umiestnené do pamäti iba na čítanie a preto pokus o zápis spôsobí access violation
+
+```cpp
+int v;
+const int c = 1;
+ 
+void main() {
+  std::cout << v << " " << c << std::endl; // 0 1
+  
+  //c = 2; // will not compile
+  *const_cast<int*>(&c) = 4; // will compile
+}
+```
+
+---
+
+## `constexpr`
+
+* Konštanty počas kompilácie
+* Užitočné ak potrebujeme *compile time constant* (napríklad veľkosť pola)
+* Vo väčšine kontextoch `constexpr` implikuje `const`
+
+```cpp
+	constexpr size_t a = 10;
+	const size_t b = 10;
+
+	//constexpr std::string s; // error
+	const std::string;
+```
+
+
+## `constexpr` funkcie
+
+* `constexpr` funkcie sú funkcie, ktoré môžu byť vyhodnotené počas kompilácie
+* V C++11 boli veľmi obmedzené, iba jeden return statement a iba niektoré operácie
+* V C++14 sa to značne zlepšilo a stále sa to rozširuje
+
+```cpp
+constexpr size_t factorial(size_t n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}
+
+constexpr size_t f = factorial(5); // 120
+
+int x[f]; // OK
+int y[factorial(5)]; // OK
+```
+
+
+## `constexpr` funkcie v ne `constexpr` kontexte
+
+* `constexpr` funkcie môžu byť volané aj s runtime hodnotami
+
+```cpp
+int main() {
+  size_t x;
+  std::cin >> x;
+
+  std::cout << factorial(x) << '\n'; // OK
+  // int x[factorial(x)]; // error
+}
+```
+
+note: Máme urobiť všetky funkcie `constexpr`? Asi nie, ale... podobne ako urobiť všetko `const`...
+
+---
+
 # Štandardná knižnica
 
 ---
@@ -882,6 +958,7 @@ vec[200] = 0; // undefined
 ## Preťažovanie funkcií
 
 ![vector insert overloads from cppreference.com](./lectures/3_scope_class/insert_overload.png)
+<!-- .element: class="stretch" -->
 
 * Môžu existovať funkcie s rovnakým názvom, ale rôznymi parametrami
 * Kompilátor potom vyberie správnu na základe parametrov volania
@@ -1001,7 +1078,8 @@ Nikdy by to ani neskončilo a navyše to spôsobí nedefinované správanie.
 
 ## Pamäť vectora
 
-![vector insert overloads from cppreference.com](./lectures/3_scope_class/vector_memory.png)
+![Memory layout of vector](./lectures/3_scope_class/vector_memory.png)
+<!-- .element: class="stretch" -->
 
 ---
 
@@ -1104,6 +1182,7 @@ n = str.find_first_not_of("abcd", 0, 3); // 9?
 ```
 
 * Count je vlastne veľkosť stringu, ktorý sa hladá
+<!-- .element: class="fragment" -->
 
 ---
 
@@ -1122,7 +1201,8 @@ b = str.ends_with("string."); // false
 
 ## Pamäť stringu
 
-![vector insert overloads from cppreference.com](./lectures/3_scope_class/string_memory.png)
+![string memory layout MSVC with SSO](./lectures/3_scope_class/string_memory.png)
+<!-- .element: class="stretch" -->
 
 ---
 
@@ -1197,13 +1277,28 @@ for (const auto& i : fragments) {
 ```cpp
 std::string s(100, '\0');
 strcpy(s.data(), "This is C string");
-strcat(s.data(), " evan concatenation works!");
+strcat(s.data(), " even concatenation works!");
 
 std::cout << s.size() << '\n'; // 100
 
 s.resize(strlen(s.c_str())); // update the size
 
 std::cout << s.size() << '\n'; // 42
+```
+
+
+## `resize_and_overwrite`
+
+* C++23 pridáva funkciu, ktorá využívanie bufferu stringu v C štýle ešte viac "zjednoduší" a hlavne urobí bezpečnejšie
+
+```cpp
+std::string s;
+s.resize_and_overwrite(100, [](char* buf, std::size_t buf_size) {
+    strcpy(buf, "This is C string");
+    strcat(buf, " even concatenation works!");
+
+    return strlen(buf);
+});
 ```
 
 ---
