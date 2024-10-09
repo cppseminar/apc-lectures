@@ -772,17 +772,51 @@ void main() {
 
 ## `constexpr`
 
-* Konštanty počas kompilácie
-* Užitočné ak potrebujeme *compile time constant* (napríklad veľkosť pola)
-* Vo väčšine kontextoch `constexpr` implikuje `const`
+* Idea `constexpr` bola, že umožníme kompilátoru vyhodnotiť niektoré výrazy počas kompilácie
+   * Vieme získať *compile time constant*, ktorú vieme napríklad použiť ako veľkosť pola
+   * Nemusíme hodnoty predpočítavať ručne, ale môžeme to nechať na kompilátor
+   * Kedysi sa na to používali šablóny, ale to bolo veľmi nepraktické a neprehľadné
+* Vo novších verziách C++ sa `constexpr` rozširovalo a odstraňovali sa obmedzenia
 
 ```cpp
-	constexpr size_t a = 10;
-	const size_t b = 10;
-
-	//constexpr std::string s; // error
-	const std::string;
+constexpr size_t a = 10;
 ```
+
+
+## `constexpr` a `const`
+
+* Pri deklaráciach premenných `constexpr` implikuje `const`
+* Nasledujúce dva zápisy sú ekvivalentné
+
+```cpp
+constexpr size_t a = 10;
+constexpr const size_t a = 10;
+```
+
+* Pozor pri smerníkoch a referenciách, `constexpr` sa nevzťahuje na hodnotu, ale na samotný objekt
+* Získať adresu na premennú sa podarí v `constexpr` len ak je to globálna premenná, inak to bude chyba kompilácie
+* Adresa sa počas kompilácie nedá zistiť pre objekty, na stacku, alebo heape
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
+
+```cpp
+int a;
+
+constexpr int* p = &a; // OK
+```
+</div>
+<div style="flex: 1;">
+
+```cpp
+const int a;
+
+constexpr int* p = &a; // error
+const int* q = &a; // OK
+int * const r = &a; // error, similar to constexpr
+```
+</div>
+</div>
 
 
 ## `constexpr` funkcie
@@ -790,34 +824,101 @@ void main() {
 * `constexpr` funkcie sú funkcie, ktoré môžu byť vyhodnotené počas kompilácie
 * V C++11 boli veľmi obmedzené, iba jeden return statement a iba niektoré operácie
 * V C++14 sa to značne zlepšilo a stále sa to rozširuje
+* V C++20 je už `constexpr` funkcií veľmi veľa (konštruktory stringov, vektorov, ...)
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 1;">
 
 ```cpp
-constexpr size_t factorial(size_t n) {
-  return n <= 1 ? 1 : n * factorial(n - 1);
+constexpr bool is_prime(uint32_t num) {
+	if (num < 2) 
+    return false;
+	for (uint32_t i = 2; i * i <= num; ++i) {
+		if (num % i == 0) 
+      return false;
+	}
+	return true;
 }
+```
+</div>
+<div style="flex: 1;">
 
-constexpr size_t f = factorial(5); // 120
+```cpp
+constexpr size_t count_primes(uint32_t n) {
+	size_t count = 0;
+	for (uint32_t i = 2; i <= n; ++i) {
+		if (is_prime(i)) {
+			++count;
+		}
+	}
+	return count;
+}
+```
+</div>
+</div>
 
-int x[f]; // OK
-int y[factorial(5)]; // OK
+
+```cpp
+constexpr size_t n = count_primes(100); // 25
+constexpr size_t x = count_primes(10000000); // error, too much steps
+
+int x[n]; // OK
+int y[count_primes(5)]; // OK
 ```
 
 
 ## `constexpr` funkcie v ne `constexpr` kontexte
 
 * `constexpr` funkcie môžu byť volané aj s runtime hodnotami
+* Pokiaľ nenútime kompilátor aby vyhodnotil výraz počas kompilácie, tak sa môže rozhodnúť, či počas kompilácie, alebo počas behu programu
+* Ako kompilátor donútiť?
+   * Výsledok priradíme do `constexpr` premenné
+   * Výsledok použijeme ako veľkosť poľa
 
 ```cpp
 int main() {
   size_t x;
   std::cin >> x;
 
-  std::cout << factorial(x) << '\n'; // OK
-  // int x[factorial(x)]; // error
+  std::cout << count_primes(x) << '\n'; // OK
+  std::cout << count_primes(10000000) << '\n'; // OK
+  // int x[count_primes(x)]; // error
 }
 ```
 
 note: Máme urobiť všetky funkcie `constexpr`? Asi nie, ale... podobne ako urobiť všetko `const`...
+
+
+## `constexpr` konštruktory?
+
+* Pred C++20 `constexpr` v podstate vedelo similovať iba stack
+* Mohli sme deklarovať premenné, ale nie priamo alokovať pamäť na heape
+* V C++20 sa to zmenilo a môžeme alokovať pamäť na heape, ale nemôžeme posunúť adresu do runtime
+
+```cpp
+//constexpr std::vector<int> v{ 1, 2, 3}; // error, will leak address to runtime
+constexpr std::vector<int> w; // OK, no allocation
+```
+
+* Funkcie môžu byť komplexné, napríklad predpočítanie tabuliek, alebo iných dát
+
+```cpp
+constexpr std::vector<uint32_t> get_primes(uint32_t n) {
+	std::vector<uint32_t> result;
+	
+	for (uint32_t i = 0; i < n; ++i) {
+		if (is_prime(i)) {
+			result.push_back(i);
+		}
+	}
+
+	return result;
+}
+
+int a[get_primes(100).size()]; // OK, no pointer leak to runtime
+```
+
+note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 
 ---
 
