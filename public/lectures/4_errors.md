@@ -769,6 +769,42 @@ o2 = std::make_optional<std::string>("new optional");
 
 ---
 
+## `std::expected`
+
+* Pridaný v C++23
+* Podobný `std::optional`, ale s možnosťou vrátiť chybový stav
+* `std::expected<T, E>`, kde `T` je hodnota a `E` je chyba
+
+```cpp
+std::expected<std::string, std::error_code> get_string() {
+    if (/* something bad happened */)
+        return std::make_unexpected(std::error_code());
+    
+    std::string s;
+    // ...
+    return s;
+}
+```
+
+
+## `std::expected` volanie
+
+* `std::expected` drží buď hodnotu, alebo chybu
+* Interface umožňuje jednoduché rozlíšenie chyby od úspechu
+* ROvnako sa dá ľahko dostať k platnej hodnote
+
+```cpp
+std::expected<std::string, std::error_code> s = get_string();
+
+if (s) {
+    std::cout << *s << '\n';
+} else {
+    std::cout << "Error: " << s.error().message() << '\n';
+}
+```
+
+---
+
 # Chyby počas behu programu
 
 ---
@@ -891,7 +927,7 @@ int main() {
 
 ```cpp
 bool read_line(const std::string& path, std::string& line) {
-std::ifstream ifs(path);
+    std::ifstream ifs(path);
     if (!ifs.is_open())
         return false;
 
@@ -1259,7 +1295,7 @@ int64_t ConvertToInt64(const char* input) {
 ```
 <!-- .element: class="showall" -->
 
-* Alebo použijeme rovno std::stoll, čo je `strtoll` s výnimkami
+* Alebo použijeme rovno `std::stoll`, čo je `strtoll` s výnimkami
 
 ---
 
