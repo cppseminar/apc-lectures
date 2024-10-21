@@ -198,7 +198,7 @@ private:
 ## Metódy objektov
 
 * Definujú čo vieme s objektami robiť
-* Z hľadiska C++ sú to len funkcie, ktoré implicitne dostanú this smerník
+* Z hľadiska C++ sú to len funkcie, ktoré implicitne dostanú `this` smerník
 
 ```cpp
 class File {
@@ -282,7 +282,7 @@ int main() {
 
 ## Prečo `delete[]`?
 
-* `operator[]` je potrebný na správne zdeštruovanie všetkých objektov vytvorených pomocou `new[]`
+* `operator delete[]` je potrebný na správne zdeštruovanie všetkých objektov vytvorených pomocou `new[]`
 * MSVC ukladá počet alokácií pred vráteným blokom pamäte
 
 ![new of arrays](./lectures/5_oop/new[].png)
@@ -431,7 +431,7 @@ public:
 };
 ```
 
-Inline je celkom dôležité, inak musíme inštanciáciu presunúť mimo hlavičkového súboru, inak budeme mať chybu linkera.
+`inline` je celkom dôležité, inak musíme inštanciáciu presunúť mimo hlavičkového súboru, inak budeme mať chybu linkera.
 
 ---
 
@@ -1160,8 +1160,7 @@ int main() {
 * V hlavičke `#include <memory>`
 
 ```cpp
-std::unique_ptr<FileReader> file(
-    new FileReader(LR"(C:\...\file.txt)"));
+std::unique_ptr<FileReader> file(new FileReader(LR"(C:\...\file.txt)"));
 if (file->IsOK()) {
     std::vector<char> buffer(1024);
     if (file->Read(buffer))     {
@@ -1172,7 +1171,7 @@ if (file->IsOK()) {
 ```
 
 * Operátory sú preťažené, takže `->` sa práva ako `->` nad surovými smerníkmi
-* `unique_ptr` automaticky zavola delete nad hodnotou, ktorú drží, keď ide mimo scope
+* `unique_ptr` automaticky zavolá `delete` nad hodnotou, ktorú drží, keď ide mimo scope
 * **Moderné C++ programy by nikdy nemali volať `delete` priamo**
 
 
@@ -1345,7 +1344,7 @@ class Base {
 
 ---
 
-## Kvíz
+## Konštruktor a virtuálne metódy
 
 Skompiluje sa nasledujúci program? Aký je výsledok?
 
@@ -1381,7 +1380,7 @@ int main() {
 
 Vypíše sa `"Base"`. 
 
-Keď sa konštruuje `Derived`, najprv sa vykonštruujú všetci predkovia (`Base`). `Bas`e` konštruktor vola virtuálnu funkciu, ale Derived ešte nie je skonštruované, takže volanie do Derived by bolo veľmi nebezpečné. 
+Keď sa konštruuje `Derived`, najprv sa vykonštruujú všetci predkovia (`Base`). `Base` konštruktor volá virtuálnu funkciu, ale `Derived` ešte nie je skonštruované, takže volanie do `Derived` by bolo veľmi nebezpečné. 
 
 Tabuľka virtuálnych funkcií sa inicializuje po skonštrovaní.
 </td>
@@ -1464,7 +1463,7 @@ Kód vyššie sa neskompiluje.
 
 ---
 
-## Otázka?
+## `private` vs `virtual`
 
 Skompiluje sa nasledujúci program? 
 
