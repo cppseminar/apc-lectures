@@ -54,15 +54,14 @@ int main() {
 
 * Vaše triedy ich majú aj keď o tom neviete
 * Sú definované ako kópia všetkých členských premenných
-* Automatická generácia je jedna z veľkých chýb C++ ISO výboru
+* Automatická generácia je jedna z chýb C++ ISO výboru (plus minús to opravili move sémantikou)
 
 ```cpp
-class MyClass {
+class MyClass{
 public:
-    MyClass(const MyClass&); // copy constructor
-    MyClass& operator=(const MyClass&); //[copy] assignment operator
+    MyClass(const MyClass&); // copy constructor
+    MyClass& operator=(const MyClass&); // [copy] assignment operator
 };
-
 ```
 
 
@@ -122,7 +121,6 @@ private:
     MyClass(const MyClass&);
     MyClass& operator=(const MyClass&);
 };
-
 ```
 
 ```cpp
@@ -131,7 +129,6 @@ public:
     MyClass(const MyClass&) = delete;
     MyClass& operator=(const MyClass&) = delete;
 };
-
 ```
 
 
@@ -145,8 +142,34 @@ public:
     MyClass(const MyClass&) = default;
     MyClass& operator=(const MyClass&) = default;
 };
-
 ```
+
+
+## Bez `const`?
+
+```cpp
+class MyClass{
+public:
+	MyClass() = default;
+	MyClass(MyClass&);
+};
+
+```cpp
+MyClass a;
+MyClass b(a);
+
+const MyClass ac;
+MyClass bc(ac);
+```
+
+<div class="fragment">
+
+* Copy konštruktor by mal byť `const`, ale štandard umožnuje aj bez
+* Preto v tomto prípade sme kopírovací konštruktor definovali my a kompilátor nám nevygeneruje defaultný `MyClass(const MyClass&)`, vieme ho prinútiť pomocou `= default`
+* `MyClass bc(ac);` sa nepodarí skompilovať
+</div>
+
+Note: <https://www.fluentcpp.com/2019/04/23/the-rule-of-zero-zero-constructor-zero-calorie/>
 
 ---
 
@@ -183,7 +206,6 @@ private:
 };
 
 ```
-<!-- .element: class="showall" -->
 </td>
 <td>
 <div class="fragment">
@@ -216,7 +238,7 @@ Buffer& operator=(const Buffer& rhs) {
 </div>
 
 
-## `this != &rhs` trick
+## `this != &rhs` trik
 
 * Môžeme zneužiť umiestnenie v pamäti 
 * Zrejme ak majú dva objekty rovnakú adresu, tak musia byť rovnaké
@@ -235,7 +257,7 @@ Buffer& operator=(const Buffer& rhs) {
 
 ```
 
-Stále nie dokonalé, new môže hodiť výnimku a potom máme problém. Mali by sme najprv kopírovať a potom volať delete...
+Stále nie dokonalé, `new` môže hodiť výnimku a potom máme problém. Mali by sme najprv kopírovať a potom volať delete...
 <!-- .element: class="fragment" -->
 
 
@@ -297,30 +319,69 @@ public:
 
 ```cpp
 int main() {
-  MyClass A;
+  MyClass a;
 
-  MyClass B = A;
-  B = A; // assigment operator
-  B.operator=(A); // explicit call
+  MyClass b = a;
+  b = a; // assigment operator
+  b.operator=(a); // explicit call
 
-  MyClass C;
-  C = B = A;
+  MyClass c;
+  c = b = a;
 }
 ```
 
-* `MyClass B = A;` je volanie kopírovacieho konštruktoru, je to vlastne cukor okolo `MyClass B(A);`
-* Pretože operátor vracia referenciu na seba samého, tak môžeme operátory reťaziť `C = B = A;`
+* `MyClass b = a;` je volanie kopírovacieho konštruktoru, je to vlastne okolo `MyClass b(a);`
+* Pretože operátor vracia referenciu na seba samého, tak môžeme operátory reťaziť `c = b = a;`
 
 
-## `const` je dôležité
+## Navratový typ
 
-Operátory sú iba volania funkcií, takže je veľmi dôležité, aby sme mali signatúry presné. 
+* Väčšinou je to referencia na seba samého, tento typ sa volá idiomaticky `MyClass&`
+* Ale môže to byť aj `MyClass`, to ešte dáva aký taký zmysel pre typy, ktoré sú zložené s primitívnych typov
+* Ostatné návratové typy sú zvyčajne zlý nápad, ale štandard ich podporuje
+
+```cpp
+class UInt128 {
+public:
+  UInt128 operator=(const UInt128& rhs) {
+    low = rhs.low;
+    high = rhs.high;
+    return *this;
+  }
+private:
+  uint64_t low, high;
+};
+```
+
+
+## Bez `const`?
 
 ```cpp
 MyClass& operator=(MyClass&);
 ```
 
-Toto nie je operátor priradenia a preto nám kompilátor automaticky vygeneruje ten s `const`. 
+* Podobne ako v prípade kopírovacieho konštruktora, operátor priradenia by mal mať parameter `const`, ale štandard umožnuje aj bez
+* V istých prípadoch to môže byť užitočné, ale je to veľmi zriedkavé
+
+
+## Bez referencie?
+
+```cpp
+MyClass operator=(MyClass);
+```
+
+* Aj táto signatúra je podporovaná, existuje copy-and-swap idiom, ktorý ju využíva
+
+```cpp
+MyClass& operator=(MyClass rhs) {  // copy will be called
+  std::swap(n, rhs.n);
+  std::swap(s, rhs.s);
+  return *this;
+}
+
+MyClass a, b;
+a = b;
+```
 
 ---
 
@@ -331,13 +392,11 @@ class UInt128 {
 public:
   UInt128 operator+(const UInt128& rhs) const {
     UInt128 result(*this); // we copy this
-    result.a += rhs.a;
-    result.b += rhs.b;
-    // TODO: we should handle carry !!!
+    result.low += rhs.low;
+    uint64_t carry = (result.low < this->low) ? 1 : 0;
+    result.high += rhs.high + carry;
     return result;
   }
-private:
-  uint64_t a, b;
 };
 ```
 
@@ -356,9 +415,9 @@ z = x + y; // we do not expect x or y to change
 class UInt128 {
 public:
   UInt128& operator+=(const UInt128& rhs) {
-    this->a += rhs.a;
-    this->b += rhs.b;
-    // TODO: we should handle carry !!!
+    this->low += rhs.low;
+    uint64_t carry = (this->low < rhs.low) ? 1 : 0;
+    this->high += rhs.high + carry;
     return *this;
   }
 private:
@@ -368,6 +427,11 @@ private:
 
 * Znovu operátor nemusí vracať referenciu, ale potom by sa nesprával, ako je očakávané v jazyku
 * `std::string` `+=` modifikuje lavú stranu
+
+```cpp
+UInt128 x, y, z;
+z = x += y; // we expect x to change
+```
 
 
 ## Operátory mimo tried
@@ -384,13 +448,12 @@ private:
 
 UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
     UInt128 result(lhs); // we copy this
-    result.a += rhs.a;
-    result.b += rhs.b;
-    // TODO: we should handle carry !!!
+    result.low += rhs.low;
+    uint64_t carry = (result.low < this->low) ? 1 : 0;
+    result.high += rhs.high + carry;
     return result;
 }
 ```
-<!-- .element: class="showall" -->
 
 * `friend` v triede je na to aby sme vedeli pristúpiť z operátora aj k privátnym premenným
 * Ľavá strana operátora je explicitne uvedená ako prvý parameter
@@ -401,13 +464,7 @@ UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
 ```cpp
 class UInt128 {
 public:
-  UInt128& operator+=(const UInt128& rhs) {
-    this->a += rhs.a;
-    this->b += rhs.b;
-    // TODO: we should handle carry !!!
-    return *this;
-  }
-
+  UInt128& operator+=(const UInt128& rhs) { }
 private:
   uint64_t a, b;
 };
@@ -417,7 +474,6 @@ UInt128 operator+(const UInt128 &lhs, const UInt128 &rhs) {
   return result += rhs;
 }
 ```
-<!-- .element: class="showall" -->
 
 V operátore `+` si môžem dovoliť `return` operátora `+`, lebo operátor `+=` vracia vlastne samého seba a keďže operátor vracia hodnotu a nie referenciu, tak sa mi automaticky vyrobí kópia. 
 
@@ -438,6 +494,13 @@ Foo operator+(Foo lhs, Foo rhs);
 
 Správne sú posledné dva. "Najlepší" variant je tretí, kopírovaním prvého parametru môže optimalizátor vykonať optimalizácie (`move`), ktoré inak nemôže. 
 </div>
+
+```cpp
+UInt128 operator+(UInt128 lhs, const UInt128 &rhs) {
+  return lhs += rhs;
+}
+```
+<!-- .element: class="fragment" -->
 
 ---
 
@@ -463,7 +526,6 @@ int main() {
   std::cout << t << std::endl;
 }
 ```
-<!-- .element: class="showall" -->
 
 ---
 
@@ -614,7 +676,6 @@ private:
   std::string s = "0";
 };
 ```
-<!-- .element: class="showall" -->
 
 * Dummy `int` sa použije iba ako rozdelenie o ktorý operátor `++` ide, tento parameter sa nemá používať
 * Prefix `++` vracia seba samého a postfix zase novú kópiu, je to znovu štandardné správanie
@@ -1186,6 +1247,31 @@ int main() {
     for (auto i : v) {
         std::cout << i << ' '; // 3, 5, 5
     }
+}
+```
+
+---
+
+## Algoritmy a adaptéry
+
+* Knižnica `ranges` obsahuje algoritmy a adaptéry
+   * Algoritmy sú funkcie, ktoré fungujú podobne ako algoritmy z `<algorithm>`
+   * Adaptéry rozsahov sú funkcie, ktoré transformujú alebo filtrujú rozsahy a vytvárajú z nich nový rozsah bez toho, aby pôvodné dáta modifikovali
+* Adaptéry sa volajú až keď si vyžiadame ich hodnoty
+
+```cpp
+std::vector<int> v = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+auto even = v | std::views::filter([](int i) { return i % 2 == 0; });
+auto x = even | std::views::drop(1) 
+  | std::views::transform([](int i) { return i + 2; })
+  | std::views::reverse
+  | std::views::take(2);
+
+// alternatively we can use transform_view object directly, instead of pipe
+auto y = std::ranges::transform_view(x, [](int i) { return std::to_string(i); });
+auto z = y | std::views::join; // will flatten the ranges
+for (auto i : z) {
+  std::cout << i << ' '; // 1 0 8
 }
 ```
 

@@ -1099,7 +1099,6 @@ int main() {
     std::cout << v.data() << '\n';
 }
 ```
-<!-- .element: class="showall" -->
 
 Explicitná kontrola, či sa všetko podarilo, nie veľmi dobre  ľahko sa na to zabudne, ako ostatne aj tu... 
 <!-- .element: class="fragment" -->
@@ -1206,6 +1205,18 @@ if (file->IsOK()) {
 * Často je aj v pamäti reprezentovaný práve ako jeden smerník 
 * Teda žiadna penalizácia pri behu programu
 
+
+```cpp
+int main(int argc, const char* argv[]) {
+    std::unique_ptr<Sequence> p(new ConstSeq(4)); // we can assign derived class to base class
+    Sequence* a = p.get(); // returns raw pointer 
+    // delete a; // error p will also call delete in ~ 
+    Sequence* a = p.release(); // release raw pointer (compatibility)
+    delete a; // OK, p is now nullptr, but not wise 
+    p.reset(new ConstSeq); // delete managed object and assign new one
+} // delete is called
+```
+
 ---
 
 ## `std::unique_ptr` virtuálne metódy
@@ -1213,14 +1224,11 @@ if (file->IsOK()) {
 Smart pointer sa správa ako obyčajný pointer, teda volania metód používajú virtuálny dispatch.
 
 ```cpp
-int main(int argc, const char* argv[]) {
-    std::unique_ptr<Sequence> p(new ConstSeq(4));
-    Sequence* a = p.get(); // returns raw pointer 
-    // delete a; // error p will also call delete in ~ 
-    Sequence* a = p.release(); // release raw pointer (compatibility)
-    delete a; // OK, p is now nullptr, but not wise 
-    p.reset(new ConstSeq); // delete managed object and assign new one
-} // delete is called
+void PrintSeq(std::unique_ptr<Sequence>& seq, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        std::cout << seq->Next() << '\n'; // virtual dispatch
+    }
+}
 ```
 
 ---
