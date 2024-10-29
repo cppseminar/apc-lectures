@@ -376,9 +376,9 @@ int main() {
 
 ---
 
-## Interátory (rýchlokurz)
+## Iterátory (rýchlokurz)
 
-* Interátor je objekt, ktorý nám umožňuje prechádzať kontajner
+* Iterátor je objekt, ktorý nám umožňuje prechádzať kontajner
 
 ```cpp
 std::vector<int> v = { 1, 2, 3, 4, 5 };
@@ -388,10 +388,10 @@ for (std::vector<int>::iterator it = v.begin(); it != v.end(); ++it) {
 }
 ```
 
-* `v.begin()` vráti interátor na začiatok kontajnera
-* `v.end()` vráti interátor za koniec kontajnera
-* `*it` vráti hodnotu, na ktorú ukazuje interátor (ako smerník), dá sa aj modifikovať
-* `++it` posunie interátor na ďalší prvok
+* `v.begin()` vráti iterátor na začiatok kontajnera
+* `v.end()` vráti iterátor za koniec kontajnera
+* `*it` vráti hodnotu, na ktorú ukazuje iterátor (ako smerník), dá sa aj modifikovať
+* `++it` posunie iterátor na ďalší prvok
 
 
 ## `std::back_inserter`
@@ -480,6 +480,7 @@ std::cout << output << std::endl; // MIXED CASE STRING.
 
 * Transformuje prvky z jedného kontajnera do druhého
 * `std::transform` negarantuje poradie tranformácie, nedá sa na neho spoliehať
+* Ak je ale výstupný iterátor `std::back_inserter`, tak potom implementáciu v podstate prinútime robiť transformáciu v poradí
 
 note: `::tolower` a `::toupper` sú funkcie z C knižnice, ktoré pracujú s `int` hodnotami a preto toto warninguje ako divé
 
