@@ -1029,6 +1029,10 @@ std::get<std::string>(a); // will throw
 
 # Porovnávanie čísel
 
+---
+
+## Typy čísel v C++
+
 * C++ má priveľa typov pre čísla
 * Niektoré sú rovnaké iba sa inak volajú
    * `int` na väčšine platform je 32bit
@@ -1060,20 +1064,46 @@ if (i < n) {
 }
 ```
 
-* Nevypíše nič
+* Nevypíše nič<!-- .element class="fragment" -->
 
 ---
 
 ## Promotion
 
-<a class="r-stretch" href="https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion">
-
-![Integer promotion from cppreference](./lectures/lambdas/integer_promotion.png)
+<a style="display: block;" class="r-stretch" href="https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion">
+  <img src="./lectures/lambdas/integer_promotion.png" alt="Integer promotion from cppreference" />
 </a>
+
 
 ## Conversion
 
-TODO
+<a style="display: block;" class="r-stretch" href="https://en.cppreference.com/w/cpp/language/implicit_conversion">
+  <img src="./lectures/lambdas/numeric_conversions.png" alt="Numeric conversions from cppreference" />
+</a>
+
+
+## Operátory
+
+<a style="display: block;" class="r-stretch" href="https://en.cppreference.com/w/c/language/conversion">
+  <img src="./lectures/lambdas/numeric_operators.png" alt="Numeric operators from cppreference" />
+</a>
+
+---
+
+## `std::cmp_less`
+
+```cpp
+int main() {
+    unsigned n = std::numeric_limits<int>::max() + 1;
+    int i = -1;
+    if (std::cmp_less(i, n)) {
+        std::cout << "TRUE\n";
+    }
+}
+```
+
+* Funguje správne, pretože `std::cmp_less` porovnáva hodnoty, najprv robí scount, potom
+* Funkcie nerobia konverziu
 
 ---
 
