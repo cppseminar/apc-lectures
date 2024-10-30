@@ -153,6 +153,7 @@ public:
 	MyClass() = default;
 	MyClass(MyClass&);
 };
+```
 
 ```cpp
 MyClass a;
