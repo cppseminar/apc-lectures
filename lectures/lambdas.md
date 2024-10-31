@@ -986,7 +986,7 @@ if (auto * str = std::get_if<1>(&a)) {
 
 ---
 
-## Pokľa typu
+## Podľa typu
 
 * K prvkom môžeme pristupovať aj podľa typu, nie iba indexu
 * Toto je v poriadku, lebo jeden typ sa nemôže v `std::variant` opakovať
