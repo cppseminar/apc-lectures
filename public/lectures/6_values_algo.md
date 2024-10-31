@@ -134,7 +134,7 @@ public:
 
 ## Ak nám vyhovujú predvolené?
 
-* Môžeme ich označiť = default a napovie to čitateľom, že o nich vieme a vyhovujú nám
+* Môžeme ich označiť `= default` a napovie to čitateľom, že o nich vieme a vyhovujú nám
 
 ```cpp
 class MyClass {
@@ -593,7 +593,7 @@ private:
 
 ## `<=>` operátor
 
-* Pre zjednodušenie bol pridaný three-way comparison operator (aka spaceship operator)
+* Pre zjednodušenie bol pridaný *three-way comparison* operátor (aka *spaceship* operátor)
 * Bežné operátory (`==`, `<`, ...) sa vygenerujú automaticky
 
 ```cpp [|5|13-14]
@@ -678,7 +678,7 @@ private:
 };
 ```
 
-* Dummy `int` sa použije iba ako rozdelenie o ktorý operátor `++` ide, tento parameter sa nemá používať
+* Dummy `int` slúži iba na určenie, o ktorý operátor `++` ide, tento parameter sa nemá používať
 * Prefix `++` vracia seba samého a postfix zase novú kópiu, je to znovu štandardné správanie
 
 
@@ -1186,7 +1186,7 @@ Od C++14/17 existujú voľne stojace funkcie ako `std::begin`, `std::end` a `std
 
 * Nefunguje pre C polia
 * Funguje správne pre `std::array`
-* Nie je preto veľa dôvodov prečo neuprednostniť std::array
+* Nie je preto veľa dôvodov prečo neuprednostniť `std::array`
 
 ```cpp
 int main(int argc, const char** argv) {
