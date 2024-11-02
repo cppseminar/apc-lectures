@@ -859,6 +859,69 @@ int main() {
 
 ---
 
+## Rekurzia
+
+* Problém s lambdami je, že nemôžu priamo volať samy seba, lebo nemôžu capture samých seba
+
+```cpp
+auto lambda = [](int x) {
+    if (x == 0)
+        return 1;
+    return x * lambda(x - 1); // error, cannot capture type lambda
+};
+```
+
+
+## `std::function` a rekurzia
+
+```cpp
+std::function<int(int)> factorial = [&](int x) {
+    if (x == 0)
+        return 1;
+    return x * factorial(x - 1);
+};
+```
+
+* `std::function` môže byť použitý na rekurzívne volanie, pretože je to objekt, ktorý môže byť zachytený v capture liste
+* Volanie `std::function` môže byť pomalšie ako volanie lambdy, pretože je to objekt, ktorý môže byť alokovaný na heap
+* Prakticky na tom asi nezáleží a tento prístup je OK
+
+
+## Ďalšia lambda pre rekurziu
+
+* Zmeníme spôsob ako sa lambda dostane do lambdy, nie cez capture list, ale cez parameter
+
+```cpp
+auto factorial = [](int x) {
+    auto hlp = [&](auto self, int x) -> int {
+        if (x == 0)
+            return 1;
+        return x * self(self, x - 1);
+    };
+
+    return hlp(hlp, x);
+};
+```
+
+* `hlp` je lambda, ktorá má ako parameter samu seba
+* Použijeme generické lambdy, aby sme mohli použiť `auto` ako typ parametra
+
+
+## `this auto`
+
+* `auto` môže byť použité aj na zachytenie lambdy samotnej v C++23
+
+```cpp
+auto factorial = [&](this auto self, int x) {
+    if (x == 0)
+        return 1;
+    return x * self(x - 1);
+};
+```
+
+
+---
+
 # `std::variant`
 
 ---

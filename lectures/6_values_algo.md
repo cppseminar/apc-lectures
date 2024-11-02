@@ -13,6 +13,8 @@
 * Štandardné algoritmy
     * Iterátory
     * Ranges
+* `std::array`
+* `std::map`
 
 ---
 
@@ -338,7 +340,7 @@ int main() {
 ## Navratový typ
 
 * Väčšinou je to referencia na seba samého, tento typ sa volá idiomaticky `MyClass&`
-* Ale môže to byť aj `MyClass`, to ešte dáva aký taký zmysel pre typy, ktoré sú zložené s primitívnych typov
+* Ale môže to byť aj `MyClass`, to ešte dáva aký taký zmysel pre typy, ktoré sú zložené z primitívnych typov
 * Ostatné návratové typy sú zvyčajne zlý nápad, ale štandard ich podporuje
 
 ```cpp
@@ -427,7 +429,7 @@ private:
 ```
 
 * Znovu operátor nemusí vracať referenciu, ale potom by sa nesprával, ako je očakávané v jazyku
-* `std::string` `+=` modifikuje lavú stranu
+* `std::string` `+=` modifikuje ľavú stranu
 
 ```cpp
 UInt128 x, y, z;
@@ -437,7 +439,7 @@ z = x += y; // we expect x to change
 
 ## Operátory mimo tried
 
-Operátory môžu byť definované aj mimo tried.
+* Operátory môžu byť definované aj mimo tried.
 
 ```cpp
 class UInt128 {
@@ -612,6 +614,28 @@ int main() {
     assert(IntBox(5) <= IntBox(5));
 }
 ```
+
+
+## ... ručné definovanie návratovej hodnoty ... 
+
+```cpp
+class IntBox {
+public:
+	IntBox(int i) : data(std::make_unique<int>(i)) { }
+	std::strong_ordering operator<=>(const IntBox& rhs) const {
+		if (*data < *rhs.data)
+			return std::strong_ordering::less;
+		if (*data == *rhs.data)
+			return std::strong_ordering::equal;
+		return std::strong_ordering::greater;
+	}
+private:
+	std::unique_ptr<int> data;
+};
+```
+
+* `std::strong_ordering` je nový typ, ktorý je definovaný v C++20
+* Existujú aj `std::weak_ordering` a `std::partial_ordering` pre prípady, keď nie je možné definovať úplné usporiadanie
 
 
 ## ... ak sa všetky členy dajú porovnať ...
