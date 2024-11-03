@@ -1227,6 +1227,364 @@ int main(int argc, const char** argv) {
 
 ---
 
+# `std::map`
+
+---
+
+## Asociatívne pole
+
+* Asociatívne pole je dátová štruktúra, ktorá mapuje kľúče na hodnoty
+* Nazýva sa aj mapa alebo slovník
+* Kľúče musia byť unikátne a porovnateľné
+* Ak sú kľúče čísla, tak môžeme použiť aj `std::vector`
+
+```cpp
+std::vector<std::string> dict; // "mapping" size_t to std::string
+dict.push_back("A"); // index 0
+dict.resize(100);
+dict[5] = "B"; // index 5
+dict.push_back("C"); // index 100
+```
+
+---
+
+## `std::string` ako kľúč
+
+* Predstavme si, že chceme mať mapu, ktorá mapuje reťazce na celé čísla (napr. mená na vek)
+* Chceme podporu pre pridávanie, mazanie, hľadanie a získanie hodnôt
+* Skúsme to urobiť s `std::vector` (ak si nič iné z celého predmetu nezapamätáte, tak si zapamätajte, že `std::vector` by mal byť vaša prvá voľba na skoro všetko)
+
+
+## `std::pair`
+
+* Súčasť štandardnej knižnice (v headri `<utility>`)
+* V podstate iba štruktúra s dvoma verejnými členmi
+* Má preťažené porovnania
+
+```cpp
+std::pair<std::string, std::string> p;
+p.first = "Index";
+p.second = "Value";
+
+p = { "Index", "Value" };
+
+// pair std::string, int
+auto r = std::make_pair(std::string("Index"), 16);
+
+// since C++17 deduction guides
+using namespace std::literals::string_literals;
+std::pair p = { "Index"s, 16u };
+```
+
+
+## `std::vector` ako mapa
+
+* Prvky vectoru budú `std::pair`
+   * Prvý prvok bude kľúč
+   * Druhý prvok bude hodnota
+* Pridávanie a mažanie bude jednoduché pridávanie do vectora, ale bude treba zabezpečiť, aby sa kľúče neopakovali
+* Hľadanie bude lineárne
+
+
+## `assoc_vector`
+
+```cpp
+class assoc_vector {
+public:
+  using key = std::string;
+  using value = size_t;
+  using node = std::pair<key, value>;
+  using array = std::vector<node>;
+  using iterator = array::iterator;
+
+  iterator find(const key& key);
+  void erase(const iterator& position);
+  void insert(const node& what);
+  iterator end() { return _array.end(); }
+private:
+  array _array;
+};
+```
+
+
+## `find`
+
+```cpp
+assoc_vector::iterator assoc_vector::find(const key& key) {
+  return std::find_if(_array.begin(), _array.end(), [&key](const node& n) {
+    return n.first == key;
+  });
+}
+```
+
+
+## `insert` a `erase`
+
+```cpp
+void assoc_vector::insert(const node& what) {
+  auto it = find(what.first);
+  if (it == end()) {
+    _array.push_back(what); // insert value
+  } else {
+    *it = what; // replace value
+  }
+}
+
+void assoc_vector::erase(const iterator& position) {
+  _array.erase(position);
+}
+```
+
+
+## Použitie `assoc_vector`
+
+```cpp
+int main() {
+  assoc_vector people;
+  people.insert({ "Bjarne", 68 });
+  people.insert({ "Brian", 77 });
+  people.insert({ "Ken", 76 });
+  auto it = people.find("Ken");
+  if (it != people.end()) {
+    std::cout << it->second;
+  }
+}
+```
+
+
+## Zložitosť operácií
+
+<table>
+<tr>
+  <th>Operácia</th>
+  <th>Zložitosť</th>
+  <th>Poznámka</th>
+</tr>
+<tr>
+  <td>Vyhľadanie</td>
+  <td>O(n)</td>
+  <td>Sekvenčné hľadanie</td>
+</tr>
+<tr>
+  <td>Vkladanie</td>
+  <td>O(n)</td>
+  <td>Spúšta vyhľadanie</td>
+</tr>
+<tr>
+  <td>Mazanie</td>
+  <td>O(n)</td>
+  <td>Spúšta vyhľadanie</td>
+</tr>
+</table>
+
+* Lineárne zložitosti sú v zásadé zlé
+* Hlavne vyhľadávanie, ktoré sa zvyčajne robí veľmi často
+* Ak by sme chceli zlepšiť vyhľadávanie, tak by sme mohli použiť triedený vector a binárne vyhľadávanie
+
+
+## Utriedený vector
+
+```cpp
+bool assoc_vector::compare_keys(const MyPair& lhs, const Key& rhs) {
+  return lhs.first < rhs;
+}
+
+assoc_vector::iterator assoc_vector::find(const Key& key) {
+  auto it = std::lower_bound(
+    _array.begin(),
+    _array.end(),
+    key,
+    compare_keys
+  );
+
+  if (it != m_array.end() && it->first == key) {
+    return it;
+  }
+  return m_array.end();
+}
+```
+
+* Ešte je potrebné zabezpečiť, aby bol vector utriedený
+* Zmena v `insert` a `erase` je tiež potrebná, ale celkom jednoduchá
+* `std::lower_bound` je binárne vyhľadávanie, ktoré nám vráti miesto, kde by sa prvok mal nachádzať
+* O(log n) zložitosť vyhľadávania
+
+
+## `boost::flat_map`
+
+* `boost` knižnica má implementovaný `flat_map`, čo je v podstate utriedený vector
+* V C++23 `std::flat_map` je to isté
+
+<table>
+<tr>
+  <th>Operácia</th>
+  <th>Zložitosť</th>
+  <th>Poznámka</th>
+</tr>
+<tr>
+  <td>Vyhľadanie</td>
+  <td>O(n)</td>
+  <td>Binárne vyhľadávanie</td>
+</tr>
+<tr>
+  <td>Vkladanie</td>
+  <td>O(n)</td>
+  <td>Niekedy musí urobiť zväčšenie vectora</td>
+</tr>
+<tr>
+  <td>Mazanie</td>
+  <td>O(n)</td>
+  <td>Prvky sa musia poposúvať</td>
+</tr>
+</table>
+
+---
+
+## `std::map`
+
+* Asociatívne pole z knižnice
+* Implementované ako vyvážený binárny strom
+* Kľuče sú unikátne a porovnateľné pomocou operátora `<`
+* Druhá najpopulárnejšia dátová štruktúra (po vectoroch)
+
+<table>
+<tr>
+  <th>Operácia</th>
+  <th>Zložitosť</th>
+  <th>Poznámka</th>
+</tr>
+<tr>
+  <td>Vyhľadanie</td>
+  <td>O(log n)</td>
+  <td>Hľadanie v binárnom strome</td>
+</tr>
+<tr>
+  <td>Vkladanie</td>
+  <td>O(log n)</td>
+  <td>Musí urobiť vyváženie stromu</td>
+</tr>
+<tr>
+  <td>Mazanie</td>
+  <td>O(log n)</td>
+  <td>Musí urobiť vyváženie stromu</td>
+</tr>
+</table>
+
+
+## Implementácia
+
+* Zložitostné ohraničenia v podstate diktujú samovyvažujúci sa binárny strom
+* MSVC používa červeno-čierny strom
+   * Samotný objekt `std::map` obsahuje iba pointer na koreň stromu a veľkosť (pre rýchle zistenie počtu prvkov)
+   * Uzly v strome sú alokované dynamicky, obsahujú kľúč, hodnotu, ukazatele na deti a rodiča a farbu
+* Mapa potrehuje aby kľúče boli porovnateľné (strict weak ordering)
+   * Ak A je menšie ako B, potom *(A < B == true) && (B < A == false)*
+   * Ak A je ekvivalentné B, potom *(A < B == false) && (B < A == false)*
+   * Ak A je väčšie ako B, potom *(A < B == false) && (B < A == true)*
+
+
+## Operácie
+
+<table>
+<tr>
+  <th>Operácia</th>
+  <th>Efekt</th>
+</tr>
+<tr>
+  <td>size</td>
+  <td>Veľkost kontajnera</td>
+</tr>
+<tr>
+  <td>empty</td>
+  <td>true ak je kontajner prázdny</td>
+</tr>
+<tr>
+  <td>operator[]</td>
+  <td>Nájde zadaný prvok</td>
+</tr>
+<tr>
+  <td>clear</td>
+  <td>Zmaže celý kontajner</td>
+</tr>
+<tr>
+  <td>insert</td>
+  <td>Vloží nový prvok, ak už ekvivalentný v mape existuje, tak ho prepíše, návratová hodnota obsahuje informáciu, či došlo k prepisu</td>
+</tr>
+<tr>
+  <td>erase</td>
+  <td>Zmaže prvok</td>
+</tr>
+<tr>
+  <td>begin / end</td>
+  <td>Podpora iterátorov</td>
+</tr>
+</table>
+
+
+## `std::map` príklad
+
+```cpp
+std::map<std::string, int> ages;
+ages["Bjarne"] = 68;
+ages["Brian"] = 77;
+ages["Ken"] = 76;
+
+auto res = ages.insert({ "Ken", 77 }); // replace value
+std::cout << res.second; // 0
+res = ages.insert({ "Gabriel", 60 }); // add value
+std::cout << res.second; // 1
+ages.erase("Brian");
+
+auto it = ages.find("Ken");
+if (it != ages.end()) {
+  std::cout << it->second;
+}
+```
+
+
+## `operator[]`
+
+* Index operátor má definované správanie ak kľúč nie je v mape
+   * Vloží kľúč do mapy
+   * Hodnota sa default zkonštruuje
+
+```cpp
+std::map<std::string, int> ages;
+ages["Bjarne"] = 68;
+ages["Brian"] = 77;
+ages["Ken"] = 76;
+
+std::cout << people["Herb"]; // print 0
+std::cout << people.size(); // print 4
+```
+
+
+## Iterácia
+
+* Iterátory nie sú zneplatnené, keď vložíme nový prvok
+* Pri mazaní je zneplatnený iba iterátor na zmazaný prvok
+* Modifikovanie kontajnera počas iterácie
+   * Veľmi zlé pre `std::vector`
+   * OK pre `std::map`
+
+
+## Mazanie viacerých prvkov
+
+* Mapa nemá podporu na mazanie viacerých kľúčov
+* Musíme si ju naprogramovať sami (C++ idiom)
+
+```cpp
+for (auto it = people.begin(); it != people.end(); ) {
+  if (it->first[0] == 'B') {
+    it = people.erase(it);
+  } else {
+    ++it;
+  }
+}
+```
+
+---
+
 # Ranges
 
 ---
