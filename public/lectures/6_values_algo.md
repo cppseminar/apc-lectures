@@ -1282,7 +1282,7 @@ std::pair p = { "Index"s, 16u };
 * Prvky vectoru budú `std::pair`
    * Prvý prvok bude kľúč
    * Druhý prvok bude hodnota
-* Pridávanie a mažanie bude jednoduché pridávanie do vectora, ale bude treba zabezpečiť, aby sa kľúče neopakovali
+* Pridávanie a mazanie bude jednoduché pridávanie do vectora, ale bude treba zabezpečiť, aby sa kľúče neopakovali
 * Hľadanie bude lineárne
 
 
@@ -1423,7 +1423,7 @@ assoc_vector::iterator assoc_vector::find(const Key& key) {
 </tr>
 <tr>
   <td>Vyhľadanie</td>
-  <td>O(n)</td>
+  <td>O(log n)</td>
   <td>Binárne vyhľadávanie</td>
 </tr>
 <tr>
