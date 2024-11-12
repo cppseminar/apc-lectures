@@ -35,7 +35,8 @@
 
 * Kľúčové slovo `register` sa používa na označenie premennej, ktorá sa bude veľa používať a teda kompilátor by ju mal dať prednostne do CPU registrov
 * V C sa nedá takejto premennej zobrať adresa v C++ to ide
-* Kompilátory ignorujú, toto použitie je deprecated
+* Kompilátory ignorujú
+* Od C++17 je to reserved keyword, bez významu
 
 ```cpp
 register int n = 0;
@@ -48,7 +49,7 @@ for (register int i = 0; i < 1'000'000; ++i) {
 
 ## `static`
 
-* static premenné vo funkciách sú inicializované ak cez nich prejde beh programu (*control flow*)
+* `static` premenné vo funkciách sú inicializované ak cez nich prejde beh programu (*control flow*)
 * Sú potom deštruované po vrátení z `main` funkcie a opačnom poradí ako boli skonštruované
 * Ak nejaká statická premenná nebola inicializovaná, tak nebude ani zdeštruovaná (toto je v povinnostiach kompilátora)
 
@@ -72,7 +73,6 @@ int main() {
     std::cout << "M";
 } // ~A
 ```
-<!-- .element: class="showall" -->
 
 Konštruktor sa zavolá iba ak sa funkcia `f` zavolá s parametrom `i == 0`. Deštruktor sa "zaregistruje" aby sa zavolal, keď program skončí. 
 
@@ -107,7 +107,7 @@ delete i;
 
 ## Globálne premenné
 
-* Sú inicializované ešte pred volaním funkcie `main` and zdeštruované po vrátení z funkcie `main`
+* Sú inicializované ešte pred volaním funkcie `main` a zdeštruované po vrátení z funkcie `main`
 * V jednom translation unit je poradie inicializácie rovnaké ako sú napísané v súbore a deštrukcia potom v opačnom poradí
 
 
@@ -115,25 +115,25 @@ delete i;
 
 ```cpp
 // main.cpp
-#include "Version.h"
+#include "version.h"
  
-std::string g_Version = GetAppVersion();
+std::string version = GetAppVersion();
  
 int main(int argc, char* argv[]) {
-    cout << g_Version;
+    cout << version;
 }
 
 ```
 
 ```cpp
-// Version.cpp
-#include "Version.h"
+// version.cpp
+#include "version.h"
  
-uint32_t g_Major = GetMajorNumber();
-uint32_t g_Minor = GetMinorNumber();
+uint32_t major = GetMajorNumber();
+uint32_t minor = GetMinorNumber();
  
-string GetAppVersion() {
-    return std::to_string(g_Major) + "." + std::to_string(g_Minor);
+std::string GetAppVersion() {
+    return std::to_string(major) + "." + std::to_string(minor);
 }
 
 ```
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 
 * Koncept lvalue a rvalue prešiel počas života C++ mnohými zmenami
 * To čo budeme ďalej požívať nie je úplne presné, je to taký historický zjednodušený model
-* Preto ak vám niečo nebude dávať dokonalý zmysel pýtajte sa, alebo konzultujte štandard
+* Preto ak vám niečo nebude dávať dokonalý zmysel pýtajte sa, alebo konzultujte štandard 😊
 
 ---
 
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 * V podstate všetko čo môže byť na lavej strane priradenia (l v názve je *left*)​
 * Väčšinou pomenované premenné
 
-<table style="width: 80%">
+<table style="width: 80%; border: 0">
 <tr>
 <td>
 
@@ -202,9 +202,9 @@ void f(const std::string& s) {
     // s = "We cannot change, but lvalue";
 }
 ```
-<td>
-<tr>
-<table>
+</td>
+</tr>
+</table>
 
 * `T&` sa nazýva *lvalue reference*
 * `const T&` sa nazýva *const lvalue reference*
@@ -239,9 +239,9 @@ char *c;
 "String literal" = c;
 
 ```
-<td>
-<tr>
-<table>
+</td>
+</tr>
+</table>
 
 ---
 
@@ -564,6 +564,23 @@ int main() {
 }
 ```
 
+
+## Volanie `const` lvalue hodnotami
+
+```cpp
+void func_value(std::string s);
+void func_const(const std::string& s);
+void func_ref(std::string& s);
+
+int main() {
+    const std::string s;
+
+    func_value(s); // OK, copy
+    func_const(s); // OK
+    // func_ref(s); // error, cannot bind const lvalue to non-const reference
+}
+```
+
 ---
 
 ## Smerníky?
@@ -690,10 +707,6 @@ int main() {
 
 * Ak by sme to vedeli, mohli by sme sa správať inak pre lvalue a pre rvalue
 * Keďže rvalue už nikto neuvidí, tak by sme ho mohli použiť vo funkcií (priamo pamäť tejto premennej)
-
----
-
-![Do not use const_cast](https://i.redd.it/h3ziqig1uakz.jpg)
 
 ---
 
@@ -1083,18 +1096,16 @@ std::tuple<int, std::string, float> f() {
 int main() {
     auto[a, b, c] = f();
 
-    std::cout << a; // print 10, a is int& and copied
-    std::cout << b; // print String, b is std::string& and copied
-    std::cout << c; // print 0.1, c is float& and copied
+    std::cout << a; // print 10, a is int and copied
+    std::cout << b; // print String, b is std::string and moved
+    std::cout << c; // print 0.1, c is float and copied
 }
 ```
 
+note: Technicky sú tie typy s &&, teda int&&, std::string&&, float&&.
+
 
 ## Funguje aj so `struct`
-
-* Rovnako aj s vlastnými typmi, ale musíme niečo doprogramovať
-    * `std::tuple_size`
-    * `std::tuple_element`
 
 ```cpp
 struct S {
@@ -1109,6 +1120,41 @@ int main() {
 
     std::cout << a << '\n';
     std::cout << b << '\n';
+}
+```
+
+
+## Vlastné typy
+
+```cpp [2-4|14-21|15-16|18-20|6-11|24-28|]
+struct S {
+    int i; // I want this to be second
+    float f; // I do not want to destruct this
+    std::string s; // I want this to be first
+
+    template<std::size_t Index>
+    std::tuple_element_t<Index, S>& get() // we should define const overload...
+    {
+        if constexpr (Index == 0) return s;
+        if constexpr (Index == 1) return i;
+    }
+};
+
+namespace std {
+    template<>
+    struct tuple_size<S> : std::integral_constant<size_t, 2> {};
+
+    template<size_t Index>
+    struct tuple_element<Index, S>
+        : tuple_element<Index, tuple<std::string, int>> {};
+}
+
+int main() {
+    S s{ 13, 0.1f, "string" };
+    auto [a, b] = s;
+
+    std::cout << a; // print string
+    std::cout << b; // print 13
 }
 ```
 
@@ -1171,7 +1217,7 @@ struct S {
     S(S&& other) {
         s = std::move(other.s);
         i = other.i;
-        p = std::exchange(other.p, 0);
+        p = std::exchange(other.p, nullptr);
     }
 };
 ```
@@ -1187,7 +1233,7 @@ struct S {
 * Kompilátor vygeneruje move konštruktor a move operátor priradenia iba ak je to na 100% bezpečné
     * Ak neexistuje `user defined` kopírovací konštruktor
     * Ak neexistuje `user defined` deštruktor
-* Ak chceme vynútiť genrovanie použijeme `= default`
+* Ak chceme vynútiť generovanie použijeme `= default`
 
 ```cpp
 class my_class {
@@ -1227,9 +1273,9 @@ MyClass &operator=(MyClass &&rhs) {
 
 ## Je toto validná move implementácia?
 
-```cpp [|7-8]
-class A { /* implementation */ };
-class B { /* implementation */ };
+```cpp [7-8|]
+class A { /*implementation*/ };
+class B { /*implementation*/ };
  
 class C {
 public:
@@ -1247,6 +1293,7 @@ private:
   B b;
 };
 ```
+<!-- .element: class="showall" -->
 
 * Copy je validná implementácia move
 <!-- .element: class="fragment" -->
@@ -1257,7 +1304,7 @@ private:
 
 ---
 
-## Nekopirovateľné typy
+## Nekopírovateľné typy
 
 * Pre niektoré typy môže byť veľmi ťažké, až nemožné naimplmentovať copy
     * `std::ifstream`
@@ -1282,10 +1329,10 @@ int main() {
 
 ## Štandardná knižnica a move
 
-* Move je všede v štandardnej knižnici
-* Vector sa snaží urobiť move, keď sa realokuje
+* Move je všade v štandardnej knižnici
+* Vector sa snaží urobiť move, keď sa reallokuje
 * `push_back` môže movnuť prvky do vectora
-* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dajú movnuť
+* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dájú movnuť
 * Veľa funkcionality funguje automaticky a tam kde sa robila kópia sa od C++11 začal robiť move
 * Stačilo prekompilovať novým kompilátorom a mali sme rýchlosť zadarmo
 
