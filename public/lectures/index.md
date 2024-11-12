@@ -14,7 +14,7 @@
 5. [Objektovo orientované programovanie](./?slides=5_oop.md)
 6. [Lambdy](./?slides=lambdas.md)
 7. [Objekty ako hodnota, algoritmy](./?slides=6_values_algo.md)
-8. [Move sémantika](./?slides=7_move.md)
+8. [Move sémantika](./?slides=move.md)
 9. Štandardná knižnica 2
 10. Async, multithreading a spol.
 </div>
