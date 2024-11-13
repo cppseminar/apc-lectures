@@ -15,7 +15,7 @@
 6. [Lambdy](./?slides=lambdas.md)
 7. [Objekty ako hodnota, algoritmy](./?slides=6_values_algo.md)
 8. [Move sémantika](./?slides=move.md)
-9. Štandardná knižnica 2
+9. [Štandardná knižnica](./?slides=std_library_2.md)
 10. Async, multithreading a spol.
 </div>
 <div style="flex: 2;">
