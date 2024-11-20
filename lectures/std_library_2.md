@@ -1224,6 +1224,23 @@ std::random_device rd;
 std::mt19937 gen(rd()); // std::default_random_engine
 
 std::uniform_int_distribution<int> dis(1, 6); // fair dice
+
+for (size_t i = 0; i < 30; ++i) {
+    std::cout << dis(gen); // e.g. 223646345444643431415515513225
+}
+```
+
+
+## Replacement for `rand`
+
+```cpp
+int rnd() { // 0..maxint
+	static std::random_device rd;
+	static std::default_random_engine gen(rd());
+	static std::uniform_int_distribution<int> dis;
+
+	return dis(gen);
+}
 ```
 
 ---
