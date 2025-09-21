@@ -11,7 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@marp-team/marp-cli": "^3.4.0",
+    "@marp-team/marp-cli": "^4.2.3",
     "css-loader": "^7.1.2",
     "gh-pages": "^6.3.0",
     "path-browserify": "^1.0.1",
