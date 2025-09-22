@@ -20,14 +20,14 @@
 
 ## Prečo práve tento predmet?
 
-* C++ má svoje muchy, ale stále sa vo veľkom používa
-* Na týchto prednáškach sa pokúsime ukázať, že aj v C++ sa dá programovať moderne
-    * Bez skrytých bezpečnostných problémov
-    * Bez množstva boilerplate
-    * Bez manuálnej správy pamäte
-    * Pomocou moderných princípov
-* Zameriame sa na implementácie riešení problémov v C++, nie na návrh riešení
-* Chceme dosiahnuť aby programovanie v C++ nevyzeralo ako boj s kompilátorom a hodiny strávene v debuggeri
+* Hoci má C++ svoje nedostatky, stále patrí medzi široko používané jazyky
+* Na prednáškach ukážeme, že aj v C++ je možné programovať moderne:
+    * Bez skrytých bezpečnostných rizík
+    * Bez nadbytočného kódu (boilerplate)
+    * Bez manuálneho spravovania pamäte
+    * S využitím moderných princípov a postupov
+* Zameriame sa na implementáciu riešení v C++, nie na samotný návrh riešení
+* Naším cieľom je ukázať, že programovanie v C++ nemusí byť boj s kompilátorom ani hodiny trápenia v debuggeri
 
 ---
 
@@ -63,7 +63,6 @@ ISBN-13: 978-0136816485
 
 ## Literatúra
 
-* Stránka predmetu <https://cppseminar.eset.sk>
 * [cppreference](https://en.cppreference.com/w/)
 * [CppCoreGuidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
 * [C++ Standard Draft](https://eel.is/c++draft/)
@@ -106,7 +105,7 @@ ISBN-13:  978-3967309201
 
 * Konferencie
     * CppCon <https://www.youtube.com/user/cppcon>
-    * C++ Now <https://www.youtube.com/@BoostCon/videos>
+    * C++ Now <https://www.youtube.com/@CppNow>
     * Meeting C++ <https://www.youtube.com/@MeetingCPP/videos>
 * Ostatné
     * STL intro <https://learn.microsoft.com/en-us/shows/c9-lectures-stephan-t-lavavej-standard-template-library-stl-/>
@@ -121,11 +120,11 @@ ISBN-13:  978-3967309201
 
 ## Výsledok nášho snaženia
 
-* C++ v roku 2024
+* C++ v roku 2025
 * Beautiful code
 * Fun! (sort of 😀)
 
-![Compile and works first time, what did I do wrong?](./lectures/1_intro/joke-sort-of.png)
+![Compile and works first time, what did I do wrong?](./lectures/0_course_overview/joke-sort-of.png)
 
 ---
 
@@ -143,12 +142,9 @@ ISBN-13:  978-3967309201
     </p>
   </li>
   <li>
-    <a href="https://cppseminar.eset.sk">Stránka predmetu</a>
-    <ul>
-      <li>Oznamy</li>
-      <li>Užitočné linky</li>
-      <li>Úlohy</li>
-    </ul>
+    <p style="font-size: larger; text-align: center;">
+      <a href="mailto:cpp@eset.sk">Teams skupina predmetu</a>
+    </p>
   </li>
 </ul>
 
@@ -157,14 +153,21 @@ ISBN-13:  978-3967309201
 ## Rozvrh
 
 * Prednášky budú každý týždeň 
-    * Utorok 16:00, trvanie 1,5 hod
+    * Utorok 16:00, trvanie cca 1,5 hodiny
     * Miestnosť -1.65 (Aula Minor) na FIIT
+
+
 * Cvičenia budú každý týždeň
     * 1. skupina utorok 18:00
-    * 2. skupina streda 16:00
-    * 3. skupina streda 18:00
+    * 2. skupina streda 12:00
+    * 3. skupina streda 16:00
     * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita +-16 ľudí 
-    * Prvý krát môžete prísť na ľubovoľné cvičenie, ak bude problém s kapacitou nejak to vyriešime
+    * Študenti FMFI majú zapísané cvičenia v utorok 18:00
+    * Ak chcete zmeniť skupinu, dajte nám vedieť čím skôr
+    * Prvá skupina sa pravdepodobne bude presúvať do 1.31a (uvidíte v rozvrhu, resp. dám vedieť na Teams)
+
+
+**Cvičenia budú začínať až budúci týždeň, teda 30. septembra, tento týždeň nie sú**
 
 ---
 
@@ -173,7 +176,7 @@ ISBN-13:  978-3967309201
 * Prednášky aj cvičenia sú nepovinné, nebudeme kontrolovať dochádzku
 * Na niektorých cvičeniach ale budú bodované úlohy a testy, tak tam odporúčame príjsť
 
-![Travolta looking very confused](./lectures/1_intro/travolta.gif)
+![Travolta looking very confused](./lectures/0_course_overview/travolta.gif)
 
 ---
 
@@ -207,19 +210,19 @@ ISBN-13:  978-3967309201
 
 * Počas semestra budeme mať aj jeden väčší projekt
 * Predstavený bude niekedy koncom októbra
-* Bude sa dať získať 20 bodov, plus nejaký bonus
+* Bude sa dať získať 30 bodov, plus nejaký bonus
 
 ---
 
 ## Cvičenia
 
-* Občas budú úlohy a testy (vždy dopredu oznámime)
+* Občas budú testy a nejaké bonusové úlohy (vždy dopredu oznámime)
 * Teoretické testy 
-   * 2 x 10 bodov
-   * Desať otázok so 4 možnosťami
+   * 3 x 10 bodov
+   * Otázoky s možnosťami a krátke odpovede
    * Na papier
-* Praktické úlohy
-   * 2 x 10 bodov
+* Programovacie úlohy
+   * Menšie programovacie úlohy, za pár bonusových bodov
    * Odovzdávanie bude cez náš portál
    * Na vlastných PC, alebo na tých čo sú v učebni
 * Inak sa budeme venovať tomu čo sa prebralo na prednáške
@@ -252,18 +255,26 @@ ISBN-13:  978-3967309201
 * Existujú nejaké *typy* – `int`, `char`, `string`
 * Ako funguje *control flow* – `if`, `for`, `while`
 * *Funkcie* a ich volanie, *rekurzia*
-* Letmo sa týchto tém dotkneme na prvých prednáškach, ale určite sa im nebude venovať do hĺbky
+* Letmo sa týchto tém dotkneme na nasledujúcej prednáške, ale určite sa im nebude venovať do hĺbky
 * V podstate by ste mali byť schopný "čítať" program v C
 
 ---
 
 ## Platforma
 
-* Budeme používať MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí [Community edition](https://visualstudio.microsoft.com/vs/community/))
-* Všetko by malo fungovať aj na iných platformách (Linux, Mac)
-* C++20 kompatibilný kompilátor (možno pridáme aj trochu C++23)
-* Pre VS2022 máme pripravený aj template, ktorý všetko nastaví ako má
-* Niečo existuje aj pre VS Code
+* Kedže jedna z výhod C++ je prenositeľnosť kódu, budeme podporovať všetky rozšírené platformy
+   * MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí [Community edition](https://visualstudio.microsoft.com/vs/community/))
+   * Linux a Mac budeme kompilovať cez `g++`, template pre Visual Studio Code
+* Môžete používať aj iné IDE, resp. kompilátor, ale tieto dve riešenia budeme vedieť najlepšie podporiť
+* C++23 kompatibilný kompilátor (možno pridáme aj trochu novšieho C++26)
+
+---
+
+## CMake
+
+* Tento rok plánujeme používať CMake na správu projektu
+* Bude relevantné hlavne pre projekt
+* CMake nám pomôže zjednodušiť proces kompilácie a správy závislostí
 
 ---
 
@@ -275,9 +286,9 @@ ISBN-13:  978-3967309201
 
 ---
 
-<!-- .slide: data-background-image="./lectures/1_intro/DALL·E 2023-07-24 00.32.08 - elephant in the barely lit room.png" data-background-opacity="0.2" -->
+<!-- .slide: data-background-image="./lectures/0_course_overview/DALL·E 2023-07-24 00.32.08 - elephant in the barely lit room.png" data-background-opacity="0.2" -->
 
-<img class="fragment" src="./lectures/1_intro/ChatGPT_logo.svg" alt="Chat-GPT logo" width="400" />
+<img class="fragment" src="./lectures/0_course_overview/ChatGPT_logo.svg" alt="Chat-GPT logo" width="400" />
 
 ---
 
@@ -291,10 +302,8 @@ ISBN-13:  978-3967309201
 
 ## AI a tento predmet
 
-* Na skúške a cvičeniach je používanie AI zakázané
-    * Keďže tieto aktivity sú pomerne krátke, veľmi ťažko sa hľadá rovnováha medzi rozsahom a komplexnosťou
-    * Ideálne by sme chceli vedieť či C++ rozumiete
-* Na aktivitách mimo školy (projekt a iné úlohy) je požívanie AI povolené
+* Na skúške bude zakázané používanie AI 
+* Na ostatných aktivitách (projekt a iné úlohy) je používanie AI povolené
 
 ---
 
