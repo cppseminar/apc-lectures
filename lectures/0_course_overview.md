@@ -142,8 +142,9 @@ ISBN-13:  978-3967309201
     </p>
   </li>
   <li>
+    Teams skupina predmetu
     <p style="font-size: larger; text-align: center;">
-      <a href="mailto:cpp@eset.sk">Teams skupina predmetu</a>
+      <a href="https://teams.microsoft.com/l/team/19%3AHAzrmcaDkHF7Wn86KPePnZmlGIoPQHy4GucoeCtgmLc1%40thread.tacv2/conversations?groupId=4c104ceb-267c-4744-bb8f-0bd774673b03&tenantId=25733538-6b16-4aa3-8ed6-297eb79b8e06">FIIT APC_B</a>
     </p>
   </li>
 </ul>
