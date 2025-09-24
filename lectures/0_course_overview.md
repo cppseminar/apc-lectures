@@ -220,7 +220,7 @@ ISBN-13:  978-3967309201
 * Občas budú testy a nejaké bonusové úlohy (vždy dopredu oznámime)
 * Teoretické testy 
    * 3 x 10 bodov
-   * Otázoky s možnosťami a krátke odpovede
+   * Otázky s možnosťami a krátke odpovede
    * Na papier
 * Programovacie úlohy
    * Menšie programovacie úlohy, za pár bonusových bodov
