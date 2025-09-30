@@ -21,6 +21,18 @@
 # Hello world!
 
 ```cpp
+import std;
+
+int main() {
+    std::println("Hello World");
+}
+```
+
+* Na gcc13 sa neskopiluje out of the box 🧐...
+<!-- .element: class="fragment" -->
+
+
+```cpp
 #include <iostream>
  
 int main() {
@@ -53,7 +65,7 @@ Zvyčajne `argc` obsahuje počet parametrov + 1, `argv` potom obsahuje ako prvý
 ## `#include <iostream>`
 
 * `#include` iba vloží súbor (zvyčajne hlavičkový súbor [header file]) do iného súboru 
-* Súbory v `<>` obsahujú štandardné a/alebo systémové knižnice. Štandardné by mali byť dostupné na všetkých implementáciách vyhovujúcich danej verzií štandardu (my používame C++17/20)
+* Súbory v `<>` obsahujú štandardné a/alebo systémové knižnice. Štandardné by mali byť dostupné na všetkých implementáciách vyhovujúcich danej verzií štandardu (my používame C++20/23)
 * Súbory v `""` obsahujú naše [user defined] hlavičkové súbory
 
 <div style="display: flex; align-items: center;">
