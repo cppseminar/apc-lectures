@@ -155,6 +155,15 @@
 * **three-way comparison (<=>)** – Automatizuje definovanie porovnávanie.
 * `std::format` – Nová formátovacie knižnica.
 
+
+### C++23
+
+* Štandardná knižnica ako modul (`import std;`)
+* Dodefinovanie veľa nedefinovaného správania
+* Vylepšená podpora pre ranges
+* stacktrace knižnica
+* `std::println` - Nový spôsob výstupu na konzolu
+
 ---
 
 ## Rozdelenie C++
