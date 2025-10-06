@@ -2717,7 +2717,6 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
   </div>
 </div>
 
----
 
 <!-- .slide: data-auto-animate -->
 
@@ -2738,7 +2737,6 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
   </div>
 </div>
 
----
 
 <!-- .slide: data-auto-animate -->
 
@@ -2755,7 +2753,6 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
   </div>
 </div>
 
----
 
 <!-- .slide: data-auto-animate -->
 
@@ -2773,7 +2770,6 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
   </div>
 </div>
 
----
 
 <!-- .slide: data-auto-animate -->
 
