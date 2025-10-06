@@ -13,8 +13,7 @@
 * Základné zložené typy
 * Smerníky a referencie
 * Príkazy na riadene programu
-* Kompilácia
-* Coding style
+* Kompilácia, cmake
 
 ---
 
@@ -101,7 +100,7 @@ Systémový hlavičkový súbor.
 
 ## `import`
 
-* Z iných jazykov ste možno zvyknutý zvyknutí na `import`, `using` alebo `require`
+* Z iných jazykov ste možno zvyknutí na `import`, `using` alebo `require`
 * Tieto sa celkom podobajú na `#include`, ale sú zásadne iné (`#include` je preprocesorový príkaz, ktorý vloží obsah súboru do zdrojového kódu)
 * V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
 * Použivajú kľúčové slovo `import` a `export`
@@ -173,7 +172,7 @@ Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne po
 * C++ je staticky typovaný jazyk (podobne ako C)
 * Preto pred prvým použitím premennej musíme definovať jej typ
 * Deklarácie typu sú podbne ako v C
-* Syntax je `typ` `názov` `= hodnota` `;`, kde `hodnota` je voliteľná
+* Syntax je `typ` `názov` `= hodnota` `;`, kde `= hodnota` je voliteľná
 
 ```cpp
 int i; // signed integer uninitialized (0 or undefined)
@@ -203,7 +202,7 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 ## Presná bitová veľkosť
 
 * `long` je na niektorej platforme 32bit a na inej 64bit, podobne aj `size_t`
-* Riešia to typy definované v súbor `#include <cstdint>`
+* Riešia to typy definované v súbore `#include <cstdint>`
 * Nemusia byť definované na všetkých platformách (`CHAR_BITS == 8`)
 * Odporúčame zvyknúť si skoro vždy používať tieto typy
 
@@ -238,8 +237,41 @@ std::cout << sizeof(double) << '\n'; // 8
 </div>
 <div style="flex: 1;">
 
-Na MS Windows Visual Studio. `long` je 8 na gcc.
+Na MS Windows Visual Studio je `long` 4, na gcc je 8.
 </div>
+
+
+## `std::adressof`
+
+* Operátor `&` má jeden problém, môže byť preťažený a potom nevracia adresu premennej
+* Je to síce zlý dizajn, ale keď budeme používať kód napísaný inými ľuďmi, môže sa to stať
+* Riešením je použiť funkciu `std::addressof` z hlavičkového súboru `<memory>`
+
+```cpp
+#include <memory>
+
+int* p = std::addressof(x);
+```
+
+---
+
+## Zarovnanie typov (alignment)
+
+* Každý typ má požiadavku na zarovnanie v pamäti (na aký násobok musí začať adresa typu)
+   * Typ so zarovnaním 4 musí začínať na adrese deliteľnej 4, teda `0x0badc0d8` je OK, `0x0badc0d5` už nie
+* V C++11 pribudol operátor `alignof`, ktorý vráti zarovnanie typu
+* Zarovnanie je dôležité pre efektivitu a správne fungovanie na niektorých architektúrach
+
+```cpp
+std::cout << alignof(char) << '\n';    // Typicky 1
+std::cout << alignof(int) << '\n';     // Typicky 4
+std::cout << alignof(double) << '\n';  // Typicky 8
+
+struct alignas(16) aligned_struct {
+    int x;
+};
+std::cout << alignof(aligned_struct) << '\n'; // 16
+```
 
 ---
 
@@ -380,6 +412,8 @@ auto* ptr = i; // compilation error  
 ```
 
 * `auto*` sa nedá použiť ak vydedukovaný typ nie je smerník
+
+
 * Ak potrebujeme presné číslené typy musíme použiť suffixy
    * `u` alebo `U` pre `unsigned int`
    * `l` alebo `L` pre `long`
@@ -534,7 +568,7 @@ int e = color::yellow;
 
 ### fixed underlying type
 
-* Každý `enum` má číselný typ, ktorý tvorí jeho základ, tento určije veľkosť aj zarovnanie
+* Každý `enum` má číselný typ, ktorý tvorí jeho základ, tento určuje veľkosť aj zarovnanie
 * Pred C++11 mal každý enum typ `int` (alebo iný číselný typ, ktorý vie reprezentovať všetky hodnoty `enum`u)
 * Od C++11 to vieme priamo definovať
 
@@ -728,7 +762,7 @@ if (i == 2 || i == 3) {
 ```cpp
 bool b = true /* some predicate */;
 auto t = b ? 1 : 4; // 1
-auto u = !b ? 1.0 : 4; // 4
+auto u = !b ? 1.0 : 4; // 4.
 auto v = b ? 1 : "4"; // will not compile
 ```
 
@@ -796,11 +830,11 @@ int k = std::max(++a, a++);
 Jedna z často vyskytujúcich odpovedí je 2, pretože výsledkom prefixového inkrementu je už zväčšená hodnota 
 
 ```cpp
-int k = std::max(2, 1);
+int k = std::max(2, 1); // ++a is evaluated first
 ```
 
 ```cpp
-int k = std::max(2, 2);
+int k = std::max(3, 1); // a++ is evaluated first
 ```
 </div>
 
@@ -810,12 +844,14 @@ Poradie vyhodnocovania parametrov funkcie je nedefinované (nešpecifikované od
 </div>
 
 
-### Sekvencovanie (order of evaluation)
+### Sekvenčné body (sequence points)
 
-* Sequence points v predchádzajúcich štandardoch
-* Napríklad: Parametre funkcie sú sekvencované pred volaním funkcie. 
-* Veľmi zjednodušene: Medzi dvoma bodmi sa môže jedna premenná zmeniť nanajvýš raz
-* V podstate: Ak nepoužívate veľmi exotické konštrukcie a vyhýbate sa `++`/`--` v rámci komplikovaných výrazov, tak je všetko v poriadku. 
+* Sekvenčné body sú miesta v programe, kde sa garantuje, že všetky vedľajšie efekty predchádzajúcich vyhodnotení boli dokončené, a žiadne vedľajšie efekty nasledujúcich vyhodnotení ešte nezačali.
+* Pred samotným vykonaním funkcie sa najprv vyhodnotia všetky jej parametre, ale ich poradie vyhodnotenia nie je garantované.
+* Medzi dvoma sekvenčnými bodmi sa konkrétna premenná môže modifikovať maximálne jedenkrát. Ak sa premenná modifikuje viackrát medzi sekvenčnými bodmi, nastáva nedefinované správanie.
+* Vyhnite sa používaniu operátorov `++`, `--` a `=` (priradenie) v rámci komplexných výrazov, najmä ak sa tieto operátory aplikujú na tú istú premennú. Napríklad výraz ako `std::max(++a, a++)` má nedefinované správanie, pretože poradie vyhodnotenia parametrov nie je garantované.
+
+Od C++17 sa už nepoužíva termín "sequence points", ale hovorí sa o "sequenced before" (sequenced relationships), ktoré presnejšie definujú poradie operácií.
 
 ---
 
@@ -1230,7 +1266,7 @@ c.p.y = 12;
 ## Smerníky (pointers) a referencie
 
 * Každá (pomenovaná) premenná má v pamäti svoje miesto
-* Adresu tohto miesta vieme získať pomocou unárneho operátora &
+* Adresu tohto miesta vieme získať pomocou unárneho operátora `&`
 * Opačný proces, získanie hodnoty na adrese, sa robí pomocou operátora dereferencie `*`
 * Referencia je iba alias inej premennej (vnútorne je implementovaná ako smerník)
 
@@ -1398,7 +1434,7 @@ int *ptr = std::addressof(a);
 </div>
     <div style="flex: 3;">
 
-Nemusíme použiť operátor `&`, ale funkciu `std::addressof`, je užitočná hlavne pri preťažení operátora `&`.
+Nemusíme použiť operátor `&`, ale funkciu `std::addressof`.
 </div>
   </li>
   <li style="display: flex;">
@@ -2291,135 +2327,6 @@ void g() {
 
 ---
 
-# Code style
-
----
-
-## Načo pravidlá?
-
-* Pomáha začiatočníkom so štartom. Je jednoduchšie začať na kóde, ktorý vyzerá rovnako a riadi sa nejakými pravidlami
-* Niektoré konštrukcie sú nebezpečné a nemali by sa používať. (Väčšinou sú pozostatky z histórie.)
-* Projekt vyzerá viacej profesionálne ak je všetky pekne uhladené
-
-> “Managing senior programmers is like herding cats”  
-> — Dave Platt 
-
----
-
-## Priručky
-
-* <https://google.github.io/styleguide/cppguide.html>
-* <https://gcc.gnu.org/codingconventions.html>
-* Existuje aj veľa iných, je potrebné sledovať, či si nevyberáme nejakú staršiu, môže obsahovať neaktuálne pravidlá
-* Neexistuje príručka pravidiel, ktoré by sa dali použiť na všetky projekty, kernel módový ovládač má iné požiadavky ako GUI aplikácia
-
----
-
-## Core guidelines
-
-* Skôr ako príručka je to text pojednávajúci o vhodnosti istých konštrukcií
-* Dáva veľa voľnosti 
-* <https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines>
-
----
-
-## Názvy symbolov by mali byť jasné a bez chýb
-
-![kim jong un requesting l(a)unch](./lectures/2_basics/lunch.png)
-
-* Pluginy na kontrolu gramatiky 
-* Mená funkcií a premenných by mali byť popisné bez používania skratiek
-* Výnimka sú skratky všeobecne známe v IT komunite (*HTTTP*, *DNS*, ... sú OK)
-
----
-
-## Konzistentnosť
-
-* Vo všeobecnosti je dobrý nápad držať sa jednej schémy pre pomenovanie a formátovanie funkcií 
-   * *PascalCase*, *camelCase*, *snake_case*
-   * Medzery medzi operátormi, (), taby vs. medzery
-   * Maďarská notácia (Hungarion notation) už skôr nie 😎
-
-```cpp
-GetProductInfo(&dwProductCode, szProductVer);
- 
-OS_INFO os_info;
-FillOsInfo(os_info);
- 
-FEATURES_INFO featuresInfo;
-FillFeaturesInfo(featuresInfo);
-CPlugin *pUpdPlugin = pMain->FindPlugin(PLUGIN_ID_EUPD);
-struct 
-{
-	CCI_SPEC_GET_ACTIVE_USERNAME_REPLY Hdr;
-	char Buffer[2048];
-} usernameBuffer;
-```
-
----
-
-<div style="display: flex; align-items: center;">
-<div style="flex: 6;">
-
-> A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines.  
->   
-> — Ralph Waldo Emerson
-</div>
-<div style="flex: 4;">
-
-![Ralph Waldo Emerson](./lectures/2_basics/Ralph-Waldo-Emerson-1860.webp)
-</div>
-
----
-
-## Pravidlá pre funkcie
-
-* Väčšina funkcií by nemala mať postranné efekty (*side effects*), pre rovnaké vstupy by mali vrátiť rovnaké výstupy
-* Z názvu (a parametrov) funkcie by malo byť zrejmé čo je úlohou funkcie
-* Kratšie funkcie sú lepšie funkcie
-* Micro optimalizácia všetkého je veľmi zlý nápad (ale kód nesmie byť zbytočne neefektívny)
-* Každá funkcia by mala mať jednu činnosť čo vykonáva
-
----
-
-## Efektívny kód by default
-
-* Z dvoch ekvivalentných prístupov si vyberieme ten efektívnejší
-
-<div style="display: flex; align-items: center;">
-<div style="flex: 1;">
-
-```cpp
-std::vector<int> v;
-v.push_back(1);
-v.push_back(2);
-// ...
-v.push_back(10);
-```
-</div>
-<div style="flex: 1;">
-
-```cpp
-std::vector<int> v = {
-    1, 2, /* ... */ 10,
-};
-```
-</div>
-</div>
-
-* Kus kódu vľavo môže v skutočnosti urobiť niekoľko alokácií (a teda aj kopírovania), kód vpravo je aj prehľadnejší aj urobí iba jednu alokáciu
-
----
-
-## V jednoduchosti je krása
-
-* Kratší kód zvyčajne obsahuje menej chýb 
-* (no code = no bugs)
-* Vyhýbajte sa "write only" algoritmom
-* Ak je niečo pomalé, treba to najprv odmerať (profiler) a potom meniť
-
----
-
 # Príkazy na riadenie programu
 
 ---
@@ -2888,6 +2795,85 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
     </ul></br>
   </div>
 </div>
+
+---
+
+## CMake
+
+* CMake je nástroj na automatizáciu procesu buildovania
+* Umožňuje definovať projekt a jeho závislosti v súbore `CMakeLists.txt`
+* Podporuje multiplatformový vývoj a generovanie projektov pre rôzne IDE
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(MyProject LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_executable(my_executable main.cpp)
+```
+
+
+### `cmake_minimum_required`
+
+* Určuje minimálnu požadovanú verziu CMake
+
+
+### `project`
+
+* Definuje názov projektu a voliteľne jeho jazykové požiadavky
+* V tomto prípade je to C++ `project(MyProject LANGUAGES CXX)`
+
+
+### `set`
+
+* Nastavuje premenné CMake
+* `CMAKE_CXX_STANDARD 20` nastavuje štandard C++ na C++20
+* `CMAKE_CXX_STANDARD_REQUIRED ON` znamená, že požadovaný štandard musí byť podporovaný kompilátorom
+* `CMAKE_CXX_EXTENSIONS OFF` znamená, že sa nepovolia žiadne rozšírenia kompilátora (namiesto `std=gnu++20` sa použije `std=c++20`)
+
+
+### `add_executable`
+
+* Definuje spustiteľný súbor a jeho zdrojové súbory
+* V tomto prípade vytvára spustiteľný súbor `my_executable` zo súboru `main.cpp`
+
+
+### Generovanie build systému a build
+
+* CMake generuje build systém (Makefile, Ninja, Visual Studio project, ...) na základe `CMakeLists.txt`
+* Tento build systém sa potom použije na kompiláciu a linkovanie projektu
+
+```bash
+# Create a build directory
+mkdir build
+cmake -S . -B build
+```
+
+```bash
+# Build the project using cmake command
+cmake --build build
+
+# Or using make if Makefile was generated (default on Unix systems)
+make -C build
+```
+
+
+## Rôzne konfigurácie
+
+* CMake umožňuje definovať rôzne build konfigurácie (Debug, Release, RelWithDebInfo, MinSizeRel)
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+```
+
+* Konfigurácie môžu mať rôzne optimalizačné úrovne a nastavenia pre ladenie
+   * **Debug**: žiadna optimalizácia, plné ladenie
+   * **Release**: plná optimalizácia, žiadne ladenie
+   * **RelWithDebInfo**: optimalizácia s ladením
+   * **MinSizeRel**: optimalizácia pre minimálnu veľkosť
 
 ---
 
