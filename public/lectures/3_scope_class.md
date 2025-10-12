@@ -552,7 +552,7 @@ int main() {
 </div>
 </div>
 
-`friend` trieda, alebo funkcia môže pristupovať ak k privátnym dátam. 
+`friend` trieda, alebo funkcia môže pristupovať aj k privátnym dátam. 
 
 ---
 
