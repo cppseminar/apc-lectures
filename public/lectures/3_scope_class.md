@@ -22,7 +22,7 @@
 
 ---
 
-## Naujužitočnejší kus kódu
+## Nauužitočnejší kus kódu
 
 <h1 class="fragment"><code>}</code></h1>
 
@@ -115,7 +115,7 @@ int main() { // in global scope
 ## Uzatvárajúci scope
 
 * Angl. *enclosing scope*
-* Majmenší uzatvárajúci scope, ktorý obsahuje daný daný bod programu sa nazýva *immendiate scope*
+* Najmenší uzatvárajúci scope, ktorý obsahuje daný bod programu sa nazýva *immediate scope*
 
 ```cpp
 int a = 0;
@@ -127,9 +127,9 @@ int a = 0;
 }
 ```
 
-* Pre deklaráciu `c` je uzatvárajúci scope `Y`, `X` aj globálny scope, immendiate scope je `Y`
-* Pre deklaráciu `b` je uzatvárajúci scope `X`, globálny scope, immendiate scope je `X`
-* Pre deklaráciu `a` je uzatvárajúci scope globálny scope, immendiate scope je tiež globálny scope
+* Pre deklaráciu `c` je uzatvárajúci scope `Y`, `X` aj globálny scope, immediate scope je `Y`
+* Pre deklaráciu `b` je uzatvárajúci scope `X`, globálny scope, immediate scope je `X`
+* Pre deklaráciu `a` je uzatvárajúci scope globálny scope, immediate scope je tiež globálny scope
 
 
 ## Viazanie
@@ -604,7 +604,7 @@ Niektorí programátori používajú stále triedy, iný preferujú štruktúry 
 ## Život objetku
 
 * Vždy keď sa má objekt vytvoriť zavolá sa definovaný konštruktor
-* Ak je konštrukcia úspešná, garantovanie sa nám zavolá deštruktor na konci života objektu
+* Ak je konštrukcia úspešná, garantovane sa nám zavolá deštruktor na konci života objektu
 
 ---
 
@@ -629,7 +629,7 @@ int main() {
 
 <div class="fragment">
 
-Na konci `if`u (tesne pred `}`) mieste je reťazec `s` zdeštruovaný a teda všetky referencie a smerníky sú neplatné a nesmú sa použiť. 
+Na konci `if`u (tesne pred `}`) je reťazec `s` zdeštruovaný a teda všetky referencie a smerníky sú neplatné a nesmú sa použiť.
 
 Test na `nullptr` stále prejde, je na programátorovi aby toto urobil dobre.
 </div>
@@ -1031,11 +1031,11 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 ## Expanzia vectora
 
 * Vector štandardne narastá v násobkoch
-   * 2 gcc a cland
+   * 2 gcc a clang
    * 1.5 MSVC
 * Nikdy nezmenší svoju naalokovanú pamäť (treba explicitne volať `shrink_to_fit`, ale ani to nie je garantované)
 * Ak nastane realokácia, tak každý iterátor (smerník, referencia), ktorý ukazoval na prvok vectora je neplatný
-* Preto je veľmi zlé manipulovať s vectorom počas iterovania cezeň 
+* Preto je veľmi zlé manipulovať s vectorom počas iterovania cez neho
 * Skoro vždy chcete použiť vector
 
 ---
@@ -1084,7 +1084,7 @@ vec[200] = 0; // undefined
   <tr>
     <td><code>insert</code></td>
     <td>O(n)</td>
-    <td>Vloží prvok(y) ma zadanú pozíciu definovanú iterátorom</td>
+    <td>Vloží prvok(y) na zadanú pozíciu definovanú iterátorom</td>
   </tr>
   <tr>
     <td><code>erase</code></td>
