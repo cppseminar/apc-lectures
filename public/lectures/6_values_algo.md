@@ -25,11 +25,11 @@
 ## Kedy sú dva objekty ekvivalentné?
 
 ```cpp
-int main() {
-    std::string a = "Equal string";
-    std::string b = "Equal string";
- 
-    // are those strings equal?
+int main() {
+    std::string a = "Equal string";
+    std::string b = "Equal string";
+ 
+    // are those strings equal?
 }
 
 ```
@@ -61,8 +61,8 @@ int main() {
 ```cpp
 class MyClass{
 public:
-    MyClass(const MyClass&); // copy constructor
-    MyClass& operator=(const MyClass&); // [copy] assignment operator
+    MyClass(const MyClass&); // copy constructor
+    MyClass& operator=(const MyClass&); // [copy] assignment operator
 };
 ```
 
@@ -70,17 +70,17 @@ public:
 ## Automaticky vygenerovaný kopírovací konštruktor
 
 ```cpp
-class MyClass {
+class MyClass {
 private:
-    int a;
-    void* b;
-    std::string c;
+    int a;
+    void* b;
+    std::string c;
 public:
-    MyClass(const MyClass& other)
-        : a(other.a)
-        , b(other.b)
-        , c(other.c) { }
- };
+    MyClass(const MyClass& other)
+        : a(other.a)
+        , b(other.b)
+        , c(other.c) { }
+ };
 
 ```
 
@@ -91,19 +91,19 @@ public:
 ## Automaticky generovaný operátor priradenia
 
 ```cpp
-class MyClass {
+class MyClass {
 private:
-    int a;
-    void* b;
-    std::string c;
+    int a;
+    void* b;
+    std::string c;
 public:
-    MyClass& operator=(const MyClass& rhs) {
-        a = rhs.a;
-        b = rhs.b;
-        c = rhs.c;
-        return *this;
-    }
- };
+    MyClass& operator=(const MyClass& rhs) {
+        a = rhs.a;
+        b = rhs.b;
+        c = rhs.c;
+        return *this;
+    }
+ };
 ```
 
 * OK pre typy ako `int` alebo `std::string` (v štandarde majú všetky typy dobre definované operátory priradenia)
@@ -118,18 +118,18 @@ public:
     * Označíme ich ako `= delete` (po C++11 vrátane)
 
 ```cpp
-class MyClass {
+class MyClass {
 private:
-    MyClass(const MyClass&);
-    MyClass& operator=(const MyClass&);
+    MyClass(const MyClass&);
+    MyClass& operator=(const MyClass&);
 };
 ```
 
 ```cpp
-class MyClass {
+class MyClass {
 public:
-    MyClass(const MyClass&) = delete;
-    MyClass& operator=(const MyClass&) = delete;
+    MyClass(const MyClass&) = delete;
+    MyClass& operator=(const MyClass&) = delete;
 };
 ```
 
@@ -139,10 +139,10 @@ public:
 * Môžeme ich označiť `= default` a napovie to čitateľom, že o nich vieme a vyhovujú nám
 
 ```cpp
-class MyClass {
+class MyClass {
 public:
-    MyClass(const MyClass&) = default;
-    MyClass& operator=(const MyClass&) = default;
+    MyClass(const MyClass&) = default;
+    MyClass& operator=(const MyClass&) = default;
 };
 ```
 
@@ -168,7 +168,7 @@ MyClass bc(ac);
 <div class="fragment">
 
 * Copy konštruktor by mal byť `const`, ale štandard umožnuje aj bez
-* Preto v tomto prípade sme kopírovací konštruktor definovali my a kompilátor nám nevygeneruje defaultný `MyClass(const MyClass&)`, vieme ho prinútiť pomocou `= default`
+* Preto v tomto prípade sme kopírovací konštruktor definovali my a kompilátor nám nevygeneruje defaultný `MyClass(const MyClass&)`, vieme ho prinútiť pomocou `= default`
 * `MyClass bc(ac);` sa nepodarí skompilovať
 </div>
 
@@ -183,29 +183,29 @@ Note: <https://www.fluentcpp.com/2019/04/23/the-rule-of-zero-zero-constructor-ze
 <td style="width: 60%">
 
 ```cpp [8-13|15-20]
-class Buffer {
-public: 
-    Buffer(size_t n) {
-        data_ = new std::byte[n];
-        size_ = n;
-    }
+class Buffer {
+public: 
+    Buffer(size_t n) {
+        data_ = new std::byte[n];
+        size_ = n;
+    }
 
-    Buffer(const Buffer& other)
+    Buffer(const Buffer& other)
         : size_(other.size_)
-        , data_(new std::byte[size_]) {
-        memcpy(data_, rhs.data_, size_);
-        return *this;
-    }
+        , data_(new std::byte[size_]) {
+        memcpy(data_, rhs.data_, size_);
+        return *this;
+    }
 
-    Buffer& operator=(const Buffer& rhs) {
-        size_ = rhs.size_;
-        data_ = new std::byte[size_];
-        memcpy(data_, rhs.data_, size_);
-        return *this;
-    }
+    Buffer& operator=(const Buffer& rhs) {
+        size_ = rhs.size_;
+        data_ = new std::byte[size_];
+        memcpy(data_, rhs.data_, size_);
+        return *this;
+    }
 private:
-    std::byte *data_;
-    std::size_t size_;
+    std::byte *data_;
+    std::size_t size_;
 };
 
 ```
@@ -225,12 +225,12 @@ private:
 ## Kopírovací operátor priradenia
 
 ```cpp [|2]
-Buffer& operator=(const Buffer& rhs) {
-    delete[] data_;
-    size_ = rhs.size_;
-    data_ = new std::byte[size_];
-    memcpy(data_, rhs.data_, size_);
-    return *this;
+Buffer& operator=(const Buffer& rhs) {
+    delete[] data_;
+    size_ = rhs.size_;
+    data_ = new std::byte[size_];
+    memcpy(data_, rhs.data_, size_);
+    return *this;
 }
 ```
 
@@ -241,21 +241,21 @@ Buffer& operator=(const Buffer& rhs) {
 </div>
 
 
-## `this != &rhs` trik
+## `this != &rhs` trik
 
 * Môžeme zneužiť umiestnenie v pamäti 
 * Zrejme ak majú dva objekty rovnakú adresu, tak musia byť rovnaké
 * Samo priradenie sa dá odhaliť
 
 ```cpp
-Buffer& operator=(const Buffer& rhs) {
-  if (this != &rhs) {
-    delete[] data_;
-    size_ = rhs.size_;
-    data_ = new std::byte[size_];
-    memcpy(data_, rhs.data_, size_);
+Buffer& operator=(const Buffer& rhs) {
+  if (this != &rhs) {
+    delete[] data_;
+    size_ = rhs.size_;
+    data_ = new std::byte[size_];
+    memcpy(data_, rhs.data_, size_);
   }
-  return *this;
+  return *this;
 }
 
 ```
@@ -267,21 +267,21 @@ Stále nie dokonalé, `new` môže hodiť výnimku a potom máme problém. Mali 
 ## Posledná verzia `operator=`
 
 ```cpp
-Buffer& operator=(const Buffer& rhs) {
-  if (this != &rhs) {
+Buffer& operator=(const Buffer& rhs) {
+  if (this != &rhs) {
     auto* tmp = data_;
     try {
-      data_ = new std::byte[rhs.size_];
+      data_ = new std::byte[rhs.size_];
       delete tmp; // release old buffer
     } catch (const std::exception&) {
       data_ = tmp;
       throw;
     }
 
-    size_ = rhs.size_;
-    memcpy(data_, rhs.data_, size_);
+    size_ = rhs.size_;
+    memcpy(data_, rhs.data_, size_);
   }
-  return *this;
+  return *this;
 }
 ```
 
@@ -576,15 +576,15 @@ private:
 ```cpp
 class IntBox {
 public:
-    IntBox(int i) : data(std::make_unique<int>(i)) { }
-    bool operator==(const IntBox& rhs) const { return *(this->data) == *(rhs.data); }
-    bool operator!=(const IntBox& rhs) const { return *(this->data) != *(rhs.data); }
-    bool operator<(const IntBox& rhs) const { return *(this->data) < *(rhs.data); }
-    bool operator<=(const IntBox& rhs) const { return *(this->data) <= *(rhs.data); }
-    bool operator>(const IntBox& rhs) const { return *(this->data) > *(rhs.data); }
-    bool operator>=(const IntBox& rhs) const { return *(this->data) >= *(rhs.data); }
+    IntBox(int i) : data(std::make_unique<int>(i)) { }
+    bool operator==(const IntBox& rhs) const { return *(this->data) == *(rhs.data); }
+    bool operator!=(const IntBox& rhs) const { return *(this->data) != *(rhs.data); }
+    bool operator<(const IntBox& rhs) const { return *(this->data) < *(rhs.data); }
+    bool operator<=(const IntBox& rhs) const { return *(this->data) <= *(rhs.data); }
+    bool operator>(const IntBox& rhs) const { return *(this->data) > *(rhs.data); }
+    bool operator>=(const IntBox& rhs) const { return *(this->data) >= *(rhs.data); }
 private:
-    std::unique_ptr<int> data;
+    std::unique_ptr<int> data;
 };
 ```
 
@@ -601,17 +601,17 @@ private:
 ```cpp [|5|13-14]
 class IntBox {
 public:
-    IntBox(int i) : data(std::make_unique<int>(i)) { }
-    auto operator<=>(const IntBox& rhs) const { 
-        return *(this->data) <=> *(rhs.data);
-    }
+    IntBox(int i) : data(std::make_unique<int>(i)) { }
+    auto operator<=>(const IntBox& rhs) const { 
+        return *(this->data) <=> *(rhs.data);
+    }
 private:
-    std::unique_ptr<int> data;
+    std::unique_ptr<int> data;
 };
 
 int main() {
-    assert(IntBox(3) < IntBox(5));
-    assert(IntBox(5) <= IntBox(5));
+    assert(IntBox(3) < IntBox(5));
+    assert(IntBox(5) <= IntBox(5));
 }
 ```
 
@@ -643,17 +643,17 @@ private:
 ```cpp
 class Person {
 public:
-    Person(std::string name, uint8_t age)
-        : name(name), age(age) { }
-    auto operator<=>(const Person& rhs) const = default;
+    Person(std::string name, uint8_t age)
+        : name(name), age(age) { }
+    auto operator<=>(const Person& rhs) const = default;
 private:
-    std::string name;
-    uint8_t age;
-    std::vector<int> privileges;
+    std::string name;
+    uint8_t age;
+    std::vector<int> privileges;
 };
 
 int main() {
-    assert(Person("Bjarne", 70) < Person("Richard", 68));
+    assert(Person("Bjarne", 70) < Person("Richard", 68));
 }
 ```
 
@@ -663,16 +663,16 @@ int main() {
 ```cpp
 class Person {
 public:
-    Person(std::string name, uint8_t age)
-        : name(name), age(age) { }
-    bool operator==(const Person& rhs) const = default;
+    Person(std::string name, uint8_t age)
+        : name(name), age(age) { }
+    bool operator==(const Person& rhs) const = default;
 private:
-    std::string name;
-    uint8_t age;
+    std::string name;
+    uint8_t age;
 };
 
 int main() {
-    assert(Person("Bjarne", 70) != Person("Richard", 68));
+    assert(Person("Bjarne", 70) != Person("Richard", 68));
 }
 ```
 
@@ -754,15 +754,15 @@ int main() {
 ## `begin` a `end`
 
 ```cpp
-std::vector<int> vec = { 0, 5, 4, -1, 2, 10 };
-for (int i = 0; i < vec.size(); ++i) {
-    std::cout << vec[i] << std::endl;
+std::vector<int> vec = { 0, 5, 4, -1, 2, 10 };
+for (int i = 0; i < vec.size(); ++i) {
+    std::cout << vec[i] << std::endl;
 }
 
-// is roughly equivalent to
-// it type is std::vector<int>::iterator
-for (auto it = vec.begin(); it != vec.end(); ++it) {
-    std::cout << *it << std::endl;
+// is roughly equivalent to
+// it type is std::vector<int>::iterator
+for (auto it = vec.begin(); it != vec.end(); ++it) {
+    std::cout << *it << std::endl;
 }
 ```
 
@@ -849,8 +849,8 @@ for (auto it = a.begin(); it != a.end(); ++it) {
 * end-of-stream iterátor nastane ak je vo vstupnom streame chyba (`bad`, `fail`, alebo `eof`)
 
 ```cpp
-std::vector<int> v;
-std::copy(std::istream_iterator<int>(std::cin), std::istream_iterator<int>(), std::back_inserter(v));
+std::vector<int> v;
+std::copy(std::istream_iterator<int>(std::cin), std::istream_iterator<int>(), std::back_inserter(v));
 ```
 
 ---
@@ -865,16 +865,16 @@ std::copy(std::istream_iterator<int>(std::cin), std::istream_iterator<int>(), 
 <td style="width: 60%">
 
 ```cpp
-std::string::iterator it;
+std::string::iterator it;
 {
-    std::string s = "This is very good string";
-    it = s.begin();
+    std::string s = "This is very good string";
+    it = s.begin();
 }
 
-// next line seems to be working in release mode
-// but is actually undefined
-// will be catch in debug builds by assertions
-std::cout << *it;
+// next line seems to be working in release mode
+// but is actually undefined
+// will be catch in debug builds by assertions
+std::cout << *it;
 ```
 </td>
 <td>
@@ -890,13 +890,13 @@ std::cout << *it;
 Range based for cyklus v C++11
 
 ```cpp
-for (const auto& i : vec) {
-    std::cout << i;
+for (const auto& i : vec) {
+    std::cout << i;
 }
 
-auto __end = vec.end();
-for (auto __begin = vec.begin(); __begin != __end; ++__begin) {
-    std::cout << *__begin;
+auto __end = vec.end();
+for (auto __begin = vec.begin(); __begin != __end; ++__begin) {
+    std::cout << *__begin;
 }
 ```
 
@@ -915,15 +915,15 @@ for (auto __begin = vec.begin(); __begin != __end; ++__begin) {
 Dá sa použiť priamo s C poliami
 
 ```cpp
-std::string s[] = { "Zero", "One", "Two" };
-for (const auto& i : s) {
-    std::cout << i << std::endl;
+std::string s[] = { "Zero", "One", "Two" };
+for (const auto& i : s) {
+    std::cout << i << std::endl;
 }
 ```
 
 ```cpp
-std::string* b = std::begin(s);
-std::string* e = std::end(s);
+std::string* b = std::begin(s);
+std::string* e = std::end(s);
 ```
 
 Niekde v štandardnej knižnici existuje špecializácia funkcie `begin` na `T[]`. Rovnako pre funkciu end, preto potom `for` v takejto forme existuje.
@@ -978,11 +978,11 @@ std::vector<int> vec = { 1, 2, 3, 5 };
 assert(std::is_sorted(vec.begin(), vec.end()));
 
 bool found = std::binary_search(vec.begin(), vec.end(), 4);
-std::cout << std::boolalpha << found; // false
+std::cout << std::boolalpha << found; // false
 
 auto it = std::lower_bound(vec.begin(), vec.end(), 4);
 if (it != vec.end())
-  std::cout << *it; // 5
+  std::cout << *it; // 5
 ```
 
 * `binary_search` iba vráti, či sa nachádza
@@ -1048,9 +1048,9 @@ Treti parameter je predikát (ak nám nevyhovuje `<`).
 * `erase` invaliduje všetky iterátory na mazaný prvok a všetky nasledujúce prvky
 
 ```cpp
-auto it = std::find(vec.begin(), vec.end(), 0);
-if (it != vec.end()) {
-    vec.erase(it);
+auto it = std::find(vec.begin(), vec.end(), 0);
+if (it != vec.end()) {
+    vec.erase(it);
 }
 ```
 
@@ -1075,12 +1075,12 @@ void erase_all(std::vector<int>& vec, int value) {
 ## Mazanie viacerých prvkov
 
 ```cpp
-void erase_all(std::vector<int>& vec, int value) {
-    for (size_t i = vec.size() - 1; i >= 0; --i) {
-        if (vec[i] == value) {
-            vec.erase(vec.begin() + i);
-        }
-    }
+void erase_all(std::vector<int>& vec, int value) {
+    for (size_t i = vec.size() - 1; i >= 0; --i) {
+        if (vec[i] == value) {
+            vec.erase(vec.begin() + i);
+        }
+    }
 }
 ```
 
@@ -1091,10 +1091,10 @@ void erase_all(std::vector<int>& vec, int value) {
 ## Mazanie viacerých prvkov
 
 ```cpp
-void erase_all(std::vector<int>& vec, int value) {
-  for (int i = vec.size() - 1; i >= 0; --i) {
-    if (vec[i] == value) {
-      vec.erase(vec.begin() + i);
+void erase_all(std::vector<int>& vec, int value) {
+  for (int i = vec.size() - 1; i >= 0; --i) {
+    if (vec[i] == value) {
+      vec.erase(vec.begin() + i);
     }
   }
 }
@@ -1128,8 +1128,8 @@ void erase_all(std::vector<int>& vec, int value) {
 ![erase remove idiom](./lectures/6_values_algo/erase-remove.png)
 
 ```cpp
-void erase_remove(std::vector<int>& vec, int value) {
-    vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+void erase_remove(std::vector<int>& vec, int value) {
+    vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
 }
 ```
 
@@ -1145,16 +1145,16 @@ void erase_remove(std::vector<int>& vec, int value) {
 * Nulové mrhanie pamäťou a rýchlosťou
 
 ```cpp
-struct MyClass {
-    int ints[3];
-    char character;
+struct MyClass {
+    int ints[3];
+    char character;
 };
- 
-int main(int argc, const char* argv[]) {
-    MyClass arr[50];
- 
-    static_assert(sizeof(arr) == 50 * sizeof(MyClass), 
-        "Not the same size.");
+ 
+int main(int argc, const char* argv[]) {
+    MyClass arr[50];
+ 
+    static_assert(sizeof(arr) == 50 * sizeof(MyClass), 
+        "Not the same size.");
 }
 ```
 
@@ -1176,14 +1176,14 @@ V poliach nikdy nie je padding medzi prvkami.
 * Nezaberá nič navyše v pamäti, iba `N * sizeof(T)`
 
 ```cpp
-int main(int argc, const char** argv) {
-    std::array<int, 4> arr = { 3, 1, 2 };
-    std::sort(arr.begin(), arr.end()); // 0, 1, 2, 3
+int main(int argc, const char** argv) {
+    std::array<int, 4> arr = { 3, 1, 2 };
+    std::sort(arr.begin(), arr.end()); // 0, 1, 2, 3
 
-    for (const auto& i : arr)  {
-        std::cout << i << " ";
-    }
-    std::cout << arr.size() << '\n'; // 4
+    for (const auto& i : arr)  {
+        std::cout << i << " ";
+    }
+    std::cout << arr.size() << '\n'; // 4
 }
 ```
 
@@ -1604,11 +1604,11 @@ std::vector<int>vec = { 1,2,3,0,5 };
 std::ranges::sort(vec);
 auto it = std::ranges::find(vec, 3);
 if (it == vec.end())
-    std::cout << "Not found\n";
+    std::cout << "Not found\n";
 
 std::cout << std::distance(vec.begin(), it);
 std::ranges::reverse(vec);
-// second parameter is the value that should be at the new front
+// second parameter is the value that should be at the new front
 std::ranges::rotate(vec, vec.begin() + 2);
 ```
 
@@ -1624,12 +1624,12 @@ C++20 za nás všetko vyriešilo
 bool is_even(int x) { return x % 2 == 0; }
 
 int main() {
-    std::vector<int> v = { 1, 2, 3, 4, 5, 6, 1, 2, 4, 5 };
-    std::erase(v, 1);
-    std::erase_if(v, is_even);
-    for (auto i : v) {
-        std::cout << i << ' '; // 3, 5, 5
-    }
+    std::vector<int> v = { 1, 2, 3, 4, 5, 6, 1, 2, 4, 5 };
+    std::erase(v, 1);
+    std::erase_if(v, is_even);
+    for (auto i : v) {
+        std::cout << i << ' '; // 3, 5, 5
+    }
 }
 ```
 

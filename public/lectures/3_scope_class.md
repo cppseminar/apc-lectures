@@ -33,27 +33,27 @@
 * Lokálne premenné vo funkciách začínajú existenciu pri deklarácií a sú zničené na konci scope-u, v ktorom boli deklarované
 
 ```cpp
-void f() {
-    std::string s = "Normal variable";
-} // s is destroyed here
+void f() {
+  std::string s = "Normal variable";
+} // s is destroyed here
 ```
 
 ```cpp
-void f() {
-    auto *s = new std::string("Leak?");
-} // s is destroyed here
-// !!! but because s is just a pointer
-// !!! there will be a resource leak
+void f() {
+  auto *s = new std::string("Leak?");
+} // s is destroyed here
+// !!! but because s is just a pointer
+// !!! there will be a resource leak
 
 ```
 
 ```cpp
-void f() {
-    auto *s = new std::string("OK");
-    // resource associated with *s 
-    // is released by calling delete 
-    delete s; 
-} // s is destroyed here
+void f() {
+  auto *s = new std::string("OK");
+  // resource associated with *s 
+  // is released by calling delete 
+  delete s; 
+} // s is destroyed here
 
 ```
 
@@ -75,20 +75,20 @@ void f() {
 <div style="flex: 6;">
 
 ```cpp
-void f() {
-  // scope A
-  int i = 0;
-  if (i == 4) {
-    // scope B
-  } else {
-    // scope C
-    {
-      // scope D
-    }
-  }
-  for (auto i : {"a"}) {
-    // scope E
-  }
+void f() {
+  // scope A
+  int i = 0;
+  if (i == 4) {
+    // scope B
+  } else {
+    // scope C
+    {
+      // scope D
+    }
+  }
+  for (auto i : {"a"}) {
+    // scope E
+  }
 }
 ```
 </div>
@@ -104,10 +104,10 @@ void f() {
 * Všetko, čo nie je v žiadnom inom scope je v globálnom scope
 
 ```cpp
-int i = 0; // in global scope
+int i = 0; // in global scope
 
-int main() { // in global scope
-    int j = 0; // in scope of function main
+int main() { // in global scope
+  int j = 0; // in scope of function main
 }
 ```
 
@@ -134,7 +134,7 @@ int a = 0;
 
 ## Viazanie
 
-* Každá deklarácia žije vo svojom immendiate scope, tento sa nazýva aj cieľový (angl. *target*) scope
+* Každá deklarácia žije vo svojom immediate scope, tento sa nazýva aj cieľový (angl. *target*) scope
 * Všetky premenné (mená), ktoré deklarácia zavádza sú viazané na tento scope
 
 ---
@@ -164,7 +164,7 @@ int a = 0;
 <div style="flex: 1;">
 
 ```cpp
-for (int i = 0; i < 100; ++i) {
+for (int i = 0; i < 100; ++i) {
 
 }
 ```
@@ -173,10 +173,10 @@ for (int i = 0; i < 100; ++i) {
 
 ```cpp
 {
-    int i = 0;
-    for (; i < 100; ++i) {
+    int i = 0;
+    for (; i < 100; ++i) {
 
-    }
+    }
 }
 ```
 </div>
@@ -189,7 +189,7 @@ for (int i = 0; i < 100; ++i) {
 <div style="flex: 1;">
 
 ```cpp
-for (;;) {
+for (;;) {
 
 }
 ```
@@ -197,7 +197,7 @@ for (;;) {
 <div style="flex: 1;">
 
 ```cpp
-while (true) {
+while (true) {
 
 }
 ```
@@ -232,17 +232,17 @@ note: nekonečný cyklus je inak viacmenej undefined
 ## Hlavičkový súbor / interface
 
 ```cpp
-class widget { // meno triedy
+class widget { // meno triedy
 public: // modifikator pristupu
-  widget(const char* s); // konstruktor
-  ~widget(); // destruktor
- 
-  int observe() const; // metoda
-  void mutate(int x); // metoda
- 
+  widget(const char* s); // konstruktor
+  ~widget(); // destruktor
+ 
+  int observe() const; // metoda
+  void mutate(int x); // metoda
+ 
 private: // modifikator pristupu
-  int data = 0; // data, instancne premenne
-  std::string str;
+  int data = 0; // data, instancne premenne
+  std::string str;
 }; // ; je velmi dolezita
 ```
 
@@ -256,25 +256,25 @@ private: // modifikator pristupu
 ## Zdrojový súbor / implementácia
 
 ```cpp
-widget::widget(const char* s)
-    : data(10) // inicializacny list v konstruktore
-    , str(s) {
+widget::widget(const char* s)
+  : data(10) // inicializacny list v konstruktore
+  , str(s) {
 }
- 
-widget::~widget() {
-    std::cout << "~widget" << '\n';
+ 
+widget::~widget() {
+  std::cout << "~widget" << '\n';
 }
- 
+ 
 // konstantne metody nemozu menit stav objektu
-int widget::observe() const {
-    // data++; // error
-    std::cout << data << '\n';
-    return data;
+int widget::observe() const {
+  // data++; // error
+  std::cout << data << '\n';
+  return data;
 }
- 
-void widget::mutate(int x) {
-    data += x; // OK
-    std::cout << data << '\n';
+ 
+void widget::mutate(int x) {
+  data += x; // OK
+  std::cout << data << '\n';
 }
 ```
 
@@ -289,38 +289,38 @@ void widget::mutate(int x) {
 <div style="flex: 1;">
 
 ```cpp
-class foo {
+class foo {
 public:
-  foo(int x) {
-    // s is default constructed 
-    i = x;
-    s = std::to_string(x);
-    f = x;
-  }
+  foo(int x) {
+    // s is default constructed 
+    i = x;
+    s = std::to_string(x);
+    f = x;
+  }
 private:
-  std::string s;
-  int i;
-  float f;
+  std::string s;
+  int i;
+  float f;
 };
 ```
 </div>
 <div style="flex: 1;">
 
 ```cpp
-class foo {
+class foo {
 public:
-  foo(int x)
-    : i(x)
-    , s(std::to_string(x))
-    , f(x) {
-    // everything inside class is constructed
-    // add other steps required for class to
-    // function properly
-  }
+  foo(int x)
+    : i(x)
+    , s(std::to_string(x))
+    , f(x) {
+    // everything inside class is constructed
+    // add other steps required for class to
+    // function properly
+  }
 private:
-  std::string s;
-  int i;
-  float f;
+  std::string s;
+  int i;
+  float f;
 };
 
 ```
@@ -335,20 +335,20 @@ private:
 * Vnútri metódy sa dajú referencovať všetky členské premenné
 
 ```cpp
-class string_index {
+class string_index {
 public:
-  void set_index(int i) {
-    this->i = i;
-    s = std::to_string(i);
-  }
+  void set_index(int i) {
+    this->i = i;
+    s = std::to_string(i);
+  }
 
-  void print() const {
-    // i = 0; or whatever is error
-    std::cout << s << '\n';
-  }
+  void print() const {
+    // i = 0; or whatever is error
+    std::cout << s << '\n';
+  }
 private:
-  int i = 0;
-  std::string s;
+  int i = 0;
+  std::string s;
 };
 ```
 
@@ -364,22 +364,22 @@ private:
 * V iných jazykoch sa volajú aj properties
 
 ```cpp
-class person {
+class person {
 public:
-  person(const std::string& name) 
-    : name(name) { }
- 
-  int get_age() const { return age; }
-  void set_age(int age) { 
-    assert(age >= 0); 
-    this->age = age; 
-  }
- 
+  person(const std::string& name) 
+    : name(name) { }
+ 
+  int get_age() const { return age; }
+  void set_age(int age) { 
+    assert(age >= 0); 
+    this->age = age; 
+  }
+ 
   // readonly property
-  const std::string& get_name() const { return name; }
+  const std::string& get_name() const { return name; }
 private:
-  int age = 0;
-  std::string name;
+  int age = 0;
+  std::string name;
 };
 ```
 
@@ -418,17 +418,17 @@ void f(const std::string& s) {
 * Ak aspoň jeden konštruktor úspešne skončí (nevyvolá výnimku), potom je objekt považovaný za skonštruovaný
 
 ```cpp
-class object {
+class object {
 public:
-    object();
-    object(int i);
-    object(const std::string& s);
+  object();
+  object(int i);
+  object(const std::string& s);
 };
- 
-int main() {
-    object a; // call to object::object()
-    object b(0); // call to object::object(int)
-    object c("string"); // call to object::object(const std::string&)
+ 
+int main() {
+  object a; // call to object::object()
+  object b(0); // call to object::object(int)
+  object c("string"); // call to object::object(const std::string&)
 }
 ```
 
@@ -440,16 +440,16 @@ int main() {
 * Trieda môže mať ľubovoľne veľa konštruktorov, ale iba jeden deštruktor
 
 ```cpp
-class object {
+class object {
 public:
-    object() { std::cout << "object" << '\n'; }
-    object(int) { std::cout << "object(int)" << '\n'; }
-    ~object() { std::cout << "~object" << '\n'; }
+  object() { std::cout << "object" << '\n'; }
+  object(int) { std::cout << "object(int)" << '\n'; }
+  ~object() { std::cout << "~object" << '\n'; }
 };
- 
-int main() {
-    object a, b{ 1 }, c(1);
-    // destructors are called in reverse c, b, a
+ 
+int main() {
+  object a, b{ 1 }, c(1);
+  // destructors are called in reverse c, b, a
 }
 ```
 
@@ -461,12 +461,12 @@ int main() {
 <div style="flex: 1;">
 
 ```cpp
-class A {
+class A {
 public:
-  A() { std::cout << "A"; }
-  ~A() { std::cout << "~A"; }
+  A() { std::cout << "A"; }
+  ~A() { std::cout << "~A"; }
 };
-int main() { A a(); }
+int main() { A a(); }
 ```
 </div>
 <div style="flex: 1;">
@@ -493,18 +493,18 @@ Väčšina programátorov očakáva nový objekt, štandard ale vyžaduje deklar
 * Ak konštruktor triedy `C` obsahuje iba jeden parameter typu `T`, potom tento konštruktor sa môže použiť  a implicitnú konverziu z `T` na `C`
 
 ```cpp
-class Convert {
+class Convert {
 public:
-    Convert(int i) { std::cout << i << '\n'; }
-    explicit Convert(std::string f) { std::cout << f << '\n'; }
+  Convert(int i) { std::cout << i << '\n'; }
+  explicit Convert(std::string f) { std::cout << f << '\n'; }
 };
- 
-int f(const Convert&);
- 
-int main() {
-    f(15); // OK, Convert::Convert(int) is used as conversion
-    f(5.4); // OK (warning), :(
-    // f(std::string("abc")); will not compile
+ 
+int f(const Convert&);
+ 
+int main() {
+  f(15); // OK, Convert::Convert(int) is used as conversion
+  f(5.4); // OK (warning), :(
+  // f(std::string("abc")); will not compile
 }
 ```
 
@@ -522,31 +522,31 @@ int main() {
 <div style="flex: 1;">
 
 ```cpp
-class A {
+class A {
 public:
-    A(int n) : data(n) { }
-    int get_data() const { return data; }
-    int tag;
+  A(int n) : data(n) { }
+  int get_data() const { return data; }
+  int tag;
 private:
-    int data = 0;
-    friend void modify(A& a, int n);
+  int data = 0;
+  friend void modify(A& a, int n);
 };
 
-void modify(A& a, int n) {
-    a.data = n;
+void modify(A& a, int n) {
+  a.data = n;
 }
 ```
 </div>
 <div style="flex: 1;">
 
 ```cpp
-int main() {
-    A a(10);
-    a.tag = 10;
-    std::cout << a.GetData(); // 10
-    // a.data = 11; // error
-    Modify(a, 11);
-    std::cout << a.GetData(); // 11
+int main() {
+  A a(10);
+  a.tag = 10;
+  std::cout << a.get_data(); // 10
+  // a.data = 11; // error
+  modify(a, 11);
+  std::cout << a.get_data(); // 11
 }
 ```
 </div>
@@ -564,7 +564,7 @@ int main() {
 ```cpp
 class MyClass
 {
-    // ...
+  // ...
 };
 ```
 </div>
@@ -573,7 +573,7 @@ class MyClass
 ```cpp
 struct MyClass
 {
-    // ...
+  // ...
 };
 ```
 </div>
@@ -831,13 +831,13 @@ int * const r = &a; // error, similar to constexpr
 
 ```cpp
 constexpr bool is_prime(uint32_t num) {
-	if (num < 2) 
+  if (num < 2) 
     return false;
-	for (uint32_t i = 2; i * i <= num; ++i) {
-		if (num % i == 0) 
+  for (uint32_t i = 2; i * i <= num; ++i) {
+    if (num % i == 0) 
       return false;
-	}
-	return true;
+  }
+  return true;
 }
 ```
 </div>
@@ -845,13 +845,13 @@ constexpr bool is_prime(uint32_t num) {
 
 ```cpp
 constexpr size_t count_primes(uint32_t n) {
-	size_t count = 0;
-	for (uint32_t i = 2; i <= n; ++i) {
-		if (is_prime(i)) {
-			++count;
-		}
-	}
-	return count;
+  size_t count = 0;
+  for (uint32_t i = 2; i <= n; ++i) {
+    if (is_prime(i)) {
+      ++count;
+    }
+  }
+  return count;
 }
 ```
 </div>
@@ -904,15 +904,15 @@ constexpr std::vector<int> w; // OK, no allocation
 
 ```cpp
 constexpr std::vector<uint32_t> get_primes(uint32_t n) {
-	std::vector<uint32_t> result;
-	
-	for (uint32_t i = 0; i < n; ++i) {
-		if (is_prime(i)) {
-			result.push_back(i);
-		}
-	}
+  std::vector<uint32_t> result;
+  
+  for (uint32_t i = 0; i < n; ++i) {
+    if (is_prime(i)) {
+      result.push_back(i);
+    }
+  }
 
-	return result;
+  return result;
 }
 
 int a[get_primes(100).size()]; // OK, no pointer leak to runtime
@@ -1047,11 +1047,11 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 * Funkcia `at` robí to isté ako `operator[]`, ale vyhadzuje výnimku `std::out_of_range`
 
 ```cpp
-std::vector<int> vec = { 1, 2, 3, 4, 5 };
-vec.resize(100); // may throw bad_alloc
+std::vector<int> vec = { 1, 2, 3, 4, 5 };
+vec.resize(100); // may throw bad_alloc
 
-vec.at(200) = 0; // will throw out_of_range
-vec[200] = 0; // undefined
+vec.at(200) = 0; // will throw out_of_range
+vec[200] = 0; // undefined
 ```
 
 ---
@@ -1132,26 +1132,25 @@ vec[200] = 0; // undefined
 ## Príklad
 
 ```cpp
-void main(int argc, char* argv[]) {
-    std::vector<int> params;
-    params.reserve(argc - 1);
-    for (int i = 1; i < argc; ++i) {
-        params.push_back(strtol(argv[i], nullptr, 0));
-    }
+void main(int argc, char* argv[]) {
+std::vector<int> params;
+  params.reserve(argc - 1);
+  for (int i = 1; i < argc; ++i) {
+    params.push_back(strtol(argv[i], nullptr, 0));
+  }
 
-    for (size_t i = 0; i < params.size(); ++i) {
-        if (params[i] < 0) // abs
-            params[i] = -params[i];
-    }
+  for (size_t i = 0; i < params.size(); ++i) {
+    if (params[i] < 0) // abs
+      params[i] = -params[i];
+  }
 
-    params.resize(5); // if more than 5, shrink, otherwise pad with 0
-    params.insert(params.end(), { 43, 44 }); // insert_range
+  params.resize(5); // if more than 5, shrink, otherwise pad with 0
+  params.insert(params.end(), { 43, 44 }); // insert_range
 
-    for (const auto& i : params)
-    {
-        std::cout << i << " ";
-    }
-    // vector automatically deallocate memory
+  for (const auto& i : params) {
+    std::cout << i << " ";
+}
+  // vector automatically deallocate memory
 }
 ```
 
@@ -1161,15 +1160,15 @@ void main(int argc, char* argv[]) {
 ```cpp
 std::vector<int> v = { 1, 2, 5, 8};
 for (int i : v) {
-    if (i % 2 != 0) {
-        v.push_back(i);
-    }
+  if (i % 2 != 0) {
+    v.push_back(i);
+  }
 }
 
 for (auto i = v.begin(); i != v.end(); ++i) {
-    if (*i % 2 != 0) {
-        v.push_back(*i);
-    }
+  if (*i % 2 != 0) {
+    v.push_back(*i);
+  }
 }
 ```
 
@@ -1264,22 +1263,22 @@ Nikdy by to ani neskončilo a navyše to spôsobí nedefinované správanie.
 ## Hľadanie v reťazcoch
 
 ```cpp
-auto str = std::string("Hello World!");
-size_t n = str.find("orl"); // 7
-n = str.find("ell", 4); // -1 std::string::npos, start at 4
-n = str.rfind("o", 10); // 7, reverse search start at 10 backwards
-n = str.rfind("ld", std::string::npos); // 9,  reverse search start at end backwards
-n = str.find_first_of("aeiou"); // 1
-n = str.find_last_not_of("el", 3); // 0, start at 3 and go backwards
+auto str = std::string("Hello World!");
+size_t n = str.find("orl"); // 7
+n = str.find("ell", 4); // -1 std::string::npos, start at 4
+n = str.rfind("o", 10); // 7, reverse search start at 10 backwards
+n = str.rfind("ld", std::string::npos); // 9,  reverse search start at end backwards
+n = str.find_first_of("aeiou"); // 1
+n = str.find_last_not_of("el", 3); // 0, start at 3 and go backwards
 ```
 
 * Existuje aj tretí parameter (`_Count`), ale správa sa čudne...
 
 ```cpp
-str = "aaaabbbccd";
-n = str.find("bbb", 2, 2); // 4
-n = str.rfind("ccc", std::string::npos, 2); // 7?
-n = str.find_first_not_of("abcd", 0, 3); // 9?
+str = "aaaabbbccd";
+n = str.find("bbb", 2, 2); // 4
+n = str.rfind("ccc", std::string::npos, 2); // 7?
+n = str.find_first_not_of("abcd", 0, 3); // 9?
 ```
 
 * Count je vlastne veľkosť stringu, ktorý sa hladá
@@ -1292,10 +1291,10 @@ n = str.find_first_not_of("abcd", 0, 3); // 9?
 * V C++20 stringu pribudli funkcia, ktoré sa doteraz nahradzovali custom kódom, alebo boostom
 
 ```cpp
-auto str = std::string("This is C++20 string");
-bool b = str.starts_with("This"); // true
-b = str.ends_with("string."); // false
-//b = str.contains("is"); // true C++23 :) 
+auto str = std::string("This is C++20 string");
+bool b = str.starts_with("This"); // true
+b = str.ends_with("string."); // false
+//b = str.contains("is"); // true C++23 :) 
 ```
 
 ---
@@ -1312,16 +1311,16 @@ b = str.ends_with("string."); // false
 * Neexistuje spôsob ako iba priradiť C reťazec do stringu, vždy sa udeje kópia
 
 ```cpp
-std::string s;
-s = "Null terminated"; // copy string
+std::string s;
+s = "Null terminated"; // copy string
 ```
 
 * Použiť string ako null terminated reťazec je jednoduché
 
 ```cpp
-char c[100];
-strcpy_s(c, s.c_str()); // const char*
-strcat_s(c, s.data()); // char*
+char c[100];
+strcpy_s(c, s.c_str()); // const char*
+strcat_s(c, s.data()); // char*
 ```
 
 ---
@@ -1329,20 +1328,20 @@ strcat_s(c, s.data()); // char*
 ## split
 
 ```cpp
-std::string path = R"(C:\Windows\System32\drivers\etc)";
- 
-std::vector<string> fragments;
- 
-size_t start = 0;
-while (true) {
-    auto pos = path.find('\\', start);
- 
-    auto length = pos == std::string::npos ? std::string::npos : pos - start;
-    fragments.push_back(path.substr(start, length));
-    if (pos == std::string::npos)
-        break;
- 
-    start = pos + 1;
+std::string path = R"(C:\Windows\System32\drivers\etc)";
+ 
+std::vector<std::string> fragments;
+ 
+size_t start = 0;
+while (true) {
+  auto pos = path.find('\\', start);
+
+  auto length = pos == std::string::npos ? std::string::npos : pos - start;
+  fragments.push_back(path.substr(start, length));
+  if (pos == std::string::npos)
+    break;
+
+  start = pos + 1;
 }
 ```
 
@@ -1352,19 +1351,18 @@ while (true) {
 ## join
 
 ```cpp
-std::vector<std::string> fragments =
+std::vector<std::string> fragments =
 {
-    "Hello", " ", "C++", "20"
+    "Hello", " ", "C++", "20"
 };
- 
-std::string joined;
-for (const auto& i : fragments) {
-    if (!joined.empty())
-    {
-        joined += '|'; // or append(1, '|')
-    }
- 
-    joined.append(i); // or += i
+ 
+std::string joined;
+for (const auto& i : fragments) {
+  if (!joined.empty()) {
+    joined += '|'; // or append(1, '|')
+  }
+
+  joined.append(i); // or += i
 }
 ```
 
@@ -1376,15 +1374,15 @@ for (const auto& i : fragments) {
 ## `string` ako buffer
 
 ```cpp
-std::string s(100, '\0');
-strcpy(s.data(), "This is C string");
-strcat(s.data(), " even concatenation works!");
+std::string s(100, '\0');
+strcpy(s.data(), "This is C string");
+strcat(s.data(), " even concatenation works!");
 
-std::cout << s.size() << '\n'; // 100
+std::cout << s.size() << '\n'; // 100
 
 s.resize(strlen(s.c_str())); // update the size
 
-std::cout << s.size() << '\n'; // 42
+std::cout << s.size() << '\n'; // 42
 ```
 
 
@@ -1393,12 +1391,12 @@ std::cout << s.size() << '\n'; // 42
 * C++23 pridáva funkciu, ktorá využívanie bufferu stringu v C štýle ešte viac "zjednoduší" a hlavne urobí bezpečnejšie
 
 ```cpp
-std::string s;
-s.resize_and_overwrite(100, [](char* buf, std::size_t buf_size) {
-    strcpy(buf, "This is C string");
-    strcat(buf, " even concatenation works!");
+std::string s;
+s.resize_and_overwrite(100, [](char* buf, std::size_t buf_size) -> std::size_t {
+  strcpy(buf, "This is C string");
+  strcat(buf, " even concatenation works!");
 
-    return strlen(buf);
+  return strlen(buf);
 });
 ```
 
@@ -1411,20 +1409,20 @@ s.resize_and_overwrite(100, [](char* buf, std::size_t buf_size) {
 ## Predávanie hodnotou a smerníkom
 
 ```cpp
-// by value, can be slow
-void f(std::string x) { }
+// by value, can be slow
+void f(std::string x) { }
 
-// just pointer, should we check for null?
-// callee can modify
-void g(std::string* x) { }
+// just pointer, should we check for null?
+// callee can modify
+void g(std::string* x) { }
 
-// just pointer, should we check for null?
-// callee cannot modify
-void h(const std::string* x) { }
+// just pointer, should we check for null?
+// callee cannot modify
+void h(const std::string* x) { }
 ```
 
 ```cpp
-std::string s = "Test";
+std::string s = "Test";
 f(s);
 g(&s);
 h(&s);
@@ -1436,20 +1434,20 @@ h(&s);
 ## Predávanie cez referenciu
 
 ```cpp
-// by value, can be slow
-void f(std::string x) { }
+// by value, can be slow
+void f(std::string x) { }
 
-// just pointer, should we check for null?
-// callee can modify
-void g(std::string& x) { }
+// just pointer, should we check for null?
+// callee can modify
+void g(std::string& x) { }
 
-// just pointer, should we check for null?
-// callee cannot modify
-void h(const std::string& x) { }
+// just pointer, should we check for null?
+// callee cannot modify
+void h(const std::string& x) { }
 ```
 
 ```cpp
-std::string s = "Test";
+std::string s = "Test";
 f(s);
 g(s);
 h(s);

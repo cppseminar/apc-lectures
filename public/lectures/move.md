@@ -1196,12 +1196,12 @@ int main() {
 * Pomocou move sa odstránia dangling pointre, ktoré by mohli vzniknúť ak použijeme copy
 
 ```cpp
-std::unique_ptr<std::string> ptr;
+std::unique_ptr<std::string> ptr;
 
-ptr = std::make_unique<std::string>("HI."); // new string is moved
+ptr = std::make_unique<std::string>("HI."); // new string is moved
 
-// auto p = ptr; // will not compile, unique_ptr has no copy
-auto p = std::move(ptr); // move, so ptr is empty
+// auto p = ptr; // will not compile, unique_ptr has no copy
+auto p = std::move(ptr); // move, so ptr is empty
 ```
 
 ---

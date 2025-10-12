@@ -32,10 +32,10 @@ int main() {
 
 
 ```cpp
-#include <iostream>
- 
-int main() {
-    std::cout << "Hello world!\n";
+#include <iostream>
+ 
+int main() {
+    std::cout << "Hello world!\n";
 }
 ```
 
@@ -48,9 +48,9 @@ int main() {
 <div style="flex: 1;">
 
 ```cpp
-int main();
+int main();
 
-int main(int argc, char* argv[]);
+int main(int argc, char* argv[]);
 ```
 </div>
 <div style="flex: 1;">
@@ -71,10 +71,10 @@ Zvyčajne `argc` obsahuje počet parametrov + 1, `argv` potom obsahuje ako prvý
 <div style="flex: 1;">
 
 ```cpp
-#include <memory>
-#include <future>
-#include <stdio.h>
-#include <string.h>
+#include <memory>
+#include <future>
+#include <stdio.h>
+#include <string.h>
 ```
 </div>
 <div style="flex: 1;">
@@ -87,8 +87,8 @@ Súbory bez prípony `.h` sú C++ štandardné hlavičkové súbory. Súbory z C
 <div style="flex: 1;">
 
 ```cpp
-#include <Windows.h>
-#include <unistd.h>
+#include <Windows.h>
+#include <unistd.h>
 ```
 </div>
 <div style="flex: 1;">
@@ -127,7 +127,7 @@ Systémový hlavičkový súbor.
     * Najprv naformátuje podporované dáta a potom ich vypíše
 
 ```cpp
-std::cout << 3 << ' ' << "things.";
+std::cout << 3 << ' ' << "things.";
 ```
 
 ---
@@ -144,7 +144,7 @@ std::cout << 3 << ' ' << "things.";
 <div style="flex: 1;">
 
 ```cpp
-std::cout << std::endl;
+std::cout << std::endl;
 
 std::cout.put(std::cout.widen('\n'));
 std::cout.flush();
@@ -175,7 +175,7 @@ Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne po
 * Syntax je `typ` `názov` `= hodnota` `;`, kde `= hodnota` je voliteľná
 
 ```cpp
-int i; // signed integer uninitialized (0 or undefined)
+int i; // signed integer uninitialized (0 or undefined)
 ```
 
 ---
@@ -185,13 +185,13 @@ int i; // signed integer uninitialized (0 or undefined)
 * Všetky typy z jazyka C sú podporované
 
 ```cpp
-int i; // signed integer uninitialized (0 or undefined)
-unsigned int u = 1337ul; // unsigned integer
-bool ok = false; // true/false
-double pi = 3.14159; // floating point double precision
-float e = 2.71828f; // floating point single precision
-char c = 'a'; // variant of ISO646 - ASCII
-size_t n = 1'000'000'000; // possible to separate with "'"
+int i; // signed integer uninitialized (0 or undefined)
+unsigned int u = 1337ul; // unsigned integer
+bool ok = false; // true/false
+double pi = 3.14159; // floating point double precision
+float e = 2.71828f; // floating point single precision
+char c = 'a'; // variant of ISO646 - ASCII
+size_t n = 1'000'000'000; // possible to separate with "'"
 ```
 
 * `short`, `long`, `long long` (rozdielne znamienkové signed typy)
@@ -207,10 +207,10 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 * Odporúčame zvyknúť si skoro vždy používať tieto typy
 
 ```cpp
-int8_t i8 = 127;
-int16_t i16 = 32'000;
-uint32_t u32 = 4'000'000'000;
-int64_t i64 = 10'000'000'000'000;
+int8_t i8 = 127;
+int16_t i16 = 32'000;
+uint32_t u32 = 4'000'000'000;
+int64_t i64 = 10'000'000'000'000;
 ```
 
 note: CHAR_BITS je nastavené na číslo, ktoré reprezentuje počet bitov c type `char`. Všetky platformy (napr. POSIX), ale požadujú `8`.
@@ -227,12 +227,12 @@ note: CHAR_BITS je nastavené na číslo, ktoré reprezentuje počet bitov c typ
 <div style="flex: 1;">
 
 ```cpp
-std::cout << sizeof(bool) << '\n'; // 1
-std::cout << sizeof(short) << '\n'; // 2
-std::cout << sizeof(float) << '\n'; // 4
-std::cout << sizeof(long) << '\n'; // 4
-std::cout << sizeof(long long) << '\n'; // 8
-std::cout << sizeof(double) << '\n'; // 8
+std::cout << sizeof(bool) << '\n'; // 1
+std::cout << sizeof(short) << '\n'; // 2
+std::cout << sizeof(float) << '\n'; // 4
+std::cout << sizeof(long) << '\n'; // 4
+std::cout << sizeof(long long) << '\n'; // 8
+std::cout << sizeof(double) << '\n'; // 8
 ```
 </div>
 <div style="flex: 1;">
@@ -389,9 +389,9 @@ int k{ 7 };
 * Primitívne typy by mali byť hneď inicializované
 
 ```cpp
-int i = 4.2; // warning narrowing
-int j(4.2); // warning narrowing
-int k{ 4.2 }; // error
+int i = 4.2; // warning narrowing
+int j(4.2); // warning narrowing
+int k{ 4.2 }; // error
 ```
 
 
@@ -400,15 +400,15 @@ int k{ 4.2 }; // error
 * V C++11 štandarde predefinovali význam kľúčového slova `auto`
 
 ```cpp
-auto i = 5; // int  
-auto j = 7.5; // double 
-auto sq = sqrt(i); // whatever returns sqrt (double in this case)
-auto first_name = "Bjarne"; // const char*, not std::string
-auto surname = std::string("Stroustrup"); // std::string
+auto i = 5; // int  
+auto j = 7.5; // double 
+auto sq = sqrt(i); // whatever returns sqrt (double in this case)
+auto first_name = "Bjarne"; // const char*, not std::string
+auto surname = std::string("Stroustrup"); // std::string
 
-auto *ptr = &i; // int 
-auto ptr = &i; // int*
-auto* ptr = i; // compilation error  
+auto *ptr = &i; // int 
+auto ptr = &i; // int*
+auto* ptr = i; // compilation error  
 ```
 
 * `auto*` sa nedá použiť ak vydedukovaný typ nie je smerník
@@ -434,15 +434,15 @@ auto c = 30ull; // usigned long long
 * Netreba to ale preháňať
 
 ```cpp
-#include <map>
-#include <utility>
-#include <string>
- 
-int main() {
-    std::map<std::string, std::pair<std::string, int>> employees;
- 
-    auto it = employees.find("Herb Sutter"); 
-    std::map<std::string, std::pair<std::string, int>>::iterator it2 = it;
+#include <map>
+#include <utility>
+#include <string>
+ 
+int main() {
+    std::map<std::string, std::pair<std::string, int>> employees;
+ 
+    auto it = employees.find("Herb Sutter"); 
+    std::map<std::string, std::pair<std::string, int>>::iterator it2 = it;
 }
 
 ```
@@ -691,31 +691,31 @@ enum class color : uint32_t {
 ### Príklad 
 
 ```cpp
-int a{ 7 * 5 }; // 35
-int b{ 12 / 5 }; // 2
-int c{ a++ }; // 35, a: 36
-double f{ 12 / 5 }; // 2
-double g{ 12 / 5. }; // 2.4 (actually 2.399999999999)
+int a{ 7 * 5 }; // 35
+int b{ 12 / 5 }; // 2
+int c{ a++ }; // 35, a: 36
+double f{ 12 / 5 }; // 2
+double g{ 12 / 5. }; // 2.4 (actually 2.399999999999)
 ```
 
 ```cpp
-bool even_c = (c % 2) == 0;
-bool lower_f = f < g;
-bool ok = even_c && !lower_f;
+bool even_c = (c % 2) == 0;
+bool lower_f = f < g;
+bool ok = even_c && !lower_f;
 ```
 
 ```cpp
-unsigned x = 0x000000ff; // 255
-unsigned char b = 0b11010001; // 209
-unsigned y = ~x | 1; // 0xffffff01
-unsigned z = x & y; // 0x00000001
+unsigned x = 0x000000ff; // 255
+unsigned char b = 0b11010001; // 209
+unsigned y = ~x | 1; // 0xffffff01
+unsigned z = x & y; // 0x00000001
 ```
 
 ```cpp
-int a = 10;
-a += 7; // 17, a = a + 7
-a %= 6; // 5, a = a % 6
-a ^= a; // 0, a = a XOR a
+int a = 10;
+a += 7; // 17, a = a + 7
+a %= 6; // 5, a = a % 6
+a ^= a; // 0, a = a XOR a
 ```
 
 ---
@@ -760,10 +760,10 @@ if (i == 2 || i == 3) {
 * Ak je predikát (`pred`) splnený, potom je výsledok `op1`, inak `op2`
 
 ```cpp
-bool b = true /* some predicate */;
-auto t = b ? 1 : 4; // 1
-auto u = !b ? 1.0 : 4; // 4.
-auto v = b ? 1 : "4"; // will not compile
+bool b = true /* some predicate */;
+auto t = b ? 1 : 4; // 1
+auto u = !b ? 1.0 : 4; // 4.
+auto v = b ? 1 : "4"; // will not compile
 ```
 
 Druhý a tretí operand musia byť kompatibilné, inak zlyhá kompilácia.
@@ -774,10 +774,10 @@ Druhý a tretí operand musia byť kompatibilné, inak zlyhá kompilácia.
 Ternárny operátor sa vyhodnocuje trochu inak v C
 
 ```cpp
-int a, b;
-// fill up a
+int a, b;
+// fill up a
 
-a>=0? b=1 : b=2;
+a>=0? b=1 : b=2;
 ```
 
 <div class="fragment">
@@ -785,13 +785,13 @@ a>=0? b=1 : b=2;
 V C sa nedá skompilovať
 
 ```cpp
-(a>=0 ? b=1 : b) = 2; // illegal in C
+(a>=0 ? b=1 : b) = 2; // illegal in C
 ```
 
 C++ má iné pravidlá
 
 ```cpp
-a >= 0 ? (b = 1) : (b = 2); // OK C++
+a >= 0 ? (b = 1) : (b = 2); // OK C++
 ```
 </div>
 
@@ -804,15 +804,15 @@ a >= 0 ? (b = 1) : (b = 2); // OK C++
 * Ak je návratový "typ" `void`, potom funkcia nevracia nič a `return` iba skončí vykonávanie
 
 ```cpp
-int rectangle(int a, int b) {
-  return 2*a*b + 2*a*a + 2*b*b;
+int rectangle(int a, int b) {
+  return 2*a*b + 2*a*a + 2*b*b;
 }
 ```
 
 ```cpp
-void print_rectangle(int a, int b) {
-  std::cout << rectangle(a, b) << '\n';
-  return; // no need to add return as last statement
+void print_rectangle(int a, int b) {
+  std::cout << rectangle(a, b) << '\n';
+  return; // no need to add return as last statement
 }
 ```
 
@@ -822,19 +822,19 @@ Ak má funkcia návratový typ, potom musí obsahovať aspoň jeden `return`.
 ### Aký je výsledok nasledujúceho kódu
 
 ```cpp
-int a = 1; 
-int k = std::max(++a, a++);
+int a = 1; 
+int k = std::max(++a, a++);
 ```
 <div class="fragment">
 
 Jedna z často vyskytujúcich odpovedí je 2, pretože výsledkom prefixového inkrementu je už zväčšená hodnota 
 
 ```cpp
-int k = std::max(2, 1); // ++a is evaluated first
+int k = std::max(2, 1); // ++a is evaluated first
 ```
 
 ```cpp
-int k = std::max(3, 1); // a++ is evaluated first
+int k = std::max(3, 1); // a++ is evaluated first
 ```
 </div>
 
@@ -866,9 +866,9 @@ Od C++17 sa už nepoužíva termín "sequence points", ale hovorí sa o "sequenc
 * Alokované na stack-u
 
 ```cpp
-int a[100]; // array of 100 ints
-char b[sizeof(a)]; // array of 400(?) chars
-bool c[10][10]; // array of 10 arrays of 10 bools
+int a[100]; // array of 100 ints
+char b[sizeof(a)]; // array of 400(?) chars
+bool c[10][10]; // array of 10 arrays of 10 bools
 ```
 
 * Nevýhody
@@ -974,14 +974,14 @@ Kompilačná chyba (*too many initializers*).
 * Veľkosť poľa vieme získať pomocou `std::size`
 
 ```cpp
-int arr[] = { 1, 2, 3, 4, 5 }; // we can omit array size
-// then it will have size to accomodate all elements
-bool ok = arr[0] == 1; // true
-int undef = arr[5]; // undefined behavior (bad)
-arr[arr[0] + 2] = 3; // { 1, 2, 3, 3, 5 }
+int arr[] = { 1, 2, 3, 4, 5 }; // we can omit array size
+// then it will have size to accomodate all elements
+bool ok = arr[0] == 1; // true
+int undef = arr[5]; // undefined behavior (bad)
+arr[arr[0] + 2] = 3; // { 1, 2, 3, 3, 5 }
 
-for (size_t i = 0; i < std::size(arr); ++i) { // why ++i
-  std::cout << arr[i] << '\n';
+for (size_t i = 0; i < std::size(arr); ++i) { // why ++i
+  std::cout << arr[i] << '\n';
 }
 
 ```
@@ -1018,7 +1018,7 @@ Pole šiestich znakov, ekvivalentné `{'A', 'B', 'C', 'D', 'E', '\0'}`.
 ```cpp
 char first = s[0];
 char last = s[4]
-char terminator = s[5];
+char terminator = s[5];
 ```
 </div>
 <div style="flex: 2;">
@@ -1032,7 +1032,7 @@ char terminator = s[5];
 
 ```cpp
 s[2] = 'X';
-std::cout << s << '\n';
+std::cout << s << '\n';
 ```
 </div>
 <div style="flex: 2;">
@@ -1045,10 +1045,10 @@ Vypiše `"ABXDE"`, stringy môžeme aj modifikovať.
 <div style="flex: 1;">
 
 ```cpp
-char s1[10] = "12345";
-s1[7] = 7;
-std::cout << s1 << '\n'; // 12345
-// stop at first \0
+char s1[10] = "12345";
+s1[7] = 7;
+std::cout << s1 << '\n'; // 12345
+// stop at first \0
 ```
 </div>
 <div style="flex: 2;">
@@ -1137,16 +1137,16 @@ const char json[] = R"###({
 * Vždy sa uistite, že máte reťazce naozaj ukončené nulou, inak sa môžu stať zlé veci (undefined behavior)
 
 ```cpp
-const char* str = "Hello";
-std::cout << strlen(str) << '\n'; // 5
-// str[strlen(str)] == 0
+const char* str = "Hello";
+std::cout << strlen(str) << '\n'; // 5
+// str[strlen(str)] == 0
 
-char msg[128];
-strcpy(msg, str); // copy, make sure buffer is long enough
-strcat(msg, " world!"); // concatenation
+char msg[128];
+strcpy(msg, str); // copy, make sure buffer is long enough
+strcat(msg, " world!"); // concatenation
 
-std::cout << msg << '\n'; // My stringMy string
-strstr(msg, "rld"); // returns pointer to string or NULL
+std::cout << msg << '\n'; // My stringMy string
+strstr(msg, "rld"); // returns pointer to string or NULL
 ```
 
 * Všetky operácie z C sú podporované
@@ -1162,15 +1162,15 @@ note: strpbrk - Scans the null-terminated byte string pointed to by dest for any
 * V C++ máme aj `class`, ale o tom neskôr
 
 ```cpp
-struct point {
-  float x;
-  float y;
-}; // semicolon is ultracritical!!!
+struct point {
+  float x;
+  float y;
+}; // semicolon is ultracritical!!!
 
-struct circle {
-  point p; // structure inside structure
-  float radius;
-  int color;
+struct circle {
+  point p; // structure inside structure
+  float radius;
+  int color;
   char name[32]; // array in structure
 };
 ```
@@ -1185,7 +1185,7 @@ struct circle {
     <div style="flex: 2;">
 
 ```cpp
-point p = { 7, 9 };
+point p = { 7, 9 };
 ```
 </div>
     <div style="flex: 3;">
@@ -1197,7 +1197,7 @@ point p = { 7, 9 };
     <div class="fragment" style="flex: 2;">
 
 ```cpp
-point p = { 7 };
+point p = { 7 };
 ```
 </div>
     <div class="fragment" style="flex: 3;">
@@ -1246,15 +1246,15 @@ Môžeme aj vymenovať členov, ktoré sa majú inicializovať
 * Pomocou operátora `.`
 
 ```cpp
-point p = { 7, 9 };
-point q;
-q = p; // copy
+point p = { 7, 9 };
+point q;
+q = p; // copy
 q.x = 0; // p.x is still 7
 
-circle c;
-c.radius= 10;
-c.p.x = 7.5;
-c.p.y = 12;
+circle c;
+c.radius= 10;
+c.p.x = 7.5;
+c.p.y = 12;
 ```
 
 ---
@@ -2409,20 +2409,20 @@ Deklarácia v rámci `if`-u funguje odkedy je C++ na svete. Stačí aby sa inici
 ## `switch`
 
 ```cpp
-enum class Type { Number, String, Null };
-Type t = Type::Number;
+enum class Type { Number, String, Null };
+Type t = Type::Number;
 
-switch (t) {
-case Type::Number:
-    [[fallthrough]]; // state intent, no compiler warning
-case Type::String:
-    std::cout << "Has value\n";
-    break;
-case Type::Null:
-    std::cout << "No value\n";
-    break;
+switch (t) {
+case Type::Number:
+    [[fallthrough]]; // state intent, no compiler warning
+case Type::String:
+    std::cout << "Has value\n";
+    break;
+case Type::Null:
+    std::cout << "No value\n";
+    break;
 default:
-    std::cout << "??\n";
+    std::cout << "??\n";
 }
 ```
 
@@ -2433,15 +2433,15 @@ default:
 ```cpp
 std::vector<int> numbers = { /* ... */ };
 
-for (size_t i = 0; i < numbers.size(); ++i) {
-  if (numbers[i] % 2 == 0)
-    continue; // will skip the rest of the for body and continue
-  if (numbers[i] > 10)
-    break; // prematurely stop the loop
-  if (numbers[i] == 4)
-    return; // if hit this will break out of enclosing function
+for (size_t i = 0; i < numbers.size(); ++i) {
+  if (numbers[i] % 2 == 0)
+    continue; // will skip the rest of the for body and continue
+  if (numbers[i] > 10)
+    break; // prematurely stop the loop
+  if (numbers[i] == 4)
+    return; // if hit this will break out of enclosing function
 
-  std::cout << numbers[i];
+  std::cout << numbers[i];
 }
 ```
 
@@ -2457,15 +2457,15 @@ V C++11 a vyššie existuje lepší spôsob ako iterovať prvky
 ```cpp
 std::vector<int> numbers = { /* ... */ };
 
-for (std::vector<int>::iterator it = numbers.begin(); it != numbers.end(); ++it) {
-  if (*it % 2 == 0)
-    continue; // will skip the rest of the for body and continue
-  if (*it > 10)
-    break; // prematurely stop the loop
-  if (*it == 4)
-    return; // if hit this will break out of enclosing function
+for (std::vector<int>::iterator it = numbers.begin(); it != numbers.end(); ++it) {
+  if (*it % 2 == 0)
+    continue; // will skip the rest of the for body and continue
+  if (*it > 10)
+    break; // prematurely stop the loop
+  if (*it == 4)
+    return; // if hit this will break out of enclosing function
 
-  std::cout << *it;
+  std::cout << *it;
 }
 ```
 
@@ -2476,15 +2476,15 @@ for (std::vector<int>::iterator it = numbers.begin(); it != numbers.end(); ++it
 ```cpp
 std::vector<int> numbers = { /* ... */ };
 
-for (int i : numbers) {
-  if (i % 2 == 0)
-    continue; // will skip the rest of the for body and continue
-  if (i > 10)
-    break; // prematurely stop the loop
-  if (i == 4)
-    return; // if hit this will break out of enclosing function
+for (int i : numbers) {
+  if (i % 2 == 0)
+    continue; // will skip the rest of the for body and continue
+  if (i > 10)
+    break; // prematurely stop the loop
+  if (i == 4)
+    return; // if hit this will break out of enclosing function
 
-  std::cout << i;
+  std::cout << i;
 }
 ```
 
@@ -2494,18 +2494,18 @@ for (int i : numbers) {
 ```cpp
 std::vector<std::string> names = { /* ... */ };
 
-for (const auto& name : names) {
-  std::cout << name;
+for (const auto& name : names) {
+  std::cout << name;
 }
 ```
 
 ```cpp
 std::vector<int> numbers = { /* ... */ };
 
-for (int& i : numbers) {
+for (int& i : numbers) {
   i = i * i * i;
 
-  std::cout << i;
+  std::cout << i;
 }
 ```
 
@@ -2516,9 +2516,9 @@ for (int& i : numbers) {
 * C++20 pridal inicializáciu do range based for loopu
 
 ```cpp
-int numbers[] = { 1, 4, 5, 7, 8 };
-for (int v = 0; auto i : numbers) {
-  // v is here defined
+int numbers[] = { 1, 4, 5, 7, 8 };
+for (int v = 0; auto i : numbers) {
+  // v is here defined
 }
 ```
 
@@ -2527,18 +2527,18 @@ for (int v = 0; auto i : numbers) {
 ## `while`, `do`
 
 ```cpp
-std::vector<int> get_numbers(size_t n) {
-  std::vector<int> result;
+std::vector<int> get_numbers(size_t n) {
+  std::vector<int> result;
 
-  while (result.size() < n) {
-    int x = 0;
-    std::cin >> x;
+  while (result.size() < n) {
+    int x = 0;
+    std::cin >> x;
 
-    if (!std::cin) // not a number, failbit set
-      break;
-  }
+    if (!std::cin) // not a number, failbit set
+      break;
+  }
 
-  return result;
+  return result;
 }
 
 ```
@@ -2547,13 +2547,13 @@ std::vector<int> get_numbers(size_t n) {
 ### Pôjde nasledujúci kód skompilovať a ak áno aký je výsledok?
 
 ```cpp
-int i = 1;
-do {
-  std::cout << i << std::endl;
-  --i;
-  if (i == 0)
-    continue;
-} while (i > 0);
+int i = 1;
+do {
+  std::cout << i << std::endl;
+  --i;
+  if (i == 0)
+    continue;
+} while (i > 0);
 ```
 
 Vypíše iba `1`, `continue` vždy skáče na koniec cyklu.
