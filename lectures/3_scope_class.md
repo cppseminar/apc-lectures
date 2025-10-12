@@ -1348,6 +1348,27 @@ while (true) {
 * `substr` vždy vytvorí kópiu, to je v poriadku pre malé stringy (SSO), ale môže byť problém pre väčšie
 
 
+## `ranges::views::split`
+
+* C++20 pridáva knižnicu `ranges`, ktorá obsahuje množstvo užitočných funkcií a adaptér na rozdelenie reťazca na časti podľa zadaného znaku
+* Je to už ale trochu zložitejšie na použitie a aj vyžaduje lepšie pochopenie konceptov C++20
+
+```cpp
+#include <ranges>
+#include <string>
+#include <vector>
+
+int main() {
+  std::string path = R"(C:\Windows\System32\drivers\etc)";
+  std::vector<std::string> fragments;
+
+  for (auto&& part : path | std::views::split('\\')) {
+    fragments.emplace_back(part.begin(), part.end());
+  }
+}
+```
+
+
 ## join
 
 ```cpp
