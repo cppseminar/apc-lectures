@@ -22,7 +22,7 @@
 
 ---
 
-## Nauužitočnejší kus kódu
+## Najužitočnejší kus kódu
 
 <h1 class="fragment"><code>}</code></h1>
 
