@@ -310,9 +310,9 @@ extern "C" void print_primes(size_t limit) {
     Typy sú kontrolované počas prekladu programu (kompilácie)
 
 ```cpp
-std::vector<int> nums{ 2, 3, 5, 7 };
-std::string s = "Hello world";
-s = nums;
+std::vector<int> nums{ 2, 3, 5, 7 };
+std::string s = "Hello world";
+s = nums;
 ```
   </li>
   <li>
@@ -385,8 +385,8 @@ float Q_rsqrt(float number)
 * Skompiluje sa? Je to definované? Aká je hodnota v `s`?
 
 ```cpp
-std::string s = "Ingsoc"; 
-s = 19.84;
+std::string s = "Ingsoc"; 
+s = 19.84;
 ```
 
 * Skompiluje sa a s bude obsahovať jeden znak s číslom 19.
