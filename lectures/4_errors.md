@@ -211,7 +211,7 @@ auto i = reinterpret_cast<uintptr_t>(p);
 auto* pp = reinterpret_cast<int*>(i);
 ```
 
-Môžeme konvertovať aj smerníky na číselné typy. Tie musia mať dostatok bitoch (`intptr_t` a `uintptr_t` majú vždy dosť).
+Môžeme konvertovať aj smerníky na číselné typy. Tie musia mať dostatok bitov (`intptr_t` a `uintptr_t` majú vždy dosť).
 
 
 ```cpp
@@ -723,7 +723,7 @@ std::pair<bool, std::string> get_string() {
 
 * Pridaný v C++17
     * `boost::optional` nie je na 100% kompatibilný
-    * Abseil optional je a funguje v C++11
+    * Existuje Abseil optional, ktorý funguje od C++11
 
 ```cpp
 std::optional<std::string> get_string() {
@@ -791,7 +791,7 @@ std::expected<std::string, std::error_code> get_string() {
 
 * `std::expected` drží buď hodnotu, alebo chybu
 * Interface umožňuje jednoduché rozlíšenie chyby od úspechu
-* ROvnako sa dá ľahko dostať k platnej hodnote
+* Rovnako sa dá ľahko dostať k platnej hodnote
 
 ```cpp
 std::expected<std::string, std::error_code> s = get_string();
@@ -979,9 +979,9 @@ error read_from_file(std::string_view path, char** data) {
 
 ## Problémy s chybovými kódmi
 
-* Predvolene ich ignorujeme, dá sa k nim pridať [[nodiscard]], ale aj tak
+* Predvolene ich ignorujeme, dá sa k nim pridať `[[nodiscard]]`, ale aj tak
 * Aj keď sa neignorujú, tak často programátori používajú iba error/success
-    * Efektívne používajú ako bool
+    * Efektívne používajú ako `bool`
 * Jeden nedôsledný programátor môže pokaziť dômyselný systém, lebo nepropaguje chyby ďalej
 
 ---
@@ -1473,6 +1473,77 @@ void g() noexcept {
 ---
 
 ## Výnimky nie sú ťažké, ošetrovanie chýb je ťažké.
+
+---
+
+# Diagnostika
+
+---
+
+## Informácie o kóde
+
+* `__FILE__` - názov súboru
+* `__LINE__` - číslo riadku
+
+```cpp
+#define LOG_ERROR(msg) log_error(__FILE__, __LINE__, msg)
+
+void log_error(const char* file, int line, const char* msg) {
+    std::cout << "Error in file " << file << " at line " << line << ": " << msg << '\n';
+}
+```
+
+```plain
+Error in file /home/user/project/main.cpp at line 10: Something bad happened
+```
+
+
+## `std::source_location`
+
+* Pridané v C++20
+* Umožňuje získať informácie o aktuálnom mieste v kóde
+
+```cpp
+#include <iostream>
+#include <source_location>
+
+void log_error(const char* msg, const std::source_location& location = std::source_location::current()) {
+    std::cout << "Error in file " << location.file_name() 
+        << " in function " << location.function_name() 
+        << " at line " << location.line() << ": " << msg << '\n';
+}
+
+int main() {
+    log_error("Something bad happened");
+}
+```
+
+
+## Stacktrace
+
+* Získať stacktrace je od C++23 štandardizované
+* `std::stacktrace::current()` na získanie aktuálneho stacktrace
+* `std::to_string()` na konverziu na reťazec
+
+```cpp
+#include <iostream>
+#include <stacktrace>
+
+void log_stacktrace() {
+    auto stacktrace = std::stacktrace::current();
+
+    std::cout << "Stacktrace: \n" << std::to_string(stacktrace) << '\n'; // auto conversion
+
+    std::cout << "Current stacktrace:\n";
+    for (const auto& frame : stacktrace) { // manual iteration through frames
+        std::cout << "  " << std::to_string(frame) << '\n';
+    }
+}
+
+int main() {
+    log_stacktrace();
+}
+```
 
 ---
 
