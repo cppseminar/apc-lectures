@@ -124,7 +124,7 @@ int16_t i = 30'000;
 auto j = static_cast<int8_t>(i);
 ```
 
-~~Výsledok vyššie je definovaný implementáciou, na iných platformách môže byť iný.~~ Od C++20 je to už definované ako **x % 2n**.
+~~Výsledok vyššie je definovaný implementáciou, na iných platformách môže byť iný.~~ Od C++20 je to už definované ako $x \bmod 2^n$.
 
 ```cpp
 uint32_t i = 300'000;
