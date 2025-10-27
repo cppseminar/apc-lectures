@@ -68,14 +68,14 @@
 ```cpp
 class Rectangle {
 public:
-    Rectangle(Point a, Point b);
-    void Rotate(double deg);
-    void Move(double x, double y);
-    double Perimeter() const;
+  Rectangle(Point a, Point b);
+  void Rotate(double deg);
+  void Move(double x, double y);
+  double Perimeter() const;
 private:
-    Point a;
-    Point b;
-    double deg;
+  Point a;
+  Point b;
+  double deg;
 };
 ```
 </td>
@@ -141,9 +141,9 @@ Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `p
 ```cpp
 class Object {
 public:
-    Object() { }
-    Object(int i) { /* ... */ }
-    ~Object() { }
+  Object() { }
+  Object(int i) { /* ... */ }
+  ~Object() { }
 };
 ```
 
@@ -156,14 +156,14 @@ Konštruktorov môže byť viacero, deštruktor iba jeden.
 ```cpp [|4-6|8-10]
 class Strings {
 public:
-    Strings()
-        : second(first + "2")
-        , first("1")
-        , third(second + "3")
-    {  }
-    std::string first;
-    std::string second;
-    std::string third;
+  Strings()
+    : second(first + "2")
+    , first("1")
+    , third(second + "3")
+  {  }
+  std::string first;
+  std::string second;
+  std::string third;
 };
 ```
 
@@ -187,9 +187,9 @@ First = `"1"` Second = `"12"` Third = `"123"`
 ```cpp
 class File {
 private:
-    std::string path;
-    size_t size; /* i want it always*/
-    bool temporary;
+  std::string path;
+  size_t size; /* i want it always*/
+  bool temporary;
 };
 ```
 
@@ -203,13 +203,13 @@ private:
 ```cpp
 class File {
 public:
-    size_t GetSize() const { return size; }
-    void SetSize(size_t n) {
-        std::filesystem::resize_file(path, n); /* ... */ 
-    }
-    void Move(std::string dest) {
-        std::filesystem::rename(path, dest); /* ... */
-    }
+  size_t GetSize() const { return size; }
+  void SetSize(size_t n) {
+    std::filesystem::resize_file(path, n); /* ... */ 
+  }
+  void Move(std::string dest) {
+    std::filesystem::rename(path, dest); /* ... */
+  }
 };
 ```
 
@@ -226,13 +226,13 @@ public:
 ```cpp
 class File {
 public:
-    size_t GetSize();
-    void SetSize(size_t n);
-    void Move(std::string dest);
+  size_t GetSize();
+  void SetSize(size_t n);
+  void Move(std::string dest);
 private:
-    std::string path;
-    size_t size;
-    bool temporary;
+  std::string path;
+  size_t size;
+  bool temporary;
 };
 ```
 
@@ -250,11 +250,11 @@ private:
 
 ```cpp
 int main() {
-    int *i = new int(43);
-    std::cout << i << " " << *i; // 0032D340 43
- 
-    // return; // bad idea
-    delete i; // we must clean the memory manually
+  int *i = new int(43);
+  std::cout << i << " " << *i; // 0032D340 43
+
+  // return; // bad idea
+  delete i; // we must clean the memory manually
 }
 ```
 
@@ -268,13 +268,13 @@ Smerník sám o sebe je v automatickej pamäti, teda sa zruší automaticky, ale
 
 ```cpp
 int main() {
-    std::string *s = new std::string[4];
-    std::fill_n(s, 4, "Hello World");
- 
-    std::cout << s << " " << s[3].c_str(); // 0049D344 Hello World
- 
-    // delete s; // never
-    delete[] s; // we must clean the memory manually
+  std::string *s = new std::string[4];
+  std::fill_n(s, 4, "Hello World");
+
+  std::cout << s << " " << s[3].c_str(); // 0049D344 Hello World
+
+  // delete s; // never
+  delete[] s; // we must clean the memory manually
 }
 ```
 
@@ -303,8 +303,8 @@ notes: Veľkosť pola je potrebná aby sme vedeli zavoľať všetky deštruktory
 ```cpp
 auto* person = new Person();
 if (person == nullptr /*or NULL*/) {
-    // error handling
-    exit(EXIT_FAILURE);
+  // error handling
+  exit(EXIT_FAILURE);
 }
 ```
 
@@ -340,18 +340,18 @@ delete i;
 ```cpp
 class Object {
 public:
-    Object() { Init(); }
-    Object(int i) {
-        Init();
-        // do more stuff
-        str += std::to_string(i);
-    }
+  Object() { Init(); }
+  Object(int i) {
+    Init();
+    // do more stuff
+    str += std::to_string(i);
+  }
 private:
-    void Init() {
-        // initialize object
-        str = "Object";
-    }
-    std::string str;
+  void Init() {
+    // initialize object
+    str = "Object";
+  }
+  std::string str;
 };
 ```
 
@@ -391,21 +391,21 @@ private:
 
 ```cpp
 struct A {
-    A() { }
-    int i;
+  A() { }
+  int i;
 };
 
 struct B {
-    B() = default;
-    int i;
+  B() = default;
+  int i;
 };
 ```
 ```cpp
 int main() {
-    std::vector<A> va(100);
-    auto cva = va; // will copy construct
-    std::vector<B> vb(100);
-    auto cvb = vb; // will memmove
+  std::vector<A> va(100);
+  auto cva = va; // will copy construct
+  std::vector<B> vb(100);
+  auto cvb = vb; // will memmove
 }
 
 ```
@@ -424,10 +424,10 @@ int main() {
 ```cpp
 class A {
 public:
-    // one copy for each instances 
-    std::string str;
-    // one copy per all instances
-    inline static std::string s_str;
+  // one copy for each instances 
+  std::string str;
+  // one copy per all instances
+  inline static std::string s_str;
 };
 ```
 
@@ -444,8 +444,8 @@ public:
 ```cpp
 class StringUtils {
 public:
-    static std::string Join(const std::vector<std::string>& v, char d);
-    static std::vector<std::string> Split(const std::string& s, char d);
+  static std::string Join(const std::vector<std::string>& v, char d);
+  static std::vector<std::string> Split(const std::string& s, char d);
 };
 
 ```
@@ -457,14 +457,14 @@ Namiesto tohto treba `namespace` aj vôbec. Statické funkcie nie sú veľmi roz
 
 ```cpp
 int main(int argc, char* argv[]) {
-    std::vector<std::string> strings;
+  std::vector<std::string> strings;
 
-    StringUtils().Join(strings, '.'); // bad
+  StringUtils().Join(strings, '.'); // bad
 
-    StringUtils a; //even worse
-    a.Join(strings, '.');
+  StringUtils a; //even worse
+  a.Join(strings, '.');
 
-    StringUtils::Join(strings, '.'); // OK
+  StringUtils::Join(strings, '.'); // OK
 }
 ```
 
@@ -483,11 +483,11 @@ Rovnako sa pristupuje aj k verejným statickým členským premenným.
 
 ```cpp
 namespace GoodProject {
-    void Fun() { };
+  void Fun() { };
 }
 
 namespace BetterProject {
-    void Fun() { };
+  void Fun() { };
 }
 ```
 </td>
@@ -495,9 +495,9 @@ namespace BetterProject {
 
 ```cpp
 int main() {
-    //Fun(); // error
-    GoodProject::Fun();
-    BetterProject::Fun();
+  //Fun(); // error
+  GoodProject::Fun();
+  BetterProject::Fun();
 }
 
 ```
@@ -519,10 +519,10 @@ int main() {
 using namespace BetterProject;
 
 int main() {
-    Fun(); // BetterProject::Fun
-    GoodProject::Fun();
-    BetterProject::Fun();
-    ::GoodProject::Fun();
+  Fun(); // BetterProject::Fun
+  GoodProject::Fun();
+  BetterProject::Fun();
+  ::GoodProject::Fun();
 }
 ```
 
@@ -532,9 +532,9 @@ int main() {
 
 ```cpp
 class Cache {
-    static const size_t DEFAULT_CACHE_SIZE = 100;
-    
-    Cache(size_t size = DEFAULT_CACHE_SIZE) { };
+  static const size_t DEFAULT_CACHE_SIZE = 100;
+  
+  Cache(size_t size = DEFAULT_CACHE_SIZE) { };
 };
 ```
 
@@ -591,10 +591,10 @@ Verejné členské premenné. <!-- .element: class="fragment strike" -->
 ```cpp
 class Number {
 public: 
-     Number(const char* str);
+  Number(const char* str);
 private:
-    std::string data;
-    bool negative = false;
+  std::string data;
+  bool negative = false;
 };
 ```
 </td>
@@ -602,20 +602,20 @@ private:
 
 ```cpp
 Number::Number(const char* str) {
-    if (size_t len = strlen(str)) {
-        if (str[0] == '-') {
-            negative = true;
-            ++str;
-            --len;
-        }
-        for (size_t i = 0; i < len; ++i) {
-            if (!isdigit(str[i]))
-                throw std::runtime_error("Not a number");
-        }
-        data = str;
-        return;
+  if (size_t len = strlen(str)) {
+    if (str[0] == '-') {
+      negative = true;
+      ++str;
+      --len;
     }
-    throw std::runtime_error("Empty string");
+    for (size_t i = 0; i < len; ++i) {
+      if (!isdigit(str[i]))
+        throw std::runtime_error("Not a number");
+    }
+    data = str;
+    return;
+  }
+  throw std::runtime_error("Empty string");
 }
 ```
 <!-- .element: class="showall" -->
@@ -644,21 +644,21 @@ Konštruktor by mal hneď ako zístí, že je niečo zle vyhodiť výjnimku. **F
 
 ```cpp
 struct RGB {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
 };
 
 class RGBA : public RGB {
 public:
-    RGBA(uint32_t color)
-    {
-        r = ((color & 0xff000000) >> 24);
-        g = ((color & 0x00ff0000) >> 16);
-        b = ((color & 0x0000ff00) >> 8);
-        alpha = (color & 0x000000ff) / static_cast<double>(0xff);
-    }
-    double alpha;
+  RGBA(uint32_t color)
+  {
+    r = ((color & 0xff000000) >> 24);
+    g = ((color & 0x00ff0000) >> 16);
+    b = ((color & 0x0000ff00) >> 8);
+    alpha = (color & 0x000000ff) / static_cast<double>(0xff);
+  }
+  double alpha;
 };
 ```
 <!-- .element: class="showall" -->
@@ -673,22 +673,22 @@ public:
 
 ```cpp [|2-3|13-15|12]
 struct RGB {
-    RGB(uint8_t rr, uint8_t gg, uint8_t bb)
-        : r(rr), g(gg), b(bb) { }
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+  RGB(uint8_t rr, uint8_t gg, uint8_t bb)
+    : r(rr), g(gg), b(bb) { }
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
 };
 
 class RGBA : public RGB {
 public:
-    RGBA(uint32_t color)
-        //: r((color & 0xff000000) >> 24) // will not compile
-        : RGB( (color & 0xff000000) >> 24,
-               (color & 0x00ff0000) >> 16,
-               (color & 0x0000ff00) >> 8 )
-        , alpha((color & 0x000000ff) / static_cast<double>(0xff)) { }
-    double alpha;
+  RGBA(uint32_t color)
+    //: r((color & 0xff000000) >> 24) // will not compile
+    : RGB((color & 0xff000000) >> 24,
+          (color & 0x00ff0000) >> 16,
+          (color & 0x0000ff00) >> 8 )
+    , alpha((color & 0x000000ff) / static_cast<double>(0xff)) { }
+  double alpha;
 };
 ```
 
@@ -708,12 +708,12 @@ class B { };
 class C { };
  
 class X : public A {
-    B b_;
+  B b_;
 };
  
 class Y : public X {
-    A a_;
-    C c_;
+  A a_;
+  C c_;
 };
 ```
 </td>
@@ -755,8 +755,8 @@ class Y : public X {
 ```cpp
 class A {
 public:
-    A() { std::cout << "A\n"; }
-    ~A() { std::cout << "~A\n"; }
+  A() { std::cout << "A\n"; }
+  ~A() { std::cout << "~A\n"; }
 };
 
 // same for other classes
@@ -765,8 +765,8 @@ class C { };
 class D { };
  
 class X : public A, public B {
-    C b_;
-    D d_;
+  C b_;
+  D d_;
 };
 ```
 </td>
@@ -898,9 +898,9 @@ public:
 };
 
 void PrintSeq(Sequence& seq, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-        std::cout << seq.Next() << '\n';
-    }
+  for (size_t i = 0; i < n; ++i) {
+    std::cout << seq.Next() << '\n';
+  }
 }
 ```
 
@@ -959,18 +959,18 @@ private:
 
 ```cpp [|3]
 void PrintSeq(Sequence &seq, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-      std::cout << seq.Next() << std::endl;
-    }
+  for (size_t i = 0; i < n; ++i) {
+    std::cout << seq.Next() << std::endl;
+  }
 }
 
 int main(int argc, char *argv[]) {
-    ConstSeq c_seq(10);
-    PrintSeq(c_seq, 10);
+  ConstSeq c_seq(10);
+  PrintSeq(c_seq, 10);
 
-    ArithmeticSeq a_seq(0, 10);
-    PrintSeq(a_seq, 10);
-    return 0;
+  ArithmeticSeq a_seq(0, 10);
+  PrintSeq(a_seq, 10);
+  return 0;
 }
 ```
 
@@ -991,22 +991,21 @@ public:
 };
 
 void PrintSeq(Sequence& seq, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-        std::cout << seq.Next() << '\n';
-    }
-
+  for (size_t i = 0; i < n; ++i) {
+    std::cout << seq.Next() << '\n';
+  }
 }
 
 class One : public Sequence {
 public:
-    virtual int64_t Next() const {
-        return 1;
-    }
+  virtual int64_t Next() const {
+    return 1;
+  }
 };
 
 int main(int argc, char* argv[]) {
-    One seq;
-    PrintSeq(seq, 10);
+  One seq;
+  PrintSeq(seq, 10);
 }
 
 ```
@@ -1037,8 +1036,8 @@ public:
 };
 
 int main() {
-    Sequence seq; // compiler error
-    PrintSeq(seq, 10);
+  Sequence seq; // compiler error
+  PrintSeq(seq, 10);
 }
 ```
 
@@ -1075,28 +1074,28 @@ int main() {
 ```cpp
 class FileReader {
 public:
-    FileReader(const char* path)
-        : m_file(fopen(path, "r")) {
-    }
-    ~FileReader() {
-        if (m_file == NULL)
-            fclose(m_file);
-    }
-    bool IsOK() const { return m_file != NULL; }
-    void Read(std::vector<char>& v) {
-        size_t n = fread(v.data(), 1, v.size(), m_file);
-        v.resize(n);
-    }
+  FileReader(const char* path)
+    : m_file(fopen(path, "r")) {
+  }
+  ~FileReader() {
+    if (m_file != NULL)
+      fclose(m_file);
+  }
+  bool IsOK() const { return m_file != NULL; }
+  void Read(std::vector<char>& v) {
+    size_t n = fread(v.data(), 1, v.size(), m_file);
+    v.resize(n);
+  }
 private:
-    FILE* m_file;
+  FILE* m_file;
 };
 
 int main() {
-    FileReader f("text.txt");
-    std::vector<char> v(1024);
-    f.Read(v);
-    v.push_back(0); // null
-    std::cout << v.data() << '\n';
+  FileReader f("text.txt");
+  std::vector<char> v(1024);
+  f.Read(v);
+  v.push_back(0); // null
+  std::cout << v.data() << '\n';
 }
 ```
 
@@ -1114,17 +1113,17 @@ V jazykoch ako Java máme k dispozícií garbage collector, preto sú objekty au
 
 ```cpp [|3-10]
 int main() {
-    FileReader *file = new FileReader(R"(C:\...\file.txt)");
-    if (file->IsOK())     {
-        std::vector<char> buffer(1024);
-        if (file->Read(buffer))
-        {
-            buffer.push_back('\0');
-            std::cout << buffer.data();
-        }
+  FileReader *file = new FileReader(R"(C:\...\file.txt)");
+  if (file->IsOK())     {
+    std::vector<char> buffer(1024);
+    if (file->Read(buffer))
+    {
+      buffer.push_back('\0');
+      std::cout << buffer.data();
     }
- 
-    delete file;
+  }
+
+  delete file;
 }
 ```
 
@@ -1137,14 +1136,14 @@ Ak niekde vo vyznačenom bloku nastane výnimka, alebo niekto v ňom zavolá ret
 
 ```cpp
 int main() {
-    FileReader file(LR"(C:\Users\koscelansky\Desktop\ppp.txt)");
-    if (file.IsOK()) {
-        std::vector<char> buffer(1024);
-        if (file.Read(buffer)) {
-            buffer.push_back('\0');
-            std::cout << buffer.data();
-        }
+  FileReader file(LR"(C:\Users\koscelansky\Desktop\ppp.txt)");
+  if (file.IsOK()) {
+    std::vector<char> buffer(1024);
+    if (file.Read(buffer)) {
+      buffer.push_back('\0');
+      std::cout << buffer.data();
     }
+  }
 }
 ```
 
@@ -1161,11 +1160,11 @@ int main() {
 ```cpp
 std::unique_ptr<FileReader> file(new FileReader(LR"(C:\...\file.txt)"));
 if (file->IsOK()) {
-    std::vector<char> buffer(1024);
-    if (file->Read(buffer))     {
-        buffer.push_back('\0');
-        std::cout << buffer.data();
-    }
+  std::vector<char> buffer(1024);
+  if (file->Read(buffer))     {
+    buffer.push_back('\0');
+    std::cout << buffer.data();
+  }
 }
 ```
 
@@ -1182,11 +1181,11 @@ if (file->IsOK()) {
 ```cpp
 auto file = std::make_unique<FileReader>(LR"(C:\...\file.txt)");
 if (file->IsOK()) {
-    std::vector<char> buffer(1024);
-    if (file->Read(buffer)) {
-        buffer.push_back('\0');
-        std::cout << buffer.data();
-    }
+  std::vector<char> buffer(1024);
+  if (file->Read(buffer)) {
+    buffer.push_back('\0');
+    std::cout << buffer.data();
+  }
 }
 ```
 
@@ -1208,12 +1207,12 @@ if (file->IsOK()) {
 
 ```cpp
 int main(int argc, const char* argv[]) {
-    std::unique_ptr<Sequence> p(new ConstSeq(4)); // we can assign derived class to base class
-    Sequence* a = p.get(); // returns raw pointer 
-    // delete a; // error p will also call delete in ~ 
-    Sequence* a = p.release(); // release raw pointer (compatibility)
-    delete a; // OK, p is now nullptr, but not wise 
-    p.reset(new ConstSeq); // delete managed object and assign new one
+  std::unique_ptr<Sequence> p(new ConstSeq(4)); // we can assign derived class to base class
+  Sequence* a = p.get(); // returns raw pointer 
+  // delete a; // error p will also call delete in ~ 
+  Sequence* a = p.release(); // release raw pointer (compatibility)
+  delete a; // OK, p is now nullptr, but not wise 
+  p.reset(new ConstSeq); // delete managed object and assign new one
 } // delete is called
 ```
 
@@ -1225,9 +1224,9 @@ Smart pointer sa správa ako obyčajný pointer, teda volania metód používaj�
 
 ```cpp
 void PrintSeq(std::unique_ptr<Sequence>& seq, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-        std::cout << seq->Next() << '\n'; // virtual dispatch
-    }
+  for (size_t i = 0; i < n; ++i) {
+    std::cout << seq->Next() << '\n'; // virtual dispatch
+  }
 }
 ```
 
@@ -1259,10 +1258,10 @@ void f(std::unique_ptr<Sequence> p)
 
 int main(int argc, const char* argv[])
 {
-    auto p = std::make_unique<ConstSeq>(5);
-    // f(p); error
-    f(std::move(p)); // ownership is transfered 
-    p == nullptr; // true
+  auto p = std::make_unique<ConstSeq>(5);
+  // f(p); error
+  f(std::move(p)); // ownership is transfered 
+  assert(p == nullptr); // true
 } // nothing is deleted
 
 ```
@@ -1275,17 +1274,17 @@ int main(int argc, const char* argv[])
 
 ```cpp
 int main() {
-    // std::vector<Sequence> v; // will not work
-    // because Sequence is abstract class and it is not
-    // possible to instantiate it, even without abstract
-    // class it will not work, this vector can only store
-    // Sequence and not its child, the same problem was
-    // with function parameters, & can fix it, here we
-    // need to use pointers
-    std::vector<std::unique_ptr<Sequence>> seqs;
-    seqs.push_back(std::make_unique<ArithmeticSeq>(1, 10));
-    seqs.push_back(std::make_unique<ConstSeq>(0));
-    return 0;
+  // std::vector<Sequence> v; // will not work
+  // because Sequence is abstract class and it is not
+  // possible to instantiate it, even without abstract
+  // class it will not work, this vector can only store
+  // Sequence and not its child, the same problem was
+  // with function parameters, & can fix it, here we
+  // need to use pointers
+  std::vector<std::unique_ptr<Sequence>> seqs;
+  seqs.push_back(std::make_unique<ArithmeticSeq>(1, 10));
+  seqs.push_back(std::make_unique<ConstSeq>(0));
+  return 0;
 }
 
 ```
@@ -1297,11 +1296,11 @@ int main() {
 ## Problém
 
 ```cpp
-    return 0;
-    // here destructor is called 
-    // so unique ptr will delete all Sequences 
-    // bad things will happen, because destructor 
-    // is not virtual in Sequence 
+  return 0;
+  // here destructor is called 
+  // so unique ptr will delete all Sequences 
+  // bad things will happen, because destructor 
+  // is not virtual in Sequence 
 }
 ```
 
@@ -1316,16 +1315,16 @@ int main() {
 class Base { };
  
 class Derived : public Base {
-    ~Derived() 
-    { 
-    }
-    std::string s_{ "Hello world!!!!!!!" };
+  ~Derived() 
+  { 
+  }
+  std::string s_{ "Hello world!!!!!!!" };
 };
  
-void main() {
-    Base* p = new Derived();
-    // ...
-    delete p;
+int main() {
+  Base* p = new Derived();
+  // ...
+  delete p;
 }
 
 ```
@@ -1363,23 +1362,21 @@ Skompiluje sa nasledujúci program? Aký je výsledok?
 ```cpp
 class Base {
 public:
-    Base() { print(); }
- 
-    virtual void print()
-    {
-        std::cout << "Base";
-    }
+  Base() { print(); }
+
+  virtual void print() {
+    std::cout << "Base";
+  }
 };
  
 class Derived : public Base {
-    virtual void print() override
-    {
-        std::cout << "Derived";
-    }
+  virtual void print() override {
+    std::cout << "Derived";
+  }
 };
 
 int main() {
-    Derived d;
+  Derived d;
 }
 ```
 <!-- .element: class="showall" -->
@@ -1418,8 +1415,8 @@ class TemporaryFile : public File { /* ... */ };
 void ReadInput(File& file);
  
 void main() {
-    TemporaryFile tempFile;
-    ReadInput(tempFile);
+  TemporaryFile tempFile;
+  ReadInput(tempFile);
 }
 ```
 
@@ -1430,14 +1427,14 @@ Referencia vo funkcií je veľmi dôležitá.
 ## Slicing
 
 * Nie list slicing z Pythonu ;)
-* Hodnoty v C++ (nie referencie a smerníky) nosia celú konkrétnu hodnotu (musia vedieť svoju veľkosť), ak treba tak sa kopírujú
+* Hodnoty v C++ (nie referencie a smerníky) nosia celú konkrétnu hodnotu (musia vedieť svoju veľkosť), ak treba tak sa kopírujú (pomocou operátora priradenia)
 
 ```cpp
 void ReadInput(File* file);
  
 void main() {
-    TemporaryFile temp_file;
-    ReadInput(&temp_file);
+  TemporaryFile temp_file;
+  ReadInput(&temp_file);
 }
 
 ```
@@ -1446,8 +1443,8 @@ void main() {
 void ReadInput(File file);
  
 void main() {
-    TemporaryFile temp_file;
-    ReadInput(temp_file);
+  TemporaryFile temp_file;
+  ReadInput(temp_file);
 }
 ```
 
@@ -1478,18 +1475,18 @@ Skompiluje sa nasledujúci program?
 ```cpp
 class A {
 private:
-    virtual int f() const = 0;
+  virtual int f() const = 0;
 public:
-    void print() const { std::cout << f() << std::endl; }
+  void print() const { std::cout << f() << std::endl; }
 };
  
 class B : public A {
 public:
-    virtual int f() const override { return 0; }
+  virtual int f() const override { return 0; }
 };
  
 int main() {
-    B().print();
+  B().print();
 }
 ```
 <!-- .element: class="showall" -->
@@ -1530,7 +1527,7 @@ class A { };
 class B : public A { };
 
 void f(A* a) {
-    B* b = dynamic_cast<B*>(a);
+  B* b = dynamic_cast<B*>(a);
 }
 ```
 
@@ -1543,11 +1540,11 @@ class A { virtual ~A() { } };
 class B : public A { };
 
 void f(A* a) {
-    B* b = dynamic_cast<B*>(a);
+  B* b = dynamic_cast<B*>(a);
 }
 ```
 
-Vráti buď smerník na B, alebo nullptr, ak premenná A nenesie B, ale iba A. 
+Vráti buď smerník na `B`, alebo `nullptr`, ak premenná `a` nenesie `B`, ale iba `A`.
 
 ---
 
@@ -1556,14 +1553,14 @@ Vráti buď smerník na B, alebo nullptr, ak premenná A nenesie B, ale iba A.
 ```cpp
 class A { 
 public: 
-    virtual ~A() { } 
+  virtual ~A() { } 
 };
 
 class B : public A { };
 
 void f(A& a) {
-    B* b1 = static_cast<B*>(&a);
-    B& b2 = static_cast<B&>(a);
+  B* b1 = static_cast<B*>(&a);
+  B& b2 = static_cast<B&>(a);
 }
 ```
 
@@ -1573,14 +1570,14 @@ void f(A& a) {
 ```cpp
 class A { 
 public: 
-    virtual ~A() { } 
+  virtual ~A() { } 
 };
 
 class B : public A { };
 
 void f(A& a) {
-    B* b3 = dynamic_cast<B*>(&a);
-    B& b4 = dynamic_cast<B&>(a);
+  B* b3 = dynamic_cast<B*>(&a);
+  B& b4 = dynamic_cast<B&>(a);
 }
 ```
 
@@ -1596,17 +1593,17 @@ class B : public A { public: virtual ~B() { } };
 class C : public B { };
 
 void f(const A& a) {
-    std::cout << typeid(a).name() << "\n";
+  std::cout << typeid(a).name() << "\n";
 }
 
 void g(const B& b) {
-    std::cout << typeid(b).name() << "\n";
+  std::cout << typeid(b).name() << "\n";
 }
 
 int main() {
-    C c;
-    f(c); // prints A
-    g(c); // prints C
+  C c;
+  f(c); // prints A
+  g(c); // prints C
 }
 ```
 <!-- .element: class="showall" -->
