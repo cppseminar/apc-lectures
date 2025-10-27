@@ -391,6 +391,77 @@ private:
 
 ```cpp
 struct A {
+  A() { } // default constructor
+
+  A(int i) : i(i) { }
+  int i;
+};
+
+struct B {
+  B(int i) : i(i) { }
+  int i;
+};
+
+int main() {
+A a;
+//B b;  // will not compile, no default constructor available
+}
+```
+
+
+## Radšej `= default`
+
+```cpp
+struct A {
+  A() { }
+  int i;
+};
+
+struct B {
+  B() = default;
+  int i;
+};
+
+int main() {
+  A a;
+  B b;
+}
+```
+
+
+## `= default` vs `{}`
+
+* `= default` zachová triviálnosť typu, `{}` nie
+* `= default` inicializuje všetky členy na ich predvolené hodnoty, `{}` nie
+
+```cpp
+struct A {
+  A() { }
+  int i;
+};
+
+struct B {
+  B() = default;
+  int i;
+};
+
+int main() {
+  A a{};
+  B b{};
+
+  std::cout << a.i << "\n"; // undefined
+  std::cout << b.i << "\n"; // 0
+}
+```
+
+* `A a{}` neskonštruuje `i`, teda má nepredvídateľnú hodnotu
+* `B b{}` skonštruuje `i` na nulu, pretože `B` je triviálny typ
+
+
+## Triviálne typy
+
+```cpp
+struct A {
   A() { }
   int i;
 };
@@ -400,6 +471,7 @@ struct B {
   int i;
 };
 ```
+
 ```cpp
 int main() {
   std::vector<A> va(100);
@@ -407,10 +479,12 @@ int main() {
   std::vector<B> vb(100);
   auto cvb = vb; // will memmove
 }
-
 ```
 
-* Použitím slova default zachová triviálnosť typu, teda niektoré operácie sa dajú lepšie optimalizovať
+* Použitím slova `default` zachová triviálnosť typu, teda niektoré operácie sa dajú lepšie optimalizovať
+* Triviálne typy sú také, ktoré nemajú žiadne vlastné konštruktory, deštruktory...
+* Môžeme si ich predstaviť ako obyčajný C `struct`
+* POD (Plain Old Data)
 
 ---
 
