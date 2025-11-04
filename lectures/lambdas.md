@@ -1144,7 +1144,7 @@ std::get<std::string>(a); // will throw
 * Callable objekt musí mať preťažený `operator()` pre každý typ v `std::variant`
 
 
-# Explicitný fuktor pre `std::visit`
+## Explicitný funktor pre `std::visit`
 
 ```cpp
 struct Visitor {
