@@ -56,7 +56,7 @@ const auto ci = 7; // const int
 
 * Použitím `const`, alebo `*` vieme ovplyvniť, či je premenná konštantná alebo ukazovateľ (inak sa program neskompiluje)
 
-* Dedukcia typov je statická počast kompilácie, nedá sa urobiť niečo ako
+* Dedukcia typov je statická počas kompilácie, nedá sa urobiť niečo ako
 
 ```cpp
 auto i = 3; // int
@@ -73,7 +73,7 @@ i = 3.14; // error
 
 ## Použijeme compiler error message
 
-* Vytvoríme templatovú funkcia, ktorej kompilácia vždy zlyhá a tým donútime kompilátor vypísať typ
+* Vytvoríme templatovú funkciu, ktorej kompilácia vždy zlyhá a tým donútime kompilátor vypísať typ
 * Funguje na *GCC*, *Clang* aj *MSVC* 
 
 ```cpp
@@ -133,7 +133,7 @@ static_assert(std::is_same<int, int32>()); // OK
 ```
 
 * `typedef` nezavádza nový typ, ale len alias, preto sú `int` a `int32` rovnaké
-* Podobne to platí aj pre `int32_t`, je to iba `typedef` na `int` (alebo iný typo podľa platformy)
+* Podobne to platí aj pre `int32_t`, je to iba `typedef` na `int` (alebo iný typ podľa platformy)
 
 
 ## `decltype`
@@ -226,20 +226,20 @@ auto intpower(double base, uint32_t exponent) {
 auto factorial(unsigned n) {
     if (n == 0)
         return 1;
-    return n * Factorial(n - 1);
+    return n * factorial(n - 1);
 }
 ```
 
-* V tomto prípade je to kompilačná chyba, pretože `1` je `int` a `n * Factorial(n - 1)` je `unsigned`
+* V tomto prípade je to kompilačná chyba, pretože `1` je `int` a `n * factorial(n - 1)` je `unsigned`
 * Buď explicitne napíšeme návratový typ (`-> unsigned`), alebo zmeníme `1` na `1u`
 
 ---
 
 ## Smerníky na funkcie
 
-* Funkcie sú v pamäti umožnené podobne ako dáta (akurát majú nastavené, že sú execuatable)
+* Funkcie sú v pamäti uložené podobne ako dáta (akurát majú nastavené, že sú executable)
 * Môžeme si preto vytvoriť smerník na funkciu
-* Potom takýto smerík môžeme zavolať ako funkciu (pomocou `()`)
+* Potom takýto smerník môžeme zavolať ako funkciu (pomocou `()`)
 
 ```cpp
 int add(int a, int b) {
@@ -319,7 +319,7 @@ public:
     std::string operator()(const std::string& s) {
         std::string ret_val;
         for (const auto& c : s) {
-            ret_val.push_back(m_ToUpper ? toupper(c) : tolower(c));
+            ret_val.push_back(to_upper ? toupper(c) : tolower(c));
         }
         return ret_val;
     }
@@ -340,9 +340,9 @@ int main()
 }
 ```
 
-* `ChangeCase` je *functor* a `to_upper` je *instance* tohto *functoru*
-* `ChangeCase(false)` je *temporary instance* tohto *functoru*
-* Functory nám umožňujú mať stav (*stateful* funkcie)
+* `ChangeCase` je *funktor* a `to_upper` je *inštancia* tohto *funktoru*
+* `ChangeCase(false)` je *temporary instance* tohto *funktoru*
+* Funktory nám umožňujú mať stav (*stateful* funkcie)
 
 ---
 
@@ -372,7 +372,7 @@ int main() {
 }
 ```
 
-* `Counter` je *functor*, ktorý si drží stav, takže pokaždom volaní nám vráti inú hodnotu
+* `Counter` je *funktor*, ktorý si drží stav, takže po každom volaní nám vráti inú hodnotu
 
 ---
 
@@ -479,7 +479,7 @@ std::cout << output << std::endl; // MIXED CASE STRING.
 ```
 
 * Transformuje prvky z jedného kontajnera do druhého
-* `std::transform` negarantuje poradie tranformácie, nedá sa na neho spoliehať
+* `std::transform` negarantuje poradie transformácie, nedá sa na neho spoliehať
 * Ak je ale výstupný iterátor `std::back_inserter`, tak potom implementáciu v podstate prinútime robiť transformáciu v poradí
 
 note: `::tolower` a `::toupper` sú funkcie z C knižnice, ktoré pracujú s `int` hodnotami a preto toto warninguje ako divé
@@ -542,7 +542,7 @@ auto joined = std::accumulate(s.begin(), s.end(), std::string(), Joiner('.'));
 ```
 
 * `Joiner` je *functor*, ktorý zreťazí dva stringy pomocou zadaného delimitéra
-* Je to celkom veľký kódu na takúto jednoduchú vec, ale vieme lepšie
+* Je to celkom veľa kódu na takúto jednoduchú vec, ale vieme lepšie
 
 ---
 
@@ -566,7 +566,7 @@ auto lambda2 = [] {}; // simplest lambda
 ```
 
 
-## Použitie lambdy na zjednosušenie kódu
+## Použitie lambdy na zjednodušenie kódu
 
 ```cpp [4,13|6|7-10]
 class Joiner{
@@ -674,7 +674,7 @@ std::transform(vec.begin(), vec.end(), std::back_inserter(result), [](const int&
 
 ## Lambda s návratovým typom
 
-* Štadardne je návratový typ lambdy určený podľa `return` príkazu (akoby bol `auto`)
+* Štandardne je návratový typ lambdy určený podľa `return` príkazu (akoby bol `auto`)
 * Ak chceme explicitne definovať návratový typ, môžeme to urobiť pomocou `-> typ`
 
 ```cpp
@@ -741,7 +741,7 @@ func(); // 3
 ## Výhody lambda funkcií
 
 * Veľmi jednoduché na použitie so štandardnými algoritmami
-* Definícia priamo tam, kde je použitá (jednoduhšia orientácia v kóde)
+* Definícia priamo tam, kde je použitá (jednoduchšia orientácia v kóde)
 * Nulová (alebo minimálna) režia pri vytváraní a volaní
 * Môžeme použiť všetky výhody *functorov* (napr. stav)
 * Viac približujú C++ k funkcionálnemu programovaniu
@@ -749,7 +749,7 @@ func(); // 3
 
 ## Nevýhody lambda funkcií
 
-* Od C++11, niekroré pokročilé vlastnosti pribúdajú pomaly v štandardoch
+* Od C++11, niektoré pokročilé vlastnosti pribúdajú pomaly v štandardoch
 * Veľa kódu je generované implicitne, čo môže byť zložité na debugovanie
 * Ak niektorú lambda funkciu potrebujeme použiť viackrát, môže byť lepšie definovať ju ako *functor*, alebo funkciu
 
@@ -769,7 +769,7 @@ auto lambda = [a](int x) mutable { return ++a + x * x; };
 
 <ul>
     <li>Typ lambdy nie je špecifikovaný, preto ho nevieme ani priamo použiť</li>
-    <li>Čo keď chceme lamdy uložiť do kontajnera, alebo ich poslať ako parameter?</li>
+    <li>Čo keď chceme lambdy uložiť do kontajnera, alebo ich poslať ako parameter?</li>
     <li class="fragment">
         Štandardná knižnica nám ponúka riešenie v podobe wrappera <code>std::function</code>
     </li>
@@ -803,7 +803,7 @@ for (auto& i : v2) {
 
 * `std::function` je wrapper pre ľubovoľný callable objekt
 * Môže byť použitý na uloženie lambdy, funkcie, funktoru, ...
-* Používa tehcniku *type erasure* na to, aby mohol byť použitý na ľubovoľný typ callable objektu
+* Používa techniku *type erasure* na to, aby mohol byť použitý na ľubovoľný typ callable objektu
 * Aká je veľkosť `std::function`?
    * Definovaná implementáciou<!-- .element: class="fragment" -->
    * Väčšinou používa small buffer optimization a malý callable sa zmestí priamo do buffera, inak alokácia<!-- .element: class="fragment" -->
@@ -839,7 +839,7 @@ int main() {
 ```
 
 
-## Môžeme radše použiť lambdu
+## Môžeme radšej použiť lambdu
 
 ```cpp
 int f(int a, int b) {
@@ -944,7 +944,7 @@ int main() {
 }
 ```
 
-* V skutočnosti je to nedefinované správanie, pretože povolé je čítať iba poslednú hodnotu, ktorá bola do unionu zapísaná
+* V skutočnosti je to nedefinované správanie, pretože povolené je čítať iba poslednú hodnotu, ktorá bola do unionu zapísaná
 
 ---
 
@@ -1037,7 +1037,7 @@ std::variant<int, std::string> a;
 try {
     std::get<1>(a) = "String";
 
-    auto* x = std::get_if<1>(a); // can be nulltpr, never throws
+    auto* x = std::get_if<1>(a); // can be nullptr, never throws
 } catch (const std::bad_variant_access&) {
     std::cout << "String not there";
 }
@@ -1165,8 +1165,26 @@ int main() {
 }
 ```
 
-* Funguje správne, pretože `std::cmp_less` porovnáva hodnoty, najprv robí scount, potom
+* Funguje správne, pretože `std::cmp_less` najprv porovná znamienko a až potom hodnotu
 * Funkcie nerobia konverziu
+
+
+## Možná implementácia
+
+```cpp
+template<class T, class U>
+constexpr bool cmp_less(T t, U u) noexcept
+{
+    if constexpr (std::is_signed_v<T> == std::is_signed_v<U>)
+        return t < u;
+    else if constexpr (std::is_signed_v<T>)
+        return t < 0 || std::make_unsigned_t<T>(t) < u;
+    else
+        return u >= 0 && t < std::make_unsigned_t<U>(u);
+}
+```
+
+<https://en.cppreference.com/w/cpp/utility/intcmp.html>
 
 ---
 
