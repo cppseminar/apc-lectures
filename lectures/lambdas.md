@@ -1170,6 +1170,7 @@ std::variant<int, std::string, std::vector<int>> v = "Hello";
 std::visit(Visitor{}, v);
 ```
 
+
 ## Lambda s `if constexpr`
 
 ```cpp
