@@ -201,6 +201,8 @@ public:
         int x;
         int y;
     };
+
+    Data getData();
 };
 
 A::Data A::getData() { return { 1, 2 }; }
@@ -308,9 +310,8 @@ int main() {
 * Väčšinou nám stačí okrem `operator()` iba konštruktor
 
 
-```cpp [8|16|]
-class ChangeCase
-{
+```cpp [7|16|]
+class ChangeCase {
 public:
     ChangeCase(bool to_upper)
         : to_upper(to_upper) {
@@ -330,8 +331,7 @@ private:
 
 
 ```cpp
-int main()
-{
+int main() {
     ChangeCase to_upper(true);
     std::cout << to_upper("Hello World!") << std::endl;
     std::cout << to_upper("lower case string") << std::endl;
@@ -409,6 +409,36 @@ auto bi = std::back_inserter(v);
 
 * `++bi` je no-op, je tam iba preto aby sa dal použiť ako iterátor
 * `*bi = 10` pridá prvok na koniec kontajnera (ako keby sme použili `push_back(10)`)
+
+---
+
+## `std::inserter`
+
+* Všeobecný vložný iterátor: `std::inserter(container, position)` volá `container.insert(position, value)` a potom posunie interný iterátor (hint) za práve vložený prvok
+* Môžeme vkladať na začiatok, do stredu
+* Na rozdiel od `std::back_inserter` môže byť vkladanie drahé (napr. začiatok `std::vector` je O(n) pre každý prvok)
+
+```cpp
+std::vector<int> v = { 1, 2, 3 };
+auto it = std::inserter(v, v.begin()); // vloží pred begin
+*it = 10; // v: 10, 1, 2, 3
+*it = 20; // v: 10, 20, 1, 2, 3 (interný iterátor sa posunul)
+```
+
+
+### Reverzné budovanie sekvencie
+
+```cpp
+std::vector<int> data;
+for (int i = 1; i <= 5; ++i) {
+    std::inserter(data, data.begin()) = i; // výsledok: 5, 4, 3, 2, 1
+}
+```
+
+### Porovnanie
+* `std::back_inserter` – amortizovane O(1) pri pridávaní na koniec väčšiny sekvenčných kontajnerov
+* `std::inserter` – univerzálne, ale môže mať O(n) pri vkladaní doprostred/na začiatok `vector`
+* `std::front_inserter` – pre kontajnery s `push_front` (napr. `std::list`, `std::deque`, `std::forward_list`)
 
 ---
 
@@ -521,7 +551,7 @@ int product = std::accumulate(nums.begin(), nums.end(), 1, std::multiplies<int>(
 ## Join stringov pomocou `std::accumulate`
 
 ```cpp
-class Joiner{
+class Joiner {
 public:
     Joiner(char delim)
         : delimiter(delim) { }
@@ -569,7 +599,7 @@ auto lambda2 = [] {}; // simplest lambda
 ## Použitie lambdy na zjednodušenie kódu
 
 ```cpp [4,13|6|7-10]
-class Joiner{
+class Joiner {
 public:
     Joiner(char delim)
         : delimiter(delim) { }
@@ -735,6 +765,23 @@ func(); // 3
 ```
 
 * `mutable` umožňuje meniť hodnoty zachytených premenných, nie sú `const`
+
+---
+
+## Výraz v capture liste
+
+* Môžeme použiť výraz na inicializáciu zachytenej premennej
+
+```cpp
+int i = 1;
+auto func = [a = i + 10]() mutable {
+    a++;
+    std::cout << a;
+};
+```
+
+* Výraz `i + 10` sa vyhodnotí pri vytvorení lambdy a výsledok sa použije na inicializáciu `a`
+* `i` nebude zachytené, iba sa použije na výpočet hodnoty pre `a` (ani nie potrebné `i` zachytávať)
 
 ---
 
@@ -919,7 +966,6 @@ auto factorial = [&](this auto self, int x) {
 };
 ```
 
-
 ---
 
 # `std::variant`
@@ -1086,6 +1132,90 @@ std::cout << a.index() << '\n'; // 4294967295
 std::cout << a.valueless_by_exception() << '\n'; // 1
 std::get<A>(a); // will throw
 std::get<std::string>(a); // will throw
+```
+
+---
+
+## `std::visit` a overloaded pattern
+
+* Na prácu s hodnotou v `std::variant` sa dá použiť aj `std::visit`
+* Berie dva parametre, *callable* objekt a `std::variant`
+* Zavolá *callable* objekt s hodnotou, ktorá je aktuálne v `std::variant`
+* Callable objekt musí mať preťažený `operator()` pre každý typ v `std::variant`
+
+
+# Explicitný fuktor pre `std::visit`
+
+```cpp
+struct Visitor {
+    void operator()(int i) {
+        std::cout << "int: " << i << '\n';
+    }
+
+    void operator()(const std::string& s) {
+        std::cout << "string: " << s << '\n';
+    }
+
+    void operator()(const std::vector<int>& v) {
+        std::cout << "vector of int: ";
+        for (const auto& i : v) {
+            std::cout << i << ' ';
+        }
+        std::cout << '\n';
+    }
+```
+
+```cpp
+std::variant<int, std::string, std::vector<int>> v = "Hello";
+std::visit(Visitor{}, v);
+```
+
+## Lambda s `if constexpr`
+
+```cpp
+std::variant<int, std::string, std::vector<int>> v = "Hello";
+std::visit([](auto&& arg) {
+    if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, int>) {
+        std::cout << "int: " << arg << '\n';
+    } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, std::string>) {
+        std::cout << "string: " << arg << '\n';
+    } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, std::vector<int>>) {
+        std::cout << "vector of int: ";
+        for (const auto& i : arg) {
+            std::cout << i << ' ';
+        }
+        std::cout << '\n';
+    }
+}, v);
+```
+
+
+## Overloaded pattern s lambdami
+
+```cpp
+// helper type for the visitor (kind of magic for us)
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+// explicit deduction guide (not needed as of C++20)
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+// https://en.cppreference.com/w/cpp/utility/variant/visit2.html
+```
+
+```cpp
+std::variant<int, std::string, std::vector<int>> v = "Hello";
+std::visit(overloaded {
+    [](int i) { std::cout << "int: " << i << '\n'; },
+    [](const std::string& s) { std::cout << "string: " << s << '\n'; },
+    [](const std::vector<int>& v) {
+        std::cout << "vector of int: ";
+        for (const auto& i : v) {
+            std::cout << i << ' ';
+        }
+        std::cout << '\n';
+    }
+}, v);
+
 ```
 
 ---
