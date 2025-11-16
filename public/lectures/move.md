@@ -51,7 +51,7 @@ for (register int i = 0; i < 1'000'000; ++i) {
 ## `static`
 
 * `static` premenné vo funkciách sú inicializované ak cez nich prejde beh programu (*control flow*)
-* Sú potom deštruované po vrátení z `main` funkcie a opačnom poradí ako boli skonštruované
+* Deštruované sú po ukončení programu (vrátenie z `main` funkcie, alebo volanie `exit`) v opačnom poradí ako boli skonštruované
 * Ak nejaká statická premenná nebola inicializovaná, tak nebude ani zdeštruovaná (toto je v povinnostiach kompilátora)
 
 
@@ -146,6 +146,7 @@ std::string GetAppVersion() {
 
 * Štandardné globálne premenné sú viditeľné v celom projekte (vo všetkých translation units, sú *external linkage*)
 * Statické globálne premenné sú viditeľné iba v jednom translation unit (sú *internal linkage*)
+
 
 ### Pre bežné globálne premenné
 
@@ -433,7 +434,7 @@ Výsledok volania funkcie `f `je rvalue.
 
 ---
 
-## Otázka
+## Volanie funkcie a lvalue/rvalue
 
 Je výsledkom nasledujúceho kódu lvalue, alebo rvalue?
 
@@ -441,8 +442,6 @@ Je výsledkom nasledujúceho kódu lvalue, alebo rvalue?
 function();
 ```
 
-
-## Odpoveď
 
 * Závisí to na návratovej hodnoty
     * Napríklad ak vraciame hodnotu `int function();` tak je to rvalue
@@ -742,7 +741,7 @@ int main() {
 
 ---
 
-## Automatické tvorenie temporary premenných
+## Automatická tvorba temporary premenných
 
 * V C++ sa veľmi často tvoria temporary premenné
 * Totiž ak dva typy nie sú rovnaké, ale jeden sa dá konvertovať na druhý tak sa táto konverzia použije a urobí sa temporary premenná
@@ -938,7 +937,9 @@ private:
 
 ## copy
 
-### Kopírovací konštruktor by mal skopírovať objekt
+* Kopírovací konštruktor a operátor priradenia by mali skopírovať objekt
+
+### Kopírovací konštruktor
 
 ```cpp
 buffer(const buffer &other)
@@ -989,6 +990,8 @@ buffer& operator=(const buffer& rhs) {
 
 * Move konštruktor a operátor priradenia by mali použiť so "starého" objektu najviac ako sa dá
 
+### Move konštruktor
+
 ```cpp
 buffer(buffer&& other)
     : size(other.size) 
@@ -996,8 +999,7 @@ buffer(buffer&& other)
 }
 ```
 
-
-* Move operátor priradenia
+### Move operátor priradenia
 
 ```cpp
 buffer& operator=(buffer&& rhs) {
@@ -1843,7 +1845,7 @@ int main() {
 
 ## `std::enable_shared_from_this`
 
-### Problém: získanie `shared_ptr` zvnútra objektu
+### Ako získať `shared_ptr` zvnútra objektu
 
 ```cpp
 class Widget {
@@ -1866,7 +1868,7 @@ int main() {
 ```
 
 
-### Riešenie: `std::enable_shared_from_this`
+### Použitím `std::enable_shared_from_this`
 
 ```cpp
 class Widget : public std::enable_shared_from_this<Widget> {
@@ -1897,9 +1899,11 @@ int main() {
 
 ---
 
-## Obmedzenia `enable_shared_from_this`
+## Obmedzenia
 
-### `shared_from_this()` vyžaduje existujúci `shared_ptr`
+### `shared_from_this()` vyžaduje existenciu `shared_ptr`
+
+* Inak skončí výnimkou `std::bad_weak_ptr` a nepodarí sa získať `shared_ptr`
 
 ```cpp
 class Widget : public std::enable_shared_from_this<Widget> {
@@ -1933,6 +1937,9 @@ public:
 };
 ```
 
+
+### Implementácia `std::enable_shared_from_this`
+
 * Keď sa na toto pozriete, vyzerá to trochu čudne, lebo parent musí už byť skonštruovaný (teda `std::enable_shared_from_this` časť), ale ako môže byť skonštruovaný keď ešte neexistuje `std::shared_ptr`, ktorý vlastní tento objekt?
 * V skutočnosti je to riešené tak, že funkcionalitu `enable_shared_from_this` inicializuje konštruktor `std::shared_ptr`, keď je objekt prvýkrát zabalený do `std::shared_ptr`
 * Preto je dôležité, aby `std::shared_ptr` bol vytvorený cez `std::make_shared` alebo priamo cez konštruktor `std::shared_ptr`, a nie aby sa objekt vytvoril samostatne a potom sa naň vytvoril `std::shared_ptr`.
@@ -1941,7 +1948,9 @@ public:
 
 ## Asymetrický ownership
 
-### Problém: child->parent s `shared_ptr`
+* Ak potrebujeme smerník child -> parent a zároveň parent -> child
+* Pri využití `shared_ptr` vzniká cyklus vlastníctva (loop)
+* Objekti sa nikdy nezničia, pretože každý vlastní druhého
 
 ```cpp
 class Child;
@@ -1962,7 +1971,7 @@ child->parent = parent; // now this will never be deleted
 ```
 
 
-### Riešenie: `std::weak_ptr`
+### Riešenie s `std::weak_ptr`
 
 ```cpp
 class Child;
