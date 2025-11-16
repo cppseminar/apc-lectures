@@ -74,13 +74,13 @@ int main() {
 } // ~A
 ```
 
-Konštruktor sa zavolá iba ak sa funkcia `f` zavolá s parametrom `i == 0`. Deštruktor sa "zaregistruje" aby sa zavolal, keď program skončí. 
+* Konštruktor sa zavolá iba ak sa funkcia `f` zavolá s parametrom `i == 0`. Deštruktor sa "zaregistruje" aby sa zavolal, keď program skončí. 
 
 ---
 
 ## `thread_local`
 
-Premenná sa inicializuje iba raz pre konkrétny thread, o tomto uvidíme viacej na inej prednáške
+* Premenná sa inicializuje iba raz pre konkrétny thread, o tomto uvidíme viacej na inej prednáške
 
 ---
 
@@ -138,7 +138,76 @@ std::string GetAppVersion() {
 
 ```
 
-Všetky globálne premenné sú inicializované pred volaním `main`. Tu jedna závisí od druhej v inom súbore (*translation unit*) a to je nedefinované správanie.
+* Všetky globálne premenné sú inicializované pred volaním `main`. Tu jedna závisí od druhej v inom súbore (*translation unit*) a to je nedefinované správanie.
+
+
+## Globálne statické premenné
+
+* Štandardné globálne premenné sú viditeľné v celom projekte (vo všetkých translation units, sú *external linkage*)
+* Statické globálne premenné sú viditeľné iba v jednom translation unit (sú *internal linkage*)
+
+### Pre bežné globálne premenné
+
+```cpp
+// file1.cpp
+int global_variable = 67;
+
+// file2.cpp
+extern int global_variable; // will be the same variable
+```
+
+* `extern` hovorí kompilátoru, že táto premenná je definovaná niekde inde a až linker ju spojí dohromady
+* `extern` sa dá použiť aj s funkciami, ak potrebujeme použiť funkciu z iného translation unit, ale nemáme k nemu header súbor
+* Funkcie sú ale `extern` implicitne, teda `int func();` je to isté ako `extern int func();`
+
+
+### Pre statické globálne premenné
+
+```cpp
+// file1.cpp
+static int static_global_variable = 67;
+
+// file2.cpp
+//extern int static_global_variable; // error
+static int static_global_variable = 43; // different variable
+```
+
+```cpp
+// file1.cpp
+int global_variable = 67;
+
+// file2.cpp
+static int global_variable = 43; // different variable
+```
+
+
+### Bez všetkývch týchto špecifikátorov
+
+```cpp
+// file1.cpp
+int global_variable = 67;
+
+// file2.cpp
+int global_variable = 43; // error: redefinition of 'global_variable', linker error
+```
+
+
+### Riešenie pomocou `inline`
+
+* V C++17 existuje kľúčové slovo `inline` pre globálne premenné, ktoré umožňuje definovať premennú v hlavičkovom súbore bez linker chyby
+
+```cpp
+// file1.cpp
+inline int global_variable = 67;
+inline int global_variable_2 = 102;
+
+// file2.cpp
+inline int global_variable = 43; // undefined, ODR violation
+inline int global_variable_2 = 102; // OK
+```
+
+* ODR je *One Definition Rule*, hovorí, že v celom programe musí byť iba jedna definícia premennej/funkcie, deklarácie môžu byť viaceré
+* Ak sa ODR poruší, tak je to nedefinované správanie programu, ale väčšinou to skončí linker chybou (nie je vyžadované štandardom)
 
 ---
 
@@ -481,7 +550,7 @@ int main(int argc, char* argv[]) {
 * Môžeme použiť volanie hodnotou, referenciou (modifikovateľnou), alebo konštantnou referenciou
 * Každé má svoje výhody a nevýhody
 
-![Homer Simpson in power plant](./lectures/7_move/simpson_power_plant.png)
+![Homer Simpson in power plant](./lectures/move/simpson_power_plant.png)
 
 ---
 
@@ -514,7 +583,7 @@ void func(const std::string& s) {
 
 ## `const` by mal vždy ostať `const`
 
-![Do not use const_cast](./lectures/7_move/const_cast.png)
+![Do not use const_cast](./lectures/move/const_cast.png)
 
 ---
 
