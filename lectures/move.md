@@ -228,6 +228,10 @@ int main(int argc, char* argv[]) {
 
 ---
 
+# lvalues & rvalues
+
+---
+
 ## Disclaimer lvalue a rvalue
 
 * Koncept lvalue a rvalue prešiel počas života C++ mnohými zmenami
@@ -717,6 +721,24 @@ int main() {
 * Kód vyššie nejde kompilovať
 * Po pridani `const` pred `std::optional` to už skompilovať ide, ale robí sa kópia, keďže typ `std::string` a `std::optional<std::string>` nie sú rovnaké
 
+
+## Preťaženie funkcie
+
+* V C++ môžeme funkcie preťažiť
+
+```cpp
+void func() { }
+void func(const std::string& s) { }
+
+int main() {
+    func(); 
+    func("New string");
+}
+```
+
+* Toto je ale problém ak máme veľa nepovinných parametrov
+* Stačí sa pozrieť na štandardnú knižnicu, tam každá funkcia má veľa preťažení
+
 ---
 
 ## Automatické tvorenie temporary premenných
@@ -804,7 +826,7 @@ int main() {
 ## rvalue referencie
 
 * Mechanizmus, ktorý nám toto umožňuje sú rvalue referencie
-* Umožnujú nám rozlíšiť medzi lvalue a rvalue referenciami a teda vieme, ktoré hodnoty možeme move a ktoré musíme kopírovať
+* Umožnujú nám rozlíšiť medzi lvalue a rvalue referenciami a teda vieme, ktoré hodnoty možeme `move`-nuť a ktoré musíme kopírovať
 * Funkcie môžu byť preťažené na tieto referencie
 
 ---
@@ -915,36 +937,54 @@ private:
 
 ## copy
 
-* Kopírovací konštruktor by mal skopírovať objekt
+### Kopírovací konštruktor by mal skopírovať objekt
 
 ```cpp
 buffer(const buffer &other)
     : size(other.size)
-    , ptr(malloc(size)) { 
+    , ptr(malloc(size)) {
+    if (!ptr) {
+        // malloc failed
+        throw std::bad_alloc();
+    }
+    // copy buffer
     memcpy(ptr, other.ptr, size);
 }
 ``` 
 
 
-* Kopírovací operátor priradenia
+### Kopírovací operátor priradenia
 
 ```cpp
-buffer &operator=(const buffer &rhs) {
-    if (&rhs == this)
+buffer& operator=(const buffer& rhs) {
+    // self-assignment check
+    if (this == &rhs)
         return *this;
 
+    void* new_ptr = nullptr;
+
+    if (rhs.size > 0) {
+        new_ptr = malloc(rhs.size);
+        if (!new_ptr) {
+            // malloc failed
+            throw std::bad_alloc();
+        }
+        memcpy(new_ptr, rhs.ptr, rhs.size);
+    }
+
+    // Uvoľni staré dáta až po úspešnom alokovaní nových
+    free(ptr);
+
+    ptr = new_ptr;
     size = rhs.size;
-    ptr = malloc(size);
-    memcpy(ptr, rhs.ptr, size);
+
     return *this;
 }
 ```
 
-* Rátame s tým, že `malloc` sa nemôže pokaziť, bežne by sme to riešili
-
 ---
 
-## move
+## `move`
 
 * Move konštruktor a operátor priradenia by mali použiť so "starého" objektu najviac ako sa dá
 
@@ -1067,9 +1107,9 @@ int main() {
 }
 ```
 
-* Ak sa z funkcie vracia lokálna premenná rovnakého typu ako je návratový typ tak sa urobí automatický move
-* Táto premenná prestáva existvať (je lokálna), takže dáva zmysel ju movnuť
-* Toto je definované v štandarde
+* Ak sa z funkcie vracia lokálna premenná rovnakého typu ako je návratový typ tak sa urobí automatický *move*
+* Táto premenná prestáva existvať (je lokálna), takže dáva zmysel ju *move*-nuť
+* Toto je definované v štandarde a môžeme sa na to spoľahnúť
 
 ---
 
@@ -1107,16 +1147,16 @@ std::string s = std::get<2>(a);
 
 ```cpp
 auto a = more();
-int i = std::get<int>(a); // fails to compile
+int i = std::get<int>(a); // fails to compile, more than one int
 std::string s = std::get<std::string>(a); // OK
 ```
 
 
 ## `std::tie`
 
-* Používa sa na automatické naviazanie premenných z ntice
-* Urobí vlastne nticu lvalue referencií
-* Všetko sa movne ak sa dá
+* Používa sa na automatické naviazanie premenných z n-tice
+* Urobí vlastne n-ticu lvalue referencií
+* Všetko sa move-ne ak sa dá
 
 ```cpp
 std::tuple<int, int, std::string> more() { 
@@ -1134,7 +1174,7 @@ int main() {
 
 ## `std::ignore`
 
-* Ak nás niektorá hodnota z ntice nezaujíma, môžeme použiť `std::ignore`
+* Ak nás niektorá hodnota z n-tice nezaujíma, môžeme použiť `std::ignore`
 * Niekedy sa používa aj na potlačenie upozornení, ktoré vyskočia z atribútu `[[nodiscard]]`, ale to nie je úplne špecifikované
 
 ```cpp
@@ -1239,8 +1279,8 @@ int main() {
     * Temporaries
     * Literals
 * xvalues sú eXpiring values (hodnoty, ktoré nám ďalej už netreba)
-* xvalues sú vytvorené pomocou predtypovania na `&&`, alebo pomocou `std::move, čo je vlastne vnútorne cast
-* Môžeme teda vyvolať move explicitne
+* xvalues sú vytvorené pomocou predtypovania na `&&`, alebo pomocou `std::move`, čo je vlastne vnútorne cast na `T&&`
+* Môžeme teda vyvolať *move* explicitne
 
 
 ## Použitie xvalues
@@ -1262,7 +1302,7 @@ int main() {
 ## `std::unique_ptr`
 
 * `std::move` sa hodí na použitie s `std::unique_ptr`
-* Pomocou move sa odstránia dangling pointre, ktoré by mohli vzniknúť ak použijeme copy
+* Pomocou *move* sa odstránia dangling pointre, ktoré by mohli vzniknúť ak použijeme copy
 
 ```cpp
 std::unique_ptr<std::string> ptr;
@@ -1299,8 +1339,8 @@ struct S {
 
 ## Automatické generovanie
 
-* Kompilátor vygeneruje move konštruktor a move operátor priradenia iba ak je to na 100% bezpečné
-    * Ak neexistuje `user defined` kopírovací konštruktor
+* Kompilátor vygeneruje *move konštruktor* a *move operátor priradenia* iba ak je to bezpečné
+    * Ak neexistuje `user defined` kopírovací konštruktor alebo operátor priradenia
     * Ak neexistuje `user defined` deštruktor
 * Ak chceme vynútiť generovanie použijeme `= default`
 
@@ -1316,6 +1356,26 @@ private:
 };
 ```
 
+
+## Ako je to s kopírovacími operáciami?
+
+* Ako sme hovorili kompilátor vygeneruje kopírovací konštruktor a operátor priradenia vždy automaticky
+* Existuje ale výnimka
+   * Ak je definovaný `user defined` move konštruktor alebo operátor priradenia, tak sa kopírovacie operácie nevygenerujú
+   * Taký fix štandardu, kde sa snažili zabrániť auto kopírovaniu, ak je definovaný *move*
+
+
+## Rule of five
+
+* Ak definujeme jednu z týchto piatich operácií, mali by sme definovať všetky
+    * Kopírovací konštruktor
+    * Kopírovací operátor priradenia
+    * Move konštruktor
+    * Move operátor priradenia
+    * Deštruktor
+* Definícia je aj keď použijeme `= default` alebo `= delete`
+
+---
 
 ## Kanonická implementácia
 
@@ -1384,7 +1444,7 @@ private:
 std::unique_ptr<int> f(std::unique_ptr<int> i) {
     std::unique_ptr<int> ret(new int);
     *ret = *i + 1;
-    return ret;
+    return ret; // i will be destroyed here
 }
 
 int main() {
@@ -1400,9 +1460,9 @@ int main() {
 
 * Move je všade v štandardnej knižnici
 * Vector sa snaží urobiť move, keď sa reallokuje
-* `push_back` môže movnuť prvky do vectora
-* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dájú movnuť
-* Veľa funkcionality funguje automaticky a tam kde sa robila kópia sa od C++11 začal robiť move
+* `push_back` môže *move*-nuť prvky do vectora
+* Štandardné kontainery (`std::string`, `std::vector`, ...) sa dajú *move*-nuť
+* Veľa funkcionality funguje automaticky a tam kde sa robila kópia sa od C++11 začal robiť *move*
 * Stačilo prekompilovať novým kompilátorom a mali sme rýchlosť zadarmo
 
 ---
@@ -1485,7 +1545,7 @@ int main() {
 * Kopírovací a move konštruktor podľa štandardu nemôžu mať side effects
 * Objekt sa vytvorí priamo v stacku volajúcej funkcie
 * Aplikuje sa ak vraciame z funkcie vždy nový objekt
-* Povinné v C++17
+* Povinné v C++17 (pod menom URVO - unnamed RVO)
 
 ```cpp
 std::string f(int i) {
@@ -1557,7 +1617,7 @@ int main() {
 }
 ```
 
-* Funkcia môže mať viacero returnov, ale vždy sa musí vracať tá istá premenná
+* Funkcia môže mať viacero `return`-ov, ale vždy sa musí vracať tá istá premenná
 
 ---
 
@@ -1565,14 +1625,19 @@ int main() {
 
 * Vždy používajte návratovú hodnotu, nie výstupné parametre
 * Copy, alebo move nesmú mať side effecty
-* Nepoužíva sa v debug builde, to že to nevidíte počas debugovania neznamená, že to nebude v release kóde
-
-
-## RVO a NRVO manuál
-
+* Nepoužíva sa v debug builde, to že to nevidíte počas debugovania neznamená, že to nebude v release kóde (zavisí od kompilátora a verzie štandardu)
 * Preferujme kratšie funkcia (väčšia šanca, že nám to výjde)
 * Ak sa dá vracajme buď vždy nový objekt, alebo vždy tú istú lokálnu premennú
 * Nepreháňajme to, move je už aj tak dostatočne rýchly
+
+
+## Side effects v copy/move
+
+* Side effecty v copy/move sú zakázané
+* Resp. nie zakázané, ale kompilátor môže predpokladať že tam nie sú a optimalizovať podľa toho (RVO/NRVO)
+* Toto je jedno z dvoch miest, kde je povolené vynechať side effects (druhé sú niektoré optimalizácie pri volaní `new`)
+* Najlepšie je robiť triedy tak aby sme dodržali takzvanú "Rule of zero" stratégiu (nepísať vlastné copy/move/deštruktory)
+* Nezabúdať, že niekedy potrebujeme `virtual` deštruktor (toto ale nebýva problém)
 
 
 ## `std::move` môže pokaziť NRVO
