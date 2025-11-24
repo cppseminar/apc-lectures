@@ -1199,7 +1199,7 @@ std::cout << std::numbers::pi << '\n'; // 3.14159
 
 ## Random numbers
 
-* Starý `rand` je už pomaly dosluhuje (a nikdy nebol dobrý)
+* Starý `rand` už pomaly dosluhuje (a nikdy nebol dobrý)
 * **Nie sú vhodné na kryptografické účely**
 
 ```cpp
