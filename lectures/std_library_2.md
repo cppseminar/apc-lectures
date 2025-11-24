@@ -25,9 +25,9 @@
 ## Zložitosť operácií
 
 * V štandardnej knižnici nebýva presne definovaná implementácia, ale iba zložitosť operácií
-* Zložitosť operácií je v O notácii
+* Zložitosť operácií je v $O$ notácii
 
-`$$ f(n)=O(g(n)) \Leftrightarrow \exists c > 0 \exists n_0 \in \mathbb{N} ​ \forall n \geq n_0 \quad f(n) \leq c \cdot g(n) $$`
+$$ f(n)=O(g(n)) \Leftrightarrow \exists c > 0 \exists n_0 \in \mathbb{N} ​ \forall n \geq n_0 \quad f(n) \leq c \cdot g(n) $$
 
 ---
 
