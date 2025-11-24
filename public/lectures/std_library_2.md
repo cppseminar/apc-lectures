@@ -34,11 +34,11 @@ $$ f(n)=O(g(n)) \Leftrightarrow \exists c > 0 \exists n_0 \in \mathbb{N} ​ \fo
 ## Operácie
 
 * Zaujímajú nás hlavne nasledovné operácie
-    * Získanie prvku (*get* / *access*)
+    * Prístup k prvku (*get* / *access*)
     * Vloženie prvku (*insert*)
-    * Zmazanie prvku (*erase*)
-* V reálnom kóde sa vyskytuje hlavne získanie a vloženie
-* Získanie prvku je operácia, ktorá mi vráti hodnotu na základe kľúča alebo indexu
+    * Mazanie prvku (*erase*)
+* V reálnom kóde sa vyskytuje hlavne prístup k prvkom a vkladanie nových prvkov
+* Prístup k prvku je operácia, ktorá mi vráti hodnotu na základe kľúča alebo indexu
 * Pamäťová zložitosť ktorú uvádzame je pre populárne implementácie, v praxi si môžu knižnice implementovať kontajnery rôzne
 
 ---
@@ -54,9 +54,9 @@ $$ f(n)=O(g(n)) \Leftrightarrow \exists c > 0 \exists n_0 \in \mathbb{N} ​ \fo
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(1) |
-| Vloženie | O(n) amortizovane O(1) pri vkladaní na koniec |
-| Zmazanie | O(n) |
+| Prístup | $O(1)$ |
+| Vloženie | $O(n)$ amortizovane $O(1)$ pri vkladaní na koniec |
+| Mazanie | $O(n)$ |
 
 
 * Pamäťová zložitosť je okrem samotných prvkov
@@ -64,7 +64,7 @@ $$ f(n)=O(g(n)) \Leftrightarrow \exists c > 0 \exists n_0 \in \mathbb{N} ​ \fo
     * Veľkosť alokovanej pamäte môže byť až dvojnásobok veľkosti vektoru
 
 
-## Získanie
+## Prístup k prvkom
 
 ```cpp
 std::vector<int> v = {1, 2, 3, 4, 5};
@@ -77,7 +77,7 @@ int b = v.at(2); // 3
 * Oba spôsoby sú veľmi rýchle, pretože vektor je pole
 
 
-## Vloženie
+## Vkladanie prvkov
 
 ```cpp
 std::vector<int> v = {1, 2, 3, 4, 5};
@@ -108,7 +108,7 @@ v.emplace_back("Hello", "worlds"); // pair is constructed in place
 * `emplace_back` vytvorí objekt priamo v pamäti vektora, teda si ušetríme jeden move alebo copy (ak move neexistuje)
 
 
-## Zmazanie
+## Mazanie prvkov
 
 ```cpp
 std::vector<int> v = {1, 2, 3, 4, 5};
@@ -122,7 +122,7 @@ v.erase(v.begin() + 2); // 1, 2, 4
 * `erase` zmazanie prvku na základe iterátora, musí ale posunúť všetky prvky za ním
 
 
-## Hľadanie
+## Vyhľadávanie
 
 ```cpp
 std::vector<int> v = {1, 2, 3, 4, 5};
@@ -133,7 +133,7 @@ if (it != v.end()) {
 }
 ```
 
-* Lineárne prehľadáva celý vektor, ak nájde prvok vráti iterátor na prvý výskyt, inak vráti `end`
+* Lineárne prehľadáva celý vektor, ak nájde prvok vráti iterátor na prvý výskyt, inak vráti `end` iterátor
 
 ```cpp
 std::vector<int> v = {1, 2, 3, 4, 5};
@@ -179,9 +179,9 @@ const bool& r = v[2]; // false
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(1) |
+| Prístup | $O(1)$ |
 | Vloženie | - |
-| Zmazanie | - |
+| Mazanie | - |
 
 ```cpp
 std::array<int, 5> a = {1, 2, 3, 4, 5};
@@ -198,13 +198,13 @@ auto it = std::find(a.begin(), a.end(), 3);
 * Asociatívny kontajner, ktorý ukladá dvojice kľúč-hodnota
 * Kľúč je unikátny, hodnota môže byť ľubovoľná
 * Implementovaný ako vyvážený binárny strom
-* Pri vkladaní a mazaní sa neinvalidujú iterátory
+* Pri vkladaní alebo mazaní prvkov sa neinvalidujú iterátory
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(log n) |
-| Vloženie | O(log n) |
-| Zmazanie | O(log n) |
+| Prístup | $O(\log n)$ |
+| Vloženie | $O(\log n)$ |
+| Mazanie | $O(\log n)$ |
 
 
 * Pamäťová zložitosť je okrem samotných prvkov
@@ -212,7 +212,7 @@ auto it = std::find(a.begin(), a.end(), 3);
     * Samotná mapa je jeden smerník na koreň stromu a explicitne veľkosť mapy (16B na 64-bitovom systéme)	
 
 
-## Získanie
+## Prístup k prvkom
 
 ```cpp
 std::map<int, std::string> m = {{1, "one"}, {2, "two"}};
@@ -226,10 +226,10 @@ auto it = m.find(4); // m.end()
 
 * `[]` vráti hodnotu na základe kľúča, ak kľúč neexistuje, vytvorí ho
 * `find` vráti iterátor na základe kľúča, ak kľúč neexistuje, vráti `end`
-* O(log n) zložitosť, implementácia je vyvážený binárny strom
+* $O(\log n)$ zložitosť, implementácia je vyvážený binárny strom
 
 
-## Vloženie
+## Vkladanie prvkov
 
 ```cpp
 std::map<int, std::string> m = { {1, "one"}, {2, "two"} };
@@ -246,7 +246,7 @@ assert(!inserted2);
 assert(it2->second == "four");
 ```
 
-* `insert` vloží dvojicu, kde prvý prvok je kľúč a druhý hodnota, vráti dvojicu iterátor na vložený prvok a bool, či sa vložil (`true`) alebo už existoval (`false`)
+* `insert` vloží dvojicu, kde prvý prvok je kľúč a druhý hodnota, vráti dvojicu iterátor na vložený prvok a `bool`, či sa vložil (`true`) alebo už existoval (`false`)
 * `insert_or_assign` vloží kľúč s hodnotou, ak kľúč už existuje, prepíše hodnotu, vráti rovnakú dvojicu ako `insert`
 
 
@@ -271,6 +271,7 @@ assert(!inserted2);
 * `try_emplace` vykonštruuje aj samotnú hodnotu na mieste
 * Návratové hodnoty sú rovnaké ako pri `insert`
 
+Note: `emplace` vykonstruuje prvok aj keď sa nakoniec napoužije, `try_emplace` nekonštruuje prvok, ak kľúč už existuje. `std::piecewise_construct` sa dá použiť s `emplace`, aby sa zabránilo zbytočnej konštrukcii, ale je to komplikované a `try_emplace` je jednoduchšie použitie.
 
 ## `emplace_hint`
 
@@ -291,7 +292,7 @@ numbers.insert(numbers.end(), {"Y", -2});
 * Iterátor musí ukazovať tesne za prvok, ktorý chceme vložiť
 
 
-## Zmazanie
+## Mazanie prvkov
 
 ```cpp
 std::map<int, std::string> m = {{1, "one"}, {2, "two"}};
@@ -371,9 +372,9 @@ Najrýchlejší postup, pretože sa presunú všetky prvky z mapy `b` do mapy `a
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(log n) |
-| Vloženie | O(log n) |
-| Zmazanie | O(log n) |
+| Prístup | $O(\log n)$ |
+| Vloženie | $O(\log n)$ |
+| Mazanie | $O(\log n)$ |
 
 * Pamäťová zložitosť je rovnaká ako u `std::map`
 
@@ -439,9 +440,11 @@ for (auto it = range.first; it != range.second; ++it) {
 * Transformuje objekt na `size_t` (hash)
 * Ekvivaletné objekty (`==`) musia vracať rovnaký hash
 * Nerovnaké objekty musia s vysokou pravdepodobnosťou vracať rozdielne hash-e
-* Deterministická
+* Deterministická 
 * Veľmi rýchla (inak nezískame veľa rýchlosti)
+* Pre použitie  v kontajneroch nemusí byť kryptografická
 * `std::hash` pre preddefinované objekty, viac sa dá nájsť v `boost::hash`
+* Napríklad FNV-1a
 
 
 ## Hash pre preddefinované typy
@@ -565,9 +568,9 @@ namespace std {
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(n), priemerne O(1) |
-| Vloženie | O(n), priemerne O(1) |
-| Zmazanie | O(n), priemerne O(1) |
+| Prístup | $O(n)$, priemerne $O(1)$ |
+| Vloženie | $O(n)$, priemerne $O(1)$ |
+| Mazanie | $O(n)$, priemerne $O(1)$ |
 
 
 ## `std::unordered_map` implementácia
@@ -591,7 +594,7 @@ Zdroj: <https://stackoverflow.com/questions/67435837/implementation-of-bucket-in
     * Vector, ktorý obsahuje iterátory do zozname a hash hodnoty
 
 
-## Získanie
+## Prístup k prvkom
 
 ```cpp
 std::unordered_map<int, std::string> m = { {1, "one"}, {2, "two"} };
@@ -604,10 +607,10 @@ assert(m.find(4) == m.end());
 std::string c = m.at(3); // can throw
 ```
 
-* Interface v podstate rovnaký ako u `std::map`, ale zložitosť je priemerne O(1)
+* Interface v podstate rovnaký ako u `std::map`, ale zložitosť je priemerne $O(1)$
 
 
-## Vloženie
+## Vloženie prvku
 
 ```cpp
 std::unordered_map<int, std::string> m = { {1, "one"}, {2, "two"} };
@@ -621,7 +624,7 @@ auto[_, inserted] = m.insert_or_assign(6, "six2");
 assert(!inserted);
 ```
 
-* Interface je rovnaký ako u `std::map`, ale zložitosť je priemerne O(1)
+* Interface je rovnaký ako u `std::map`, ale zložitosť je priemerne $O(1)$
 * Rovnako aj pre mazanie prvkov
 * Iterátory sa neinvalidujú
 
@@ -682,7 +685,7 @@ std::cout << m.max_load_factor() << '\n'; // 0.5
 ## `std::list`
 
 * Obojsmerne zreťazený zoznam
-* Explicitne si uchováva veľkosť (`size()` je *O(1)*)
+* Explicitne si uchováva veľkosť (`size()` je $O(1)$)
 * Kazdý uzol je alokovaný na heape
 * Pamäťová zložitosť je okrem samotných prvkov
     * Dva smerníky na predchádzajúci a nasledujúci prvok (16B na 64-bitovom systéme)
@@ -690,14 +693,14 @@ std::cout << m.max_load_factor() << '\n'; // 0.5
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(n) |
-| Vloženie | O(1) |
-| Zmazanie | O(1) |
+| Prístup | $O(n)$ |
+| Vloženie | $O(1)$ |
+| Mazanie | $O(1)$ ak máme iterátor na zmazaný prvok |
 
 
 ## Operácie
 
-* Iterátory sa neinvalidujú, jedine ak sa zmazáva prvok samozrejme sa invalidujú iterátory na zmazaný prvok
+* Iterátory sa neinvalidujú, iba pri mazaní prvku sa invaliduje iterátor na zmazaný prvok
 * Iterátory sú bidirectional, teda sa dajú posúvať v oboch smeroch, ale nie náhodne prístupovať k prvkom
 
 ```cpp
@@ -707,13 +710,13 @@ l.push_back(6);
 l.insert(l.begin(), 0);
 ```
 
-* *O(1)* zložitosť vkladania a mazania vyzerá dobre, ale treba si uvedomiť, že sa jedná o zoznam, ktorý je lineárne prehľadávaný, takže zložitosť získania je *O(n)*
+* $O(1)$ zložitosť vkladania a mazania prvkov vyzerá dobre, ale treba si uvedomiť, že ide o zoznam, ktorý je lineárne prehľadávaný, takže zložitosť prístupu je $O(n)$.
 
 
 ## `reverse`, `sort` a `unique`
 
 * Tieto algoritmy sú špeciálne pre zoznamy ako členovia triedy `std::list`
-* `sort` je stále *O(n log n)*, ale pomalší ako pre vektor
+* `sort` je stále $O(n \log n)$, ale pomalší ako pre vektor
 
 ```cpp
 std::list<int> l = { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 };
@@ -726,7 +729,7 @@ l.sort();
 ## `splice` a `merge`
 
 * `splice` presunie prvky z jedného zoznamu do druhého
-* `merge` zlúči dva 
+* `merge` zlúči dva zoznamy
 
 ```cpp
 std::list<int> l1 = { 1, 2, 3, 4, 5 };
@@ -742,8 +745,10 @@ l1.merge(l2); // 1, 2, 3, 4, 5, 6, 7
 ## Rýchlosť zoznamu
 
 * Zoznam je určite užitočná štruktúra, ale treba si uvedomiť, že nie veľmi rýchla
-* Hlavne užitočná, ak potrebujeme mať stabilné iterátory, alebo veľmi často vkladať a mazať prvky zo začiatku
-* Inak použite `std::vector`
+* Hlavná prednosť spočíva v stabilných iterátoroch
+  * Iterátory sa nikdy neinvalidujú pri vkladaní a mazaní iných prvkov
+  * To je užitočné, ak máme veľa odkazov na prvky v zozname
+* Na ostatné použitia je takmer určite lepší `std::vector`
 
 ---
 
@@ -752,7 +757,7 @@ l1.merge(l2); // 1, 2, 3, 4, 5, 6, 7
 * Jednosmerne zreťazený zoznam
 * Funkcie a operácie sú podobné ako pri `std::list`
 * Iterátory sú len Forward, teda sa dajú posúvať len vpred
-* Stále existure `sort` v *O(n log n)*
+* Stále existuje `sort` v $O(n \log n)$
 * Používa menej pamäte ako `std::list`, pretože nemá druhý smerník
 * Neukladá si veľkosť, takže `size()` ani neexistuje
 
@@ -778,14 +783,14 @@ l.splice_after(l.before_begin(), l2);
 
 * Double-ended queue
 * Rýchle vkladanie a mazanie na začiatku a konci
-* Rýchle získanie prvkov na začiatku a konci
+* Rýchly prístup k prvkom na začiatku a konci
 * Nemá lineárnu pamäť (sú to pospájané bloky pamäte)
 
 | Operácia | Zložitosť |
 |----------|-----------|
-| Získanie | O(1) |
-| Vloženie | O(n), O(1) z oboch koncov |
-| Zmazanie | O(n), O(1) z oboch koncov |
+| Prístup | $O(1)$ |
+| Vloženie | $O(n)$, $O(1)$ z oboch koncov |
+| Mazanie | $O(n)$, $O(1)$ z oboch koncov |
 
 
 ## Invalidácia iterátorov
@@ -938,7 +943,7 @@ s.pop();
 
 * V podstate rovnaký ako u `std::map` a `std::set`, ale
     * Iteratory sa invalidujú pri vkladaní a mazaní (závisí to od implementačného kontajneru)
-    * Vkladanie a mazanie je *O(n)*
+    * Vkladanie a mazanie je $O(n)$
 
 ```cpp
 std::flat_map<int, std::string> m = { {1, "one"}, {2, "two"} };
@@ -965,7 +970,7 @@ m.insert({ 3, "three" }); // may invalidate iterators
     * `boost::flat_map` a `boost::flat_set` - podobné ako `std::flat_map` a `std::flat_set`
     * `boost::multi_index` - kontajner, ktorý umožňuje viacero indexov
     * `boost::intrusive` - kontajnery, ktoré sa dajú použiť v iných štruktúrach
-    * `boost::small_vector` - podobné ako `std::vector`, ale ak je veľkosť malá, tak sa alokuje na stacku
+    * `boost::small_vector` - podobné ako `std::vector`, ale ak je veľkosť malá, tak sa alokuje na stacku (ako SSO v `std::string`)
 * Abseil
     * `absl::flat_hash_map` - `std::unordered_map` implementovaná s otvoreným adresovaním
     * `absl::btree_map` - `std::map` implementovaná nad B-stromom
@@ -1046,7 +1051,7 @@ v.erase(std::unique(v.begin(), v.end()), v.end());
     * Všetky prvky naľavo od neho sú menšie
     * Všetky prvky napravo od neho sú väčšie
 * Prvky sa poposúvajú, ale nie sú úplne utriedené
-* Zložitosť je *O(n)* prierne (robí to podobne ako quick-sort)
+* Zložitosť je $O(n)$ priemerne (robí to podobne ako quick-sort)
 
 ```cpp
 std::vector<int> v = { 5, 7, 51, 8, 7, 9, 6 };
@@ -1177,27 +1182,6 @@ b.set(2);
 b.count(); // 1
 b.to_string(); // "00000100"
 b.to_ulong(); // 4
-```
-
----
-
-## `std::source_location`
-
-* Umožňuje získať informácie o mieste, kde sa nachádzame v kóde
-
-```cpp
-void log(const std::source_location location = std::source_location::current())
-{
-    std::cout << "file: "
-              << location.file_name() << '('
-              << location.line() << ':'
-              << location.column() << ") "
-              << location.function_name() << "\n";
-}
- 
-int main() {
-    log();
-}
 ```
 
 ---
