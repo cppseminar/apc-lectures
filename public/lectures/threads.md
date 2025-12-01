@@ -11,10 +11,9 @@
 * Performance of current processors
 * Processes and threads
 * Memory model
-* Processes and threads
 * Synchronization
-* Double locking
-* Simple multithreaded cache
+* Patterns
+* Async and futures
 
 ---
 
@@ -35,11 +34,11 @@
 
 * Small portion of CPU is actually computing stuff as in good old days of i486
 * Nowadays large portion of CPU is dedicated to other tasks (branch prediction, out of order execution, caching, pipelining, etc.)
-* To truely exploit performance of modern CPUs, parallelism must be exploited
+* To truly exploit performance of modern CPUs, parallelism must be exploited
     * Using vector instructions (SIMD)
     * Using multiple cores (threads)
     * Keeping the pipeline full and make branch prediction work
-    * Undestanding memory hierarchy and latency
+    * Understanding memory hierarchy and latency
 
 
 ## Architecture
@@ -51,7 +50,7 @@
 
 ## What about GPUs?
 
-* Outside the scope of this lectures
+* Outside the scope of these lectures
 * GPUs are even more parallel than CPUs and require different programming model (CUDA, OpenCL, Vulkan, etc.)
 * There are some libraries to use GPU from C++ (e.g. Thrust, C++ AMP, boost::compute etc.)
 
@@ -299,7 +298,7 @@ int main() {
 
 ## Main thread
 
-* Our main function starts its execution in newly created thread (system will automatically to this for us)
+* Our main function starts its execution in newly created thread (system will automatically do this for us)
 * This is the same thread as returned from `CreateProcess` on windows
 * Identified by TID (thread id) – from same enumeration as PID on Windows
 * Code is only executed in threads
@@ -385,8 +384,8 @@ int main() {
    * OS will never interrupt a thread
    * DOS era
 * Preemptive multitasking
-   * OS schedule the threads
-   * When time slice for particular thread ended, OS suspend it and starts another ready thread
+   * OS schedules the threads
+   * When the time slice for a particular thread ends, the OS suspends it and starts another ready thread
    * Threads can also yield
    * Default on modern OSes
 
@@ -394,7 +393,7 @@ int main() {
 
 ## Passing parameters to thread
 
-* Lets try Linux pthread example with parameters, Windows implementation is similar
+* Let's try Linux pthread example with parameters, Windows implementation is similar
 
 ```cpp
 struct data {
@@ -438,7 +437,7 @@ int main() {
     }
 
     std::cout << "Main Thread: Thread finished and object consumed.\n";
-    return 0; // no meed to delete data_ptr here
+    return 0; // no need to delete data_ptr here
 }
 ```
 
@@ -448,7 +447,7 @@ int main() {
 
 * Until C++11: What threads?
 * Since C++11:
-   * Standard thread are called execution agents (`std::thread`)
+   * Standard threads are called execution agents (`std::thread`)
    * Memory model is clearly and portably defined
    * Advanced thread support and synchronization primitives
    * `std::jthread` (C++20)
@@ -561,7 +560,7 @@ int main() {
 ```
 
 
-## Rvalue refences?
+## Rvalue references?
 
 ```cpp
 void thread_func(std::string&& text) {
@@ -598,7 +597,7 @@ int main() {
 * `std::thread` always keep copies of parameters
 * Thread entry point is called as if the parameters are temporaries
 * So you can move or copy values to thread object (this is done in `std::thread` constructor)
-* Your thread function will always be callet with temporaries, so 
+* Your thread function will always be called with temporaries, so 
    * rvalue references and 
    * const lvalue references and 
    * values 
@@ -646,7 +645,7 @@ int main() {
 * Pointers can be passed around, so no problem to share data between threads
 * Thread can communicate through shared objects
 * C++ has no special support for interthread communication (unlike for example channels in Go)
-* Third party libraries exists (e.g. `boost::asio`)
+* Third-party libraries exist (e.g. `boost::asio`)
 
 ---
 
@@ -685,7 +684,7 @@ int main() {
 * Race condition
 * Accessing one resource from multiple thread without proper locking
 * Results in undefined behavior
-* Strange hard to debug problems
+* Strange, hard to debug problems
 
 ```cpp
 int counter = 0;
@@ -709,7 +708,7 @@ int main() {
 
 ## HW point of view
 
-* Results of previous code is undefined, in practice it can be anywhere between 100000 and 200000.
+* The result of the previous code is undefined, in practice it can be anywhere between 100000 and 200000.
 * Write instruction can be non atomic
    * Instructions are broken down to microcode and then are executed
    * Interleaving writes can modify memory inconsistently
@@ -742,7 +741,7 @@ int main() {
 ## How to avoid?
 
 * We can only use one (main) thread, or just use threads for parallel algorithms (e.g. `std::execution_policy`)
-* Even it threads only work on disjoint data we are safe
+* Even if threads only work on disjoint data we are safe
 * If threads share data, we must synchronize access to shared data
 
 ---
@@ -766,7 +765,7 @@ int main() {
 
 **One addressable memory location (no bit arrays) can be accessed by two or more threads simultaneously only if all accesses are read-only.**
 
-* Basically eiher one writer or multiple readers are allowed on any given memory location
+* Basically either one writer or multiple readers are allowed on any given memory location
 * We must ensure this, otherwise our program has undefined behavior
 
 ---
@@ -784,7 +783,7 @@ int a;
 
 void func() {
     mtx.lock();
-    a += 1; // safeto run from more threads
+    a += 1; // safe to run from multiple threads
     mtx.unlock();
 }
 ```
@@ -802,7 +801,7 @@ int a;
 
 void func() {
     if (mtx.try_lock()) {
-        a += 1; // safe to run from more threads
+        a += 1; // safe to run from multiple threads
         mtx.unlock();
     } else {
         // could not acquire lock, do something else
@@ -822,7 +821,7 @@ int a;
 
 void func() {
     std::lock_guard<std::mutex> lock(mtx); // locks mutex
-    a += 1; // safe to run from more threads
+    a += 1; // safe to run from multiple threads
 } // mutex is automatically unlocked when lock goes out of scope
 ```
 
@@ -838,13 +837,13 @@ int a;
 
 void func() {
     std::unique_lock<std::mutex> lock(mtx); // locks mutex
-    a += 1; // safe to run from more threads
+    a += 1; // safe to run from multiple threads
     lock.unlock(); // unlocks mutex
 
     // do some other work
 
     lock.lock(); // locks mutex again
-    a += 1; // safe to run from more threads
+    a += 1; // safe to run from multiple threads
 } // mutex is automatically unlocked when lock goes out of scope
 ```
 
@@ -893,7 +892,7 @@ void func1() {
 
 ---
 
-## Other solution to `int` synch
+## Other solutions to `int` synchronization
 
 ### Atomic operations
 
@@ -996,7 +995,7 @@ void func2() {
 
 ---
 
-## `std::thread::hardware_concurrency()`
+## `hardware_concurrency()`
 
 * Returns the number of hardware threads available on the system
 * It is only a hint, the actual number of threads that can run concurrently may be different
@@ -1260,7 +1259,7 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Request the thread to stop
-    jt.request_stop(); // we be even call automatically by destructor alongside join
+    jt.request_stop(); // will even be called automatically by destructor alongside join
 }
 ```
 
@@ -1329,6 +1328,7 @@ void producer() {
 }
 ```
 
+
 ### Consumer thread
 
 ```cpp
@@ -1386,7 +1386,7 @@ while (buffer.size() >= MAX_BUFFER_SIZE) {
 ## Double checked locking
 
 * Problem: We want to initialize a singleton object in a thread-safe manner.
-* Something like following code, but with lazy initialization and wihout compiler error 😏
+* Something like following code, but with lazy initialization and without compiler error 😏
 
 ```cpp
 class Singleton {
@@ -1418,16 +1418,16 @@ private:
 };
 ```
 
-* Problem: multiple threads may call `get_instance` simultaneously, resulting in multiple instances being created
-<!-- .element: class="fragment" -->
-* Problem: When to delete the instance?
-<!-- .element: class="fragment" -->
+<ul>
+<li class="fragment"> Problem: multiple threads may call <code>get_instance</code> simultaneously, resulting in multiple instances being created</li>
+<li class="fragment"> Problem: When to delete the instance?</li>
+</ul>
 
 
 ### Deleting
 
 * We can use `std::atexit` to register a cleanup function that will delete the instance when the program exits
-* In next slides we will omit clenaup for clarity
+* In next slides we will omit cleanup for clarity
 
 ```cpp
 class Singleton {
@@ -1470,6 +1470,7 @@ private:
 ```
 
 * This works, but mutex is locked every time `get_instance` is called, even if the instance is already created
+
 <!-- .element: class="fragment" -->
 
 
@@ -1525,6 +1526,7 @@ private:
     static std::mutex mtx;
 };
 ```
+
 
 * Using `std::atomic` for the instance pointer ensures proper memory visibility between threads
 * `memory_order_acquire` ensures that subsequent reads are not reordered before the load
@@ -1671,8 +1673,8 @@ private:
 * Also this is one way of thinking about `const` correctness in multithreaded scenarios
    * Either the object is logically `const` (read-only) and can be accessed from multiple threads simultaneously
    * Or not and it must be synchronized externally
-* Standard library use this approach, so every `const` method of standard containers is thread safe for reading from multiple threads
-* Every non-`const` method is not thread safe and must be synchronized externally
+* The Standard library uses this approach, so every `const` method of standard containers is thread safe for reading from multiple threads
+* Non-`const` methods are not thread safe and must be synchronized externally
 
 ---
 
@@ -1683,23 +1685,18 @@ class Channel {
 public:
     // Constructor for a potentially bounded buffer
     Channel(size_t capacity = 0) : capacity_(capacity), closed_(false) {}
-    /**
-     * @brief Sends a value to the channel. Blocks if the buffer is full.
-     * @param value The string value to send.
-     * @throws std::runtime_error if the channel is closed.
-     */
+
+    // Sends a value to the channel. Blocks if the buffer is full.
+    // value The string value to send.
+    // throws std::runtime_error if the channel is closed.
     void send(std::string value);
 
-    /**
-     * @brief Receives a value from the channel. Blocks if the buffer is empty.
-     * @return An optional string containing the received value, 
-     *         or std::nullopt if the channel is closed and empty.
-     */
+    // Receives a value from the channel. Blocks if the buffer is empty.
+    // return An optional string containing the received value, 
+    //        or std::nullopt if the channel is closed and empty.
     std::optional<std::string> receive();
 
-    /**
-     * @brief Closes the channel.
-     */
+    // Closes the channel.
     void close();
 
 private:
@@ -1712,22 +1709,31 @@ private:
 };
 ```
 
+note: Two condition variables are used to separately notify producers and consumers, improving efficiency. There may be more than one waiting producer or consumer at a time, so if item is consumed only producers should be notified and vice versa.
+
 
 ```cpp
 void send(std::string value) {
     {
         std::unique_lock<std::mutex> lock(mtx_);
+
+        // Block if the buffer is full (for bounded channels)
         cv_producer_.wait(lock, [this] {
             return closed_ || capacity_ == 0 || buffer_.size() < capacity_;
         });
+
+        // we do not allow sending to a closed channel
         if (closed_) {
             throw std::runtime_error("Channel closed while waiting to send.");
         }
         buffer_.push(std::move(value));
     }
+
+    // Notify one waiting consumer that new data is available
     cv_consumer_.notify_one();
 }
 ```
+
 
 ```cpp
 std::optional<std::string> receive() {
@@ -1755,6 +1761,7 @@ std::optional<std::string> receive() {
     return result; // Return the optional containing the received string
 }
 ```
+
 
 ```cpp
 void close() {
@@ -1839,6 +1846,7 @@ try {
 }
 ```
 
+
 ## Execution policies
 
 * `std::async` supports different launch policies
@@ -1853,7 +1861,7 @@ int result = fut.get(); // compute_factorial runs here (in the calling thread) a
 ```
 
 
-## Manyally using `std::promise` and `std::future`
+## Manually using `std::promise` and `std::future`
 
 * `std::promise` allows setting a value or exception that can be retrieved through a `std::future`
 
