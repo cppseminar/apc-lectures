@@ -315,6 +315,65 @@ ISBN-13:  978-3967309201
 
 ---
 
+## Náhodné číslo LLM
+
+> C99 , máme len funkciu rand, ako urobiť aby sme  dostali číslo od 0 do 99 vrátane. 
+
+
+### Výsledok
+
+```c [|5]
+// Inicializácia generátora náhodných čísel
+srand(time(NULL)); // Inicializácia so súčasným časom
+
+// Generovanie náhodného čísla v rozsahu 0 až 99
+int random_number = rand() % 100; // Získa číslo od 0 do 99
+
+// Výpis náhodného čísla
+printf("Náhodné číslo: %d\n", random_number);
+```
+
+
+### ...pokračovanie konverzácie
+
+> Je to bezpečné? 
+
+
+### Výsledok
+
+```c [|7]
+srand(time(NULL));
+
+// Generate random number until it falls within the desired range
+int random_number;
+do {
+    random_number = rand();
+} while (random_number >= RAND_MAX - (RAND_MAX % 100));
+
+random_number %= 100;
+
+printf("Random number: %d\n", random_number);
+```
+
+note: RAND_MAX teoreticky môže byť 32, alebo podobné malé číslo. 
+
+
+### To isté v C++
+
+> C++20, máme len standardnú knižnicu, ako urobiť aby sme dostali náhodné číslo od 0 do 99 vrátane. 
+
+```cpp
+// Inicializácia generátora náhodných čísel
+std::random_device rd;  // Získanie náhodného zariadenia
+std::mt19937 gen(rd());  // Inicializácia generátora Mersenne Twister
+std::uniform_int_distribution<> dis(0, 99);  // Rozdelenie na celé čísla od 0 do 99
+
+// Generovanie náhodného čísla
+int random_number = dis(gen);
+```
+
+---
+
 # ĎAKUJEM
 
 ## Otázky?

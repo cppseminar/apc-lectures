@@ -37,9 +37,9 @@
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
 
-* V skutočnosti ak potrebujeme explicitne volať `free()`, alebo `delete` tak pravdepodobne robime niečo zle
-* C++ síce nemá garbage collecter, ale objekty by sa mali o svoji pamäť automaticky postarať
-* Lepšie by bolo povedať, že C++ nám umožňuje manuálne spravovať pamäť ak to potrebujeme
+* Ak v bežnom kóde musíme explicitne volať `free()` alebo `delete`, pravdepodobne nepoužívame najvhodnejší spôsob správy pamäte
+* C++ nemá garbage collector, no objekty, kontajnery a smart pointery sa môžu o uvoľnenie pamäte postarať automaticky
+* Presnejšie: C++ umožňuje manuálnu správu pamäte tam, kde je potrebná, ale v modernom kóde sa jej snažíme vyhnúť
 </div>
 <div style="flex: 3;">
 
@@ -47,20 +47,19 @@
 </div>
 </div>
 
----
 
 ## C with classes
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
 
-* C++ sa v počiatkoch volalo C with classes
-* Sú to ale dva dosť rozdielne jazyky, ktoré majú vlastné
+* C++ sa na začiatku vývoja aj volalo **C with Classes**
+* C a C++ sú dnes dva samostatné jazyky, ktoré majú vlastné
     * štandardy
     * komunitu
     * idiomy
-* Lepšie by bolo povedať, že C++ si udržiava (pokiaľ je to možné) kompatibilitu s C
-* Preto integrovať C kód do C++ (a naopak) je veľmi jednoduché
+* C++ si však zachováva vysokú mieru kompatibility s C, hoci nie každý C program je zároveň platným C++ programom
+* C kód sa preto dá do C++ integrovať pomerne jednoducho; opačným smerom treba vytvoriť C kompatibilné rozhranie
 </div>
 <div style="flex: 3;">
 
@@ -68,17 +67,55 @@
 </div>
 </div>
 
----
 
 ## C++ je plné metaprogramovania 
 
-* Je pravda, že C++ používalo metaprogramovanie pomocou templatov
-* Kedysi bolo dosť dôležité poznať tieto triky, neboli iné štandardizované spôsoby
-* Dnes sa bežné programy obíjdu bez týchto konštrukcií
-* Samozrejme metaprogramovanie má svoje miesto
-    * micro optimalizácie
-    * tvorba knižníc
-    * *zjednodušenie kódu*
+* C++ podporuje metaprogramovanie, najmä pomocou šablón (templates)
+* V minulosti bolo dôležité poznať zložité šablónové techniky, pretože často neexistovali jednoduchšie štandardné riešenia
+* Dnes sa bežný aplikačný kód bez pokročilého metaprogramovania väčšinou zaobíde
+* Metaprogramovanie má stále svoje miesto, napríklad pri
+  * tvorbe generických knižníc
+  * výpočtoch počas prekladu
+  * kontrole typov a zjednodušení kódu
+
+
+## C++ je vždy rýchlejšie
+
+<div style="display: flex; align-items: center;">
+<div style="flex: 7;">
+
+* C++ umožňuje písať veľmi efektívny kód, ale samotný jazyk vysoký výkon nezaručuje
+* Výsledný výkon závisí najmä od
+    * algoritmov a dátových štruktúr
+    * práce s pamäťou
+    * kvality implementácie a nastavenia kompilátora
+* Dobre napísaný program v inom jazyku môže byť rýchlejší ako zle napísaný program v C++
+* C++ ponúka efektívne abstrakcie, ale stále treba rozumieť tomu, čo program robí
+</div>
+<div style="flex: 3;">
+
+![C++ speed](https://i.programmerhumor.io/2025/07/22c401d4afb13fb3bcada83aaf285a88b00fbcc7233d0f8c66db0a45b662b3ed.jpeg)
+</div>
+</div>
+
+
+## C++ je objektovo orientovaný jazyk
+
+* C++ podporuje objektovo orientované programovanie, ale nie je naň obmedzené
+* Podporuje aj procedurálne, generické a funkcionálne programovanie
+* Triedy a dedičnosť sú nástroje, nie povinný spôsob návrhu každého programu
+* Vhodný štýl závisí od problému, ktorý riešime
+
+---
+
+## C++ ...
+
+* je moderný **multiparadigmový** jazyk, ktorý podporuje procedurálne, objektové, generické aj funkcionálne programovanie
+* poskytuje **abstrakcie** pre bežné algoritmy, kontajnery, prácu s pamäťou aj systémové operácie
+* umožňuje písať **vysokoúrovňový kód** a zároveň zachovať **kontrolu** nad výkonom, pamäťou a hardvérom
+* za efektívnosť však platíme väčšou zložitosťou a zodpovednosťou programátora
+* zachováva kompatibilitu s C a používa sa od zabudovaných systémov až po veľké aplikácie
+* aktívne sa vyvíja a má rozsiahlu **komunitu** (CppCon, C++ Now, Meeting C++)
 
 ---
 
@@ -86,16 +123,6 @@
 
 ![C++ roadmap](./lectures/1_intro/timeline-2022-07.png)
 <!-- .element: class="r-stretch" style="background: white;" -->
-
----
-
-## C++ ...
-
-* je moderný programovací jazyk
-* obsahuje abstrakcie pre najčastejšie používané algoritmy, kontajnery a operácie
-* poskytuje úplne kontrolu nad hardwarom, ak je to potrebné
-* sa stále vyvíja 
-* má obrovskú komunitu (konferencie CppCon, C++ Now, Meeting C++)
 
 ---
 
@@ -166,25 +193,27 @@
 
 ---
 
-## Rozdelenie C++
+## Z čoho sa skladá C++
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
 
-* Core language
-    * Type system
-    * Control flow
-    * “C layer”
-    * Memory model
+* Jazyk C++
+  * Typový systém a syntax
+  * Riadenie toku programu
+  * Triedy, dedičnosť a polymorfizmus
+  * Šablóny a koncepty
+  * Model objektov a pamäte
 </div>
 <div style="flex: 1;">
 
 * Štandardná knižnica
-    * Containers
-    * Strings
-    * Concurrency and atomics
-    * Files and streams
-    * Regular expressions
+  * Kontajnery, iterátory a ranges
+  * Algoritmy a numerické operácie
+  * Reťazce a regulárne výrazy
+  * Smart pointery, `optional`, `variant` a ďalšie utility
+  * Súbory, streamy a filesystem
+  * Vlákna, atomiky a synchronizácia
 </div>
 </div>
 
@@ -208,9 +237,9 @@
 <img src="./lectures/1_intro/Visual_Studio_Icon_2022.svg.png" alt="msvc logo" style="width: 30%;" />
 
 
-* V súčasnosti sú všetky tieto kompilátory dosť dobré a dosť štandardné
-* Niektoré nové vlastnosti skôr podporuje jeden a inokedy druhý
-* Portabilita kódu je oproti minulosti oveľa lepšia
+* GCC, Clang aj MSVC majú kvalitnú implementáciu C++ štandardu a produkujú efektívny kód
+* Podpora najnovších vlastností štandardu môže byť medzi kompilátormi rozdielna a často nepríde naraz
+* Kód používajúci štandardné vlastnosti C++ je väčšinou dobre prenositeľný medzi platformami
 
 ---
 
@@ -228,50 +257,60 @@
 
 ---
 
-## Abstrakcia
+## Abstrakcie bez zbytočnej réžie
 
-* Programátor by nemal potrebovať všetky implementačné detaily nato aby použil nejakú vlastnosť systému (na otvorenie a zapísanie súboru netreba vedieť všetky platformovo špecifické detaily súborového systému)
-* Pomocou kompozície a dedičnosti sa potom dajú budovať komplexné systémy, ktoré abstrahujú od vrstiev nižšie 
-* (Stále musí byť možné obísť abstrakciu a komunikovať priamo – takmer isto zlý postup)
+* C++ umožňuje zabaliť implementačné detaily do typov a funkcií s jednoduchým rozhraním
+* Dobre navrhnutá abstrakcia nemusí byť pomalšia ako ručne napísaný nízkoúrovňový kód
+* Tento princíp sa označuje ako **zero-overhead abstraction**
+
+```cpp
+std::vector<int> values{4, 1, 3, 2};
+std::ranges::sort(values);
+```
+
+`std::vector` spravuje pamäť a `std::ranges::sort` pozná typ prvkov. Kompilátor pritom stále dokáže vytvoriť efektívny strojový kód.
 
 ---
 
-## Efektivita
+## Kontrola nad výkonom
 
-* C++ bol nadizajnovaný aby bol efektívny ako sa len dá
+* C++ nepredpisuje garbage collector ani virtuálny stroj
+* Programátor môže ovplyvniť rozloženie dát, alokácie aj životnosť objektov
+* Za túto kontrolu platíme väčšou zodpovednosťou: jazyk nás nechráni pred každou chybou
+* Výkon treba merať; použitie C++ ho samo osebe nezaručuje
 * There is no room for other language between C++ and metal
-* Na tomto leveli je veľa bezpečnostných mechanizmov vypnutých
-* Kompilátor verí programátorovi, že píše "dobrý" kód
 * **LBYL** – look before you leap (opposed to **EAFP**)
 
-<div style="display: flex; align-items: center;">
-<div style="flex: 1;">
-
 ```cpp
-// create final dessription
-if (!UserNames.empty()) {
-	// remove "; "
-	UserNames.pop_back();
-	UserNames.pop_back();
-}
+struct Point {
+  float x;
+  float y;
+};
 
+std::vector<Point> points;
+points.push_back({1.0f, 2.0f});
+points.pop_back();
+//points.pop_back(); // ouch
 ```
-</div>
-<div style="flex: 1;">
-
-Musíme sa uistiť, že UserNames obsahuje aspoň dva znaky, inak sa stanú zlé veci (nedefinované správanie).
-</div>
-</div>
 
 note: EAFP = easier to ask forgiveness than permission
 
 ---
 
-## Garbage collector
+## Deterministická životnosť objektov
 
-* Veľa súčasných programovacích jazykov má garbage collector
-* C++ ho nemá 
-* Ak máte pocit, že vám v C++ chýba garbage collector, tak ste niečo urobili veľmi nedobre
+* Objekt sa zničí v presne určenom okamihu, napríklad pri opustení bloku
+* Deštruktor môže automaticky uvoľniť pamäť, zavrieť súbor alebo odomknúť mutex
+* Tento princíp sa nazýva **RAII**
+
+```cpp
+void write_report() {
+  std::ofstream file{"report.txt"};
+  file << "hotovo\n";
+} // súbor sa tu automaticky zavrie
+```
+
+C++ nepotrebuje garbage collector na bežnú správu zdrojov. RAII navyše spravuje aj zdroje, ktoré garbage collector nerieši.
 
 > C++ is my favorite garbage collected language because it generates so little garbage.  
 >           — Bjarne Stroustrup
@@ -280,51 +319,48 @@ note: EAFP = easier to ask forgiveness than permission
 
 ## Portabilita
 
-* Štandardný C++ kód vám pravdepodobne pôjde skompilovať na každom z troch hlavných kompilátorov
-* Existuje veľa menších, špecifických kompilátorov a tam máte tiež veľkú šancu
-* Existujú spôsoby akými môžete podmieniť kompiláciu kusu kódu určitým kompilátorom/platformou
-    * `#ifdef`
-    * `__has_include`
-    * `if constexpr`
+* Štandardný C++ kód možno preložiť rôznymi kompilátormi a pre rôzne platformy
+* Štandardná knižnica poskytuje prenositeľné rozhrania napríklad pre vlákna, čas a súborový systém
+* Platformovo špecifický kód je vhodné oddeliť za vlastné rozhranie
+
+```cpp
+if constexpr (std::endian::native == std::endian::little) {
+  // rozhodnutie podľa vlastnosti cieľovej platformy
+}
+```
+
+**Portabilitu obmedzujú závislosti od operačného systému, rozšírenia kompilátora a nedefinované správanie.**
 
 ---
 
-## Kompatibilita s C
+## Spolupráca s C
 
-* C funkcie sa dajú priamo volať z C++
-* Rovnako sa dajú z C++ programu "exportovať" funkcie, ktoré majú C linkage
-* Preto je možné volať z ľubovoľného programovacieho jazyka C++ (asi každý má podporu pre C)
+* C++ dokáže volať C knižnice a exportovať funkcie s C linkage
+* C rozhranie je jednoduchý spoločný menovateľ aj pre mnohé ďalšie jazyky
+* C ABI však neprenáša C++ triedy, preťažené funkcie ani výnimky
 
 ```cpp
-extern "C" void print_primes(size_t limit) {
-    // this function will have C linkage
+extern "C" int count_primes(std::uint32_t limit) noexcept {
+  // C kompatibilné rozhranie
 }
 ```
 
 ---
 
-## Statické typy
+## Statický typový systém
 
-<ul>
-  <li>
-    Typy sú kontrolované počas prekladu programu (kompilácie)
+* Typy sa kontrolujú počas prekladu a mnohé chyby sa odhalia ešte pred spustením programu
+* `auto` typ neodstraňuje; kompilátor ho odvodí z inicializačného výrazu
+* Silné typy dokážu zabrániť zámene hodnôt s odlišným významom
 
 ```cpp
-std::vector<int> nums{ 2, 3, 5, 7 };
-std::string s = "Hello world";
-s = nums;
+std::vector<int> numbers{2, 3, 5, 7};
+auto count = numbers.size(); // typ je std::size_t
+
+std::string text = numbers; // chyba počas prekladu
 ```
-  </li>
-  <li>
-    Info o nich štandardne nie je dostupné počas runtime (neplatíme za to čo nepoužívame)
-  </li>
-</ul>
 
-
-* Všetky typy (premenné, návratové hodnoty funkcií, ...) musia byť deklarované a dostupné počas kompilácie. 
-* Funguje "type inference" (`auto`, `decltype`), kedy kompilátor dokáže zistiť typ z použitia
-* Každá premenná musí byť deklarovaná pred tým než sa použije
-* *Pokiaľ sa dá premenné inicializujeme hneď ako to ide*
+**Premenné inicializujeme hneď pri deklarácii, aby nikdy neexistovali bez platnej hodnoty.**
 
 <div style="display: flex;">
 <div style="flex: 1;">
@@ -345,115 +381,75 @@ int good = 1;
 
 ---
 
-## Typový systém
+## Nedefinované správanie
 
-* Veľa sivých miest v C typovom systéme, ktoré prevzalo aj C++
-* Smerníky môžu byť ľubovoľne pretypované (ale môže nastať nedefinované správanie)
-* Používajú sa implicitné konverzie a ich pravidlá sú zdĺhavé a komplikované
-* Integer promotion tiež nie je zrovna intuitívny
-
-* V posledných revíziách C++ je snaha odstrániť veľa nedefinovaných správaní 
-
-
-### Fast inverse square
-
-* John Carmack v engine Quake 3
+* Niektoré chyby nemajú štandardom určený výsledok
+* Kompilátor môže predpokladať, že v korektnom programe nikdy nenastanú
+* Program preto môže zdanlivo fungovať a zlyhať po zapnutí optimalizácií alebo na inej platforme
 
 ```cpp
-float Q_rsqrt(float number)
-{
-    long i;
-    float x2, y;
-    const float threehalfs = 1.5F;
+std::vector<int> values{10, 20, 30};
+std::cout << values[3]; // prístup mimo rozsahu: undefined behavior
+```
 
-    x2 = number * 0.5F;
-    y = number;
-    i = *(long *)&y;   // evil floating point bit level hacking
-    i = 0x5f3759df - (i >> 1);  // what the f***? 
-    y = *(float *)&i;
-    y = y * (threehalfs - (x2 * y * y));   // 1st iteration
-    // y  = y * ( threehalfs - ( x2 * y * y ) ); 
-    // 2nd iteration, this can be removed
+Pri vývoji pomáhajú warnings, sanitizery, statická analýza a testy. Ak chceme kontrolu rozsahu, môžeme použiť `values.at(3)`.
 
-    return y;
+---
+
+## Generické programovanie
+
+* Šablóny umožňujú písať algoritmy nezávislé od konkrétneho typu
+* Koncepty pomenúvajú požiadavky na typy a zlepšujú chybové hlásenia
+* Rovnaká abstrakcia tak môže fungovať pre rôzne typy bez runtime polymorfizmu
+
+```cpp
+template<std::totally_ordered T>
+T smaller(T left, T right) {
+  return left < right ? left : right;
 }
 ```
 
-
-### Aký je výsledok nasledujúceho programu?
-
-* Skompiluje sa? Je to definované? Aká je hodnota v `s`?
-
-```cpp
-std::string s = "Ingsoc"; 
-s = 19.84;
-```
-
-* Skompiluje sa a s bude obsahovať jeden znak s číslom 19.
-<!-- .element: class="fragment" -->
-
 ---
 
-## Objektovo orientované
+## Knižnice a nástroje
 
-* Dedičnosť (inheritance), zapúzdrenosť (encapsulation) a polymorfizmus (polymorphism) sú plne podporované
-* Viacnásobná dedičnosť sa dá tiež použiť
-
-
-### Nasledujuci kód sa neskompiluje, prečo?
-
-```cpp
-class A {
-private:
-    virtual void f() = 0;
-};
- 
-class B : public A {
-protected:
-    virtual void f() override { }
-};
- 
-class C : public B, private A {
-public:
-    virtual void g() { B::f(); }
-};
-```
-
-note: `A::f` je `virtual` a preto sa nedá dediť od `A` bez toho aby sme ju definovali.
-
----
-
-## Knižnice na všetko
-
-* Pre C++ existuje obrovské množstvo knižníc
-* Bez problémov sa dajú použiť všetky C knižnice, tie existujú asi na všetko
+* Štandardná knižnica pokrýva kontajnery, algoritmy, vlákna, filesystem a mnoho ďalších oblastí
+* Rozsiahly ekosystém dopĺňajú napríklad **Boost**
+* C++ nemá jeden povinný build system ani package manager
+  * často sa používa **CMake**
+  * závislosti môžu spravovať **Conan** alebo **vcpkg**
+* Flexibilita ekosystému je výhoda, ale komplikuje zostavenie a distribúciu projektov
 
 
-### boost - http://www.boost.org/ 
+### [Boost](https://www.boost.org/)
 
-* Zbierka knižníc, veľa z nich nakoniec skončí v upravenej forme v štandardnej knižnice
-* Kontajnery, práca s geometriou, formátovanie stringov, tvorenie parserov, sieťová komunikácia
+* Rozsiahla a modulárna zbierka kvalitných open-source C++ knižníc
+* Pokrýva napríklad sieťovú komunikáciu, geometriu, parsovanie, grafy, matematiku a prácu so systémom
+* Viaceré knižnice ovplyvnili štandardné C++ alebo sa stali základom jeho neskorších súčastí
+* Boost však nie je súčasťou štandardnej knižnice a jednotlivé moduly sa líšia rozhraním, závislosťami aj náročnosťou použitia
 
 <img src="./lectures/1_intro/Boost.png" alt="boost logo" style="width: 30%; background: white;" />
 
 ---
 
-## Package manager
+## Cena za kontrolu
 
-* Snáď všetky úspešná jazyky majú package manager, JS má npm, Python má pip, ...
-* V C++ žiaden defacto štandardný nie je
-    * **Conan** distribuuje skompilované binárky, čo sa viacerým používateľom zdá jemne povedané nešťastné
-    * **Vcpkg** je open source nástroj od Microsoftu, ktorý sa snaží byť managerom pre všetky knižnice, bohužiaľ občas sa vyskytne nekompatibilita až úplná neskompilovateľnosť
+* Bežný C++ kód nemusí používať všetky pokročilé vlastnosti jazyka
+* Jazyk však zachováva desaťročia spätnej kompatibility a ponúka viac úrovní abstrakcie
+* Výsledkom je vysoký potenciál, ale aj rozsiahly a zložitý jazyk
+* Dôležité je používať moderné idiomy, štandardnú knižnicu a automatické nástroje kontroly
 
 ---
 
 ## Je C++ ťažký jazyk?
 
-* Áno aj nie
-* Ak ho iba používate nemusia vás trápiť variadické template, argument dependent lookup, ... 
-* Ak ale idete do hĺbky, skrýva sa tam veľa drakov...
+* Základy moderného C++ sa dajú naučiť bez poznania všetkých detailov jazyka
+* Pri bežnom programovaní si vystačíme s rozumnou podmnožinou, štandardnou knižnicou a zaužívanými idiomami
+* Náročnosť rastie pri návrhu knižníc, optimalizácii výkonu, práci s viacerými platformami a starším kódom
+* Do hĺbky treba rozumieť **životnosti objektov**, **typovému systému**, **šablónam** aj **nedefinovanému správaniu**
+* Cieľom nie je poznať celé C++, ale vedieť bezpečne vybrať správne nástroje pre daný problém
 
-![boost logo](./lectures/1_intro/Psalter_World_Map,_c.1265_dragons.jpg)
+![Here be dragons](./lectures/1_intro/Psalter_World_Map,_c.1265_dragons.jpg)
 
 ---
 
@@ -465,6 +461,8 @@ note: `A::f` je `virtual` a preto sa nedá dediť od `A` bez toho aby sme ju def
 
 > You must unlearn what you have learned
 >           — Master Yoda
+
+* V tejto časti si ešte ukážeme C konštrukcie v ďaľších prednáškach sa tiež môžu vyskytnúť ale iba okrajovo, keďže stále sa s nimi môžete stretnúť, ale do moderného C++ nepatria
 
 ---
 
@@ -488,7 +486,7 @@ Je naozaj veľmi dôležité aby ste vedeli čo robíte, inak C++ nie je pre vá
 <div style="flex: 7;">
 
 ```cpp
-void SortCxx(size_t n) {
+void sort_cpp(size_t n) {
     std::vector<int> v(n);
     for (size_t i = 0; i < v.size(); ++i) {
         v[i] = rand();
@@ -744,6 +742,7 @@ std::string file_name = name + ".txt";
 * Expiriment od [Herba Suttera](https://github.com/hsutter/cppfront)
 * Nová C++ syntax, ktorá zjednodušuje a odstraňuje nebezpečné konštrukcie (resp. ich robí explicitnými)
 * "Kompilátor" preloží súbor, kde sa nachádza aj pôvodná syntax aj nová do pôvodnej
+* V podstate mŕtvy projekt
 
 ```cpp
 #include <iostream>                             // Cpp1
@@ -768,6 +767,7 @@ int main() {                                    // Cpp1
 
 * Nový programovací jazyk od [Chadlera Carrutha](https://github.com/chandlerc) z Google
 * Ako C++ je v podstate kompatibilné s C, tak Carbon chce byť kompatibilný s C++
+* Stále vo vývoji
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -815,150 +815,7 @@ auto main() -> int {
 
 ---
 
-# LLMs
-
----
-
-## Náhodné číslo
-
-> C99 , máme len funkciu rand, ako urobiť aby sme  dostali číslo od 0 do 99 vrátane. 
-
-
-### Výsledok
-
-```c [|5]
-// Inicializácia generátora náhodných čísel
-srand(time(NULL)); // Inicializácia so súčasným časom
-
-// Generovanie náhodného čísla v rozsahu 0 až 99
-int random_number = rand() % 100; // Získa číslo od 0 do 99
-
-// Výpis náhodného čísla
-printf("Náhodné číslo: %d\n", random_number);
-```
-
-
-### ...pokračovanie konverzácie
-
-> Je to bezpečné? 
-
-
-### Výsledok
-
-```c [|7]
-srand(time(NULL));
-
-// Generate random number until it falls within the desired range
-int random_number;
-do {
-    random_number = rand();
-} while (random_number >= RAND_MAX - (RAND_MAX % 100));
-
-random_number %= 100;
-
-printf("Random number: %d\n", random_number);
-```
-
-note: RAND_MAX teoreticky môže byť 32, alebo podobné malé číslo. 
-
-
-### To isté v C++
-
-> C++20, máme len standardnú knižnicu, ako urobiť aby sme dostali náhodné číslo od 0 do 99 vrátane. 
-
-```cpp
-// Inicializácia generátora náhodných čísel
-std::random_device rd;  // Získanie náhodného zariadenia
-std::mt19937 gen(rd());  // Inicializácia generátora Mersenne Twister
-std::uniform_int_distribution<> dis(0, 99);  // Rozdelenie na celé čísla od 0 do 99
-
-// Generovanie náhodného čísla
-int random_number = dis(gen);
-```
-
----
-
-## Čítanie `int` zo stdin
-
-> C99, napíš funkciu, ktorá nemá žiadne parametre a vráti uint32_t, ktorý prečíta zo stdin. 
-
-
-### Výsledok
-
-```c
-uint32_t number;
-// Prečítaj číslo zo stdin
-if (scanf("%u", &number) != 1) {
-    // Ak sa nepodarí prečítať číslo, vráť 0 alebo môžeš spracovať chybu iným spôsobom
-    fprintf(stderr, "Chyba pri čítaní čísla.\n");
-    return 0; // Alebo iná hodnota indikujúca chybu
-}
-return number;
-```
-
-note: scanf pri overflow je undefined
-
-
-### ...pokračovanie konverzácie
-
-> Je to bezpečné? 
-
-
-### Výsledok
-
-```c [|1|11]
-char buffer[32]; // Buffer na načítanie vstupu
-uint32_t number;
-
-// Prečítaj riadok zo stdin
-if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-    // Pokús sa previesť reťazec na číslo
-    char *endptr;
-    number = strtoul(buffer, &endptr, 10); // Prevedenie na unsigned long
-
-    // Over, či sme prečítali celé číslo a či nie je pretečené
-    if (endptr == buffer || *endptr != '\n' || number > UINT32_MAX) {
-        fprintf(stderr, "Chyba: Neplatný vstup.\n");
-        return 0; // Alebo iná hodnota indikujúca chybu
-    }
-    return number;
-} else {
-    fprintf(stderr, "Chyba pri čítaní vstupu.\n");
-    return 0; // Alebo iná hodnota indikujúca chybu
-}
-```
-
-note: buffer malý, nekontroluje sa, či sme načítali celý riadok, number > UINT32_MAX nikdy nenastane.
-
-
-### To isté v C++
-
-> C++20, napíš funkciu, ktorá nemá žiadne parametre a vráti uint32_t, ktorý prečíta zo stdin. 
-
-```cpp [|11-13]
-uint32_t value;
-std::cout << "Zadajte nezáporné celé číslo (uint32_t): ";
-while (true) {
-    std::cin >> value;
-
-    // Skontrolujeme, či bol vstup úspešný a či je hodnota v platnom rozsahu
-    if (std::cin.good()) {
-        break; // Vstup bol úspešný
-    }
-    else {
-        std::cin.clear(); // Obnovíme stav cin
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignorujeme zlý vstup
-        std::cout << "Neplatný vstup. Skúste to znova: ";
-    }
-}
-return value;
-```
-
-note: cin si okontroluje overflow
-
----
-
-# Quick quiz 
+# Quick quiz `main`
 
 ---
 
