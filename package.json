@@ -5,15 +5,13 @@
   "private": true,
   "scripts": {
     "build": "marp ./public/bonus/coroutines/coroutines.md --html && webpack",
-    "start": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && serve ./public",
-    "deploy": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && gh-pages -d public --nojekyll"
+    "start": "marp ./public/bonus/coroutines/coroutines.md --html && webpack && serve ./public"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@marp-team/marp-cli": "^4.2.3",
     "css-loader": "^7.1.2",
-    "gh-pages": "^6.3.0",
     "path-browserify": "^1.0.1",
     "reveal.js": "^5.2.1",
     "serve": "^14.2.5",
