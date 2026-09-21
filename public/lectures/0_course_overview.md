@@ -33,9 +33,9 @@
 
 ## Disclaimer
 
-* Autori prednášok (a cvičení) nepoužívajú C++ na všetku svoju prácu
-* Tiež si nemyslia, že C++ je najlepší programovací jazyk na svete 
-* C++ je málokedy správna odpoveď na problém
+* C++ sa nehodí na všetku prácu, v minulosti sa ale často používal, takže občas je aj tam, kde by nemusel (UI, web, scripting, ...)
+* C++ je nie ani zďaleka najlepší programovací jazyk na svete (taký ani neexistuje)
+* C++ je málokedy správna odpoveď na problém, ale pri špecifických problémoch môže byť veľmi vhodný (real-time systems)
 
 ---
 
@@ -120,7 +120,7 @@ ISBN-13:  978-3967309201
 
 ## Výsledok nášho snaženia
 
-* C++ v roku 2025
+* C++ v roku 2026
 * Beautiful code
 * Fun! (sort of 😀)
 
@@ -155,20 +155,16 @@ ISBN-13:  978-3967309201
 
 * Prednášky budú každý týždeň 
     * Utorok 16:00, trvanie cca 1,5 hodiny
-    * Miestnosť -1.65 (Aula Minor) na FIIT
+    * Miestnosť 1.40 (U40) na FIIT
 
 
 * Cvičenia budú každý týždeň
-    * 1. skupina utorok 18:00
-    * 2. skupina streda 12:00
+    * 1. skupina utorok 14:00 (pred prednáškou)
+    * 2. skupina utorok 18:00
     * 3. skupina streda 16:00
     * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita +-16 ľudí 
-    * Študenti FMFI majú zapísané cvičenia v utorok 18:00
+    * Študenti FMFI môžu chodiť na cvičenia podľa vlastného výberu (pošlite mail, ktoré ste si vybrali)
     * Ak chcete zmeniť skupinu, dajte nám vedieť čím skôr
-    * Prvá skupina sa pravdepodobne bude presúvať do 1.31a (uvidíte v rozvrhu, resp. dám vedieť na Teams)
-
-
-**Cvičenia budú začínať až budúci týždeň, teda 30. septembra, tento týždeň nie sú**
 
 ---
 
@@ -203,15 +199,12 @@ ISBN-13:  978-3967309201
    * Programovanie
 * Na konci semestra bude "testovacia" skúška, aby ste si to mohli vyskúšať
 
-* Teoreticky sa toto rozdelenie ešte môže trochu zmeniť
-
 ---
 
 ## Projekt
 
-* Počas semestra budeme mať aj jeden väčší projekt
-* Predstavený bude niekedy koncom októbra
-* Bude sa dať získať 30 bodov, plus nejaký bonus
+* Historicky sme skúšali zaradiť aj jeden väčší projekt, ktorý študenti riešili počas semestra
+* Tento rok nebude, keďže sa z neho stal taký "pay to win" a nevieme ako túto vlastnosť odstrániť
 
 ---
 
@@ -223,11 +216,18 @@ ISBN-13:  978-3967309201
    * Otázky s možnosťami a krátke odpovede
    * Na papier
 * Programovacie úlohy
-   * Menšie programovacie úlohy, za pár bonusových bodov
-   * Odovzdávanie bude cez náš portál
-   * Na vlastných PC, alebo na tých čo sú v učebni
+   * 3 x 10 bodov
+   * Programovanie "na papier"
+   * Naprogramovanať jednoduchú úloh na papier, kde má byť plus mínus dobre syntax a logika
+   * Samozrejme za drobné typo a jedny chýbajúce zátvorky sa body nestrácajú, ide hlavne o pochopenie logiky a akej takej syntaxe C++
 * Inak sa budeme venovať tomu čo sa prebralo na prednáške
-* Zadanie a konzultácie projektu budú tiež na cvičeniach
+
+
+## Bonusové úlohy
+
+* Budú sa objavovať počas semestra
+* Buď priamo programovanie na cvičeniach, alebo úlohy na doma
+* Bodovanie bude 1-2 body, dokopy možno 6 bodov za celý semester
 
 ---
  
@@ -268,22 +268,23 @@ ISBN-13:  978-3967309201
    * Linux a Mac budeme kompilovať cez `g++`, template pre Visual Studio Code
 * Môžete používať aj iné IDE, resp. kompilátor, ale tieto dve riešenia budeme vedieť najlepšie podporiť
 * C++23 kompatibilný kompilátor (možno pridáme aj trochu novšieho C++26)
+* Máme aj pripravený github codespace
 
 ---
 
 ## CMake
 
-* Tento rok plánujeme používať CMake na správu projektu
-* Bude relevantné hlavne pre projekt
+* Tento rok plánujeme používať CMake
 * CMake nám pomôže zjednodušiť proces kompilácie a správy závislostí
+* Aby sme mali jednotné prostredie a nestalo sa nám, že niekomu niečo nefunguje a ostatným to ide
 
 ---
 
 ## Algoritmy
 
 * Na cvičeniach ani skúške nebudeme priamo od vás chcieť vymýšľať/študovať algoritmy (maximálne ako bonus), no veľmi odporúčam algoritmy dátové štruktúry poznať
-* Ak ste také predmety nemali, tak odporúčam si ich dať
-* Môžeme od vás ale chcieť niektoré algoritmy naimplementovať
+* Úlohy budú mať dosť triviálne algoritmické riešenie, vaša úloha ho bude iba nepokaziť, alokáciami a prílišným kopírovaním pamäte.
+* Vždy sa budeme prikláňať k jednoduchým a efektívnym riešeniam
 
 ---
 
@@ -303,8 +304,14 @@ ISBN-13:  978-3967309201
 
 ## AI a tento predmet
 
-* Na skúške bude zakázané používanie AI 
-* Na ostatných aktivitách (projekt a iné úlohy) je používanie AI povolené
+* Na predmete je AI zakázané
+* Skúšali sme používanie AI na predmete a zistili sme, že to vedie k problémom s porozumením a bezpečnosťou kódu
+* Navyše je veľká medzera medzi modelmi zadarmo a frontier modelmi, do vedie k tomu, že sa dajú "kúpiť" body na úkor porozumenia.
+* Ak má tento predmet niečo priniesť, tak musíme porozumieť C++ sami, inak nebudeme vedieť odhaliť chyby, ktoré môžu vzniknúť pri používaní AI.
+
+
+* Od AI určite neodradzujeme, v budúcnosti programovania má určite svoje nespochybniteľné miesto.
+* Problém je, ak vlastne nemáme čo priniesť sami, tak nás to AI nahradí veľmi rýchlo. 
 
 ---
 
