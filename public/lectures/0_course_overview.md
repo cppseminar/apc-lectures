@@ -144,7 +144,7 @@ ISBN-13:  978-3967309201
   <li>
     Teams skupina predmetu
     <p style="font-size: larger; text-align: center;">
-      <a href="https://teams.microsoft.com/l/team/19%3AHAzrmcaDkHF7Wn86KPePnZmlGIoPQHy4GucoeCtgmLc1%40thread.tacv2/conversations?groupId=4c104ceb-267c-4744-bb8f-0bd774673b03&tenantId=25733538-6b16-4aa3-8ed6-297eb79b8e06">FIIT APC_B</a>
+      <a href="https://teams.microsoft.com/l/team/19%3AQcm-zZr1HHRQDqjdeLxMtU3m7fnfZDDqIs5tqI0CcdU1%40thread.tacv2/conversations?groupId=efe9b24e-c145-4613-8de5-fc108b0c3539&tenantId=25733538-6b16-4aa3-8ed6-297eb79b8e06">FIIT APC_B</a>
     </p>
   </li>
 </ul>
