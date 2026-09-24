@@ -22,10 +22,10 @@
 
 * Hoci má C++ svoje nedostatky, stále patrí medzi široko používané jazyky
 * Na prednáškach ukážeme, že aj v C++ je možné programovať moderne:
-    * Bez skrytých bezpečnostných rizík
-    * Bez nadbytočného kódu (boilerplate)
-    * Bez manuálneho spravovania pamäte
-    * S využitím moderných princípov a postupov
+  * Bez skrytých bezpečnostných rizík
+  * Bez nadbytočného kódu (boilerplate)
+  * Bez manuálneho spravovania pamäte
+  * S využitím moderných princípov a postupov
 * Zameriame sa na implementáciu riešení v C++, nie na samotný návrh riešení
 * Naším cieľom je ukázať, že programovanie v C++ nemusí byť boj s kompilátorom ani hodiny trápenia v debuggeri
 
@@ -33,15 +33,15 @@
 
 ## Disclaimer
 
-* C++ sa nehodí na všetku prácu, v minulosti sa ale často používal, takže občas je aj tam, kde by nemusel (UI, web, scripting, ...)
-* C++ je nie ani zďaleka najlepší programovací jazyk na svete (taký ani neexistuje)
+* C++ sa nehodí na všetku prácu, v minulosti sa však často používal, takže občas je aj tam, kde by nemusel byť (UI, web, scripting, ...)
+* C++ nie je ani zďaleka najlepší programovací jazyk na svete (taký ani neexistuje)
 * C++ je málokedy správna odpoveď na problém, ale pri špecifických problémoch môže byť veľmi vhodný (real-time systems)
 
 ---
 
 ## Programovanie v C++
 
-* Hlavný cieľ je naučiť sa programovať v C++ s dôrazom na moderné a bezpečné konštrukcie
+* Hlavným cieľom je naučiť sa programovať v C++ s dôrazom na moderné a bezpečné konštrukcie
 * Pokiaľ sa bude dať, budeme používať štandardnú knižnicu
 
 <div style="display: flex; align-items: center;">
@@ -52,7 +52,7 @@ Bjarne Stroustrup
 Addison-Wesley Professional; (September 24, 2022)  
 ISBN-13: 978-0136816485  
 <https://www.amazon.com/Tour-C-Bjarne-Stroustrup-dp-0136816487/dp/0136816487/>  
-Časti prístupné online - <https://isocpp.org/tour>
+Časti prístupné online: <https://isocpp.org/tour>
 </div>
 <div style="flex: 3;">
   <img src="./lectures/1_intro/Tour3English-large.jpg" alt="A Tour of C++ (3rd edition)" style="width: 70%;" />
@@ -104,11 +104,11 @@ ISBN-13:  978-3967309201
 ### Videá
 
 * Konferencie
-    * CppCon <https://www.youtube.com/user/cppcon>
-    * C++ Now <https://www.youtube.com/@CppNow>
-    * Meeting C++ <https://www.youtube.com/@MeetingCPP/videos>
+  * CppCon <https://www.youtube.com/user/cppcon>
+  * C++ Now <https://www.youtube.com/@CppNow>
+  * Meeting C++ <https://www.youtube.com/@MeetingCPP/videos>
 * Ostatné
-    * STL intro <https://learn.microsoft.com/en-us/shows/c9-lectures-stephan-t-lavavej-standard-template-library-stl-/>
+  * STL intro <https://learn.microsoft.com/en-us/shows/c9-lectures-stephan-t-lavavej-standard-template-library-stl-/>
 
 
 ### Prednášky
@@ -136,7 +136,7 @@ ISBN-13:  978-3967309201
 
 <ul>
   <li>
-    Kontaktná e-mail adresa je
+    Kontaktná e-mailová adresa je
     <p style="font-size: larger; text-align: center;">
       <a href="mailto:cpp@eset.sk">cpp@eset.sk</a>
     </p>
@@ -154,24 +154,24 @@ ISBN-13:  978-3967309201
 ## Rozvrh
 
 * Prednášky budú každý týždeň 
-    * Utorok 16:00, trvanie cca 1,5 hodiny
-    * Miestnosť 1.40 (U40) na FIIT
+  * Utorok 16:00, trvanie cca 1,5 hodiny
+  * Miestnosť 1.40 (U40) na FIIT
 
 
 * Cvičenia budú každý týždeň
-    * 1. skupina utorok 14:00 (pred prednáškou)
-    * 2. skupina utorok 18:00
-    * 3. skupina streda 16:00
-    * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita +-16 ľudí 
-    * Študenti FMFI môžu chodiť na cvičenia podľa vlastného výberu (pošlite mail, ktoré ste si vybrali)
-    * Ak chcete zmeniť skupinu, dajte nám vedieť čím skôr
+  * 1. skupina utorok 14:00 (pred prednáškou)
+  * 2. skupina utorok 18:00
+  * 3. skupina streda 16:00
+  * ESET Lab (miestnosť 4.46 na FIIT), maximálna kapacita približne 16 ľudí
+  * Študenti FMFI môžu chodiť na cvičenia podľa vlastného výberu (pošlite nám e-mail, ktorú skupinu ste si vybrali)
+  * Ak chcete zmeniť skupinu, dajte nám vedieť čo najskôr
 
 ---
 
 ## Dochádzka
 
 * Prednášky aj cvičenia sú nepovinné, nebudeme kontrolovať dochádzku
-* Na niektorých cvičeniach ale budú bodované úlohy a testy, tak tam odporúčame príjsť
+* Na niektorých cvičeniach však budú bodované úlohy a testy, preto na ne odporúčame prísť
 
 ![Travolta looking very confused](./lectures/0_course_overview/travolta.gif)
 
@@ -180,23 +180,23 @@ ISBN-13:  978-3967309201
 ## Hodnotenie
 
 * Rozdelenie hodnotenia
-   * Počas semestra sa bude dať získať 60 bodov
-   * Na skúške potom zvyšných 40 bodov
+  * Počas semestra sa bude dať získať 60 bodov
+  * Na skúške potom zvyšných 40 bodov
 * Známkovanie
-   * A (100-92)
-   * B (91-83)
-   * C (82-74)
-   * D (73-65)
-   * E (64-56)
-* Žiadna časť predmetu nie je povinná, takže ak budete mať zo semestra viacej ako 55 bodov, na skúšku ani nemusíte chodiť a máte E
+  * A (100-92)
+  * B (91-83)
+  * C (82-74)
+  * D (73-65)
+  * E (64-56)
+* Žiadna časť predmetu nie je povinná, takže ak budete mať zo semestra viac ako 55 bodov, na skúšku ani nemusíte chodiť a máte E
 
 ---
 
-## Skuška
+## Skúška
 
 * Pozostáva z dvoch častí
-   * Test na preskúšanie teórie (ako rozumiete C++)
-   * Programovanie
+  * Test z teórie (ako rozumiete C++)
+  * Programovanie
 * Na konci semestra bude "testovacia" skúška, aby ste si to mohli vyskúšať
 
 ---
@@ -204,7 +204,7 @@ ISBN-13:  978-3967309201
 ## Projekt
 
 * Historicky sme skúšali zaradiť aj jeden väčší projekt, ktorý študenti riešili počas semestra
-* Tento rok nebude, keďže sa z neho stal taký "pay to win" a nevieme ako túto vlastnosť odstrániť
+* Tento rok nebude, keďže sa z neho stal taký „pay to win“ a nevieme, ako túto vlastnosť odstrániť
 
 ---
 
@@ -212,22 +212,22 @@ ISBN-13:  978-3967309201
 
 * Občas budú testy a nejaké bonusové úlohy (vždy dopredu oznámime)
 * Teoretické testy 
-   * 3 x 10 bodov
-   * Otázky s možnosťami a krátke odpovede
-   * Na papier
+  * 3 × 10 bodov
+  * Otázky s možnosťami a krátke odpovede
+  * Na papieri
 * Programovacie úlohy
-   * 3 x 10 bodov
-   * Programovanie "na papier"
-   * Naprogramovanať jednoduchú úloh na papier, kde má byť plus mínus dobre syntax a logika
-   * Samozrejme za drobné typo a jedny chýbajúce zátvorky sa body nestrácajú, ide hlavne o pochopenie logiky a akej takej syntaxe C++
-* Inak sa budeme venovať tomu čo sa prebralo na prednáške
+  * 3 × 10 bodov
+  * Programovanie „na papieri“
+  * Naprogramovať jednoduchú úlohu na papieri, pričom syntax a logika majú byť viac-menej správne
+  * Samozrejme, za drobné preklepy a niekoľko chýbajúcich zátvoriek sa body nestrácajú, ide hlavne o pochopenie logiky a akej-takej syntaxe C++
+* Inak sa budeme venovať tomu, čo sa prebralo na prednáške
 
 
 ## Bonusové úlohy
 
 * Budú sa objavovať počas semestra
 * Buď priamo programovanie na cvičeniach, alebo úlohy na doma
-* Bodovanie bude 1-2 body, dokopy možno 6 bodov za celý semester
+* Bodovanie bude 1 – 2 body, dokopy možno 6 bodov za celý semester
 
 ---
  
@@ -240,9 +240,9 @@ ISBN-13:  978-3967309201
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
   
-* Predpokladáme aspoň základnú znalosť programovania v C, alebo rovno C++
-* Pravdepodobne sa dá predmet zvládnuť aj keď poznáte skôr iné jazyky
-* Musíte ale poznať základné koncepty z programovania
+* Predpokladáme aspoň základnú znalosť programovania v C alebo rovno v C++
+* Pravdepodobne sa dá predmet zvládnuť, aj keď poznáte skôr iné jazyky
+* Musíte však poznať základné koncepty programovania
 </div>
   <div style="flex: 1;">
     <img src="./lectures/1_intro/code-works.png" alt="My code doesn't work I have no idea why" />
@@ -257,18 +257,18 @@ ISBN-13:  978-3967309201
 * Ako funguje *control flow* – `if`, `for`, `while`
 * *Funkcie* a ich volanie, *rekurzia*
 * Letmo sa týchto tém dotkneme na nasledujúcej prednáške, ale určite sa im nebude venovať do hĺbky
-* V podstate by ste mali byť schopný "čítať" program v C
+* V podstate by ste mali byť schopní „čítať“ program v C
 
 ---
 
 ## Platforma
 
-* Kedže jedna z výhod C++ je prenositeľnosť kódu, budeme podporovať všetky rozšírené platformy
-   * MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí [Community edition](https://visualstudio.microsoft.com/vs/community/))
-   * Linux a Mac budeme kompilovať cez `g++`, template pre Visual Studio Code
+* Keďže jednou z výhod C++ je prenositeľnosť kódu, budeme podporovať všetky rozšírené platformy
+  * MS Windows a na ňom najnovšie Visual Studio 2022 (úplne stačí [Community edition](https://visualstudio.microsoft.com/vs/community/))
+  * Na Linuxe a Macu budeme kompilovať pomocou `g++`, pripravíme šablónu pre Visual Studio Code
 * Môžete používať aj iné IDE, resp. kompilátor, ale tieto dve riešenia budeme vedieť najlepšie podporiť
-* C++23 kompatibilný kompilátor (možno pridáme aj trochu novšieho C++26)
-* Máme aj pripravený github codespace
+* Kompilátor kompatibilný s C++23 (možno pridáme aj niečo z novšieho C++26)
+* Máme pripravený aj GitHub Codespace
 
 ---
 
@@ -276,14 +276,14 @@ ISBN-13:  978-3967309201
 
 * Tento rok plánujeme používať CMake
 * CMake nám pomôže zjednodušiť proces kompilácie a správy závislostí
-* Aby sme mali jednotné prostredie a nestalo sa nám, že niekomu niečo nefunguje a ostatným to ide
+* Cieľom je mať jednotné prostredie a predísť situácii, keď niekomu niečo nefunguje, zatiaľ čo ostatným áno
 
 ---
 
 ## Algoritmy
 
-* Na cvičeniach ani skúške nebudeme priamo od vás chcieť vymýšľať/študovať algoritmy (maximálne ako bonus), no veľmi odporúčam algoritmy dátové štruktúry poznať
-* Úlohy budú mať dosť triviálne algoritmické riešenie, vaša úloha ho bude iba nepokaziť, alokáciami a prílišným kopírovaním pamäte.
+* Na cvičeniach ani na skúške nebudeme priamo od vás chcieť vymýšľať ani študovať algoritmy (maximálne ako bonus), no veľmi odporúčame poznať algoritmy a dátové štruktúry
+* Úlohy budú mať pomerne triviálne algoritmické riešenie, vašou úlohou bude iba nepokaziť ho zbytočnými alokáciami a nadmerným kopírovaním dát
 * Vždy sa budeme prikláňať k jednoduchým a efektívnym riešeniam
 
 ---
@@ -296,28 +296,28 @@ ISBN-13:  978-3967309201
 
 ## Chatboty, copiloty
 
-* Všetky moderné LLM sú celkom schopní programátori v C++
-* Problém je, že robia občas chyby a dosť často robia bezpečnostné chyby
+* Všetky moderné LLM sú celkom schopné programovať v C++
+* Problém je, že občas robia chyby, pričom pomerne často ide o bezpečnostné chyby
 * O to dôležitejšie je poznať C++, aby sme mohli kontrolovať vygenerovaný kód
 
 ---
 
 ## AI a tento predmet
 
-* Na predmete je AI zakázané
+* Používanie AI je na predmete zakázané
 * Skúšali sme používanie AI na predmete a zistili sme, že to vedie k problémom s porozumením a bezpečnosťou kódu
-* Navyše je veľká medzera medzi modelmi zadarmo a frontier modelmi, do vedie k tomu, že sa dajú "kúpiť" body na úkor porozumenia.
-* Ak má tento predmet niečo priniesť, tak musíme porozumieť C++ sami, inak nebudeme vedieť odhaliť chyby, ktoré môžu vzniknúť pri používaní AI.
+* Navyše je veľká medzera medzi modelmi zadarmo a frontier modelmi, čo vedie k tomu, že sa dajú „kúpiť“ body na úkor porozumenia
+* Ak má tento predmet niečo priniesť, musíme porozumieť C++ sami, inak nebudeme vedieť odhaliť chyby, ktoré môžu vzniknúť pri používaní AI
 
 
-* Od AI určite neodradzujeme, v budúcnosti programovania má určite svoje nespochybniteľné miesto.
-* Problém je, ak vlastne nemáme čo priniesť sami, tak nás to AI nahradí veľmi rýchlo. 
+* Od používania AI určite neodrádzame; v budúcnosti programovania má nespochybniteľné miesto
+* Problém nastáva, ak sami nemáme čo priniesť; vtedy nás AI veľmi rýchlo nahradí
 
 ---
 
 ## Náhodné číslo LLM
 
-> C99 , máme len funkciu rand, ako urobiť aby sme  dostali číslo od 0 do 99 vrátane. 
+> C99, máme len funkciu rand, ako dosiahnuť, aby sme dostali číslo od 0 do 99 vrátane.
 
 
 ### Výsledok
@@ -355,12 +355,12 @@ random_number %= 100;
 printf("Random number: %d\n", random_number);
 ```
 
-note: RAND_MAX teoreticky môže byť 32, alebo podobné malé číslo. 
+note: RAND_MAX môže byť teoreticky 32 alebo podobné malé číslo.
 
 
 ### To isté v C++
 
-> C++20, máme len standardnú knižnicu, ako urobiť aby sme dostali náhodné číslo od 0 do 99 vrátane. 
+> C++20, máme len štandardnú knižnicu, ako dosiahnuť, aby sme dostali náhodné číslo od 0 do 99 vrátane.
 
 ```cpp
 // Inicializácia generátora náhodných čísel
