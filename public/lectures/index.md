@@ -18,10 +18,4 @@
 9. [Štandardná knižnica](./?slides=std_library_2.md)
 10. [Async, multithreading a spol.](./?slides=threads.md)
 </div>
-<div style="flex: 2;">
-
-### Bonus
-
-* [Korutiny](./bonus/coroutines/coroutines.html) - *[Príklad cpp](./bonus/coroutines/coroutines.cpp)*
-</div>
 </div>
