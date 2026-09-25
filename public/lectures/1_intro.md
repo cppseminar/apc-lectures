@@ -22,10 +22,10 @@
 
 ## Čo je C++?
 
-* C++ je jeden z najnepochopenejších relevantných programovacích jazykov
-* Zčasti za to môže meno C++
+* C++ je jedným z najnepochopenejších relevantných programovacích jazykov
+* Sčasti za to môže názov C++
     * postfix increment vracia pôvodnú hodnotu 😉
-* Zčasti krkolomné skratky, ktoré komunita používa (RAII, SFINAE, ADL, ODR, ...)
+* Sčasti za to môžu krkolomné skratky, ktoré komunita používa (RAII, SFINAE, ADL, ODR, ...)
 * Pravdepodobne aj neexistencia jednotného toolingu
    * package manager
    * build system
@@ -68,7 +68,7 @@
 </div>
 
 
-## C++ je plné metaprogramovania 
+## C++ je plný metaprogramovania
 
 * C++ podporuje metaprogramovanie, najmä pomocou šablón (templates)
 * V minulosti bolo dôležité poznať zložité šablónové techniky, pretože často neexistovali jednoduchšie štandardné riešenia
@@ -79,7 +79,7 @@
   * kontrole typov a zjednodušení kódu
 
 
-## C++ je vždy rýchlejšie
+## C++ je vždy rýchlejší
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
@@ -101,7 +101,7 @@
 
 ## C++ je objektovo orientovaný jazyk
 
-* C++ podporuje objektovo orientované programovanie, ale nie je naň obmedzené
+* C++ podporuje objektovo orientované programovanie, ale nie je naň obmedzený
 * Podporuje aj procedurálne, generické a funkcionálne programovanie
 * Triedy a dedičnosť sú nástroje, nie povinný spôsob návrhu každého programu
 * Vhodný štýl závisí od problému, ktorý riešime
@@ -131,8 +131,8 @@
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
 
-* V 1979 *Bjarne Stroustrup* začal pracovať na C s triedami
-* V 1983 jazyk premenoval na C++ a pridal virtuálne funkcie, preťažovanie operátorov a veľa ďalšieho
+* V roku 1979 začal *Bjarne Stroustrup* pracovať na C s triedami
+* V roku 1983 jazyk premenoval na C++ a pridal virtuálne funkcie, preťažovanie operátorov a veľa ďalšieho
 * Prvý veľký ISO štandard bol C++98/03
 * <https://isocpp.org/>
 </div>
@@ -146,18 +146,18 @@
 ### C++11
 
 * **Lambda funkcie** – Umožňujú definovať anonymné funkcie priamo v kóde.
-* **Rvalue referencie** a Move semantika – Optimalizuje kopírovanie a presuny objektov.
+* **Rvalue referencie** a move sémantika – Optimalizujú kopírovanie a presuny objektov.
 * `auto` – Automatická dedukcia typu premenných.
 * **range-based for loop** – Jednoduchší zápis cyklov pre kontajnery.
 * `std::unique_ptr` a `std::shared_ptr` – Inteligentné ukazovatele na správu pamäte.
-* `constexpr` – Umožňuje výpočty počas kompillácie, nie za behu programu.
+* `constexpr` – Umožňuje výpočty počas kompilácie, nie za behu programu.
 * `std::thread` – Natívna podpora pre viacvláknové programovanie.
 
 
 ### C++14
 
-* Bugfix C++11
-* C++14 zjednodušil, zjednotil a optimalizoval použitie C++11 koncepcií.
+* Opravy chýb v C++11
+* C++14 zjednodušil, zjednotil a optimalizoval použitie konštrukcií z C++11.
 * **Generické lambda funkcie** 
 
 
@@ -179,17 +179,17 @@
 * **Korutiny (Coroutines)** – Podpora pre asynchrónne operácie a sekvencie.
 * **Moduly** – Zlepšujú kompiláciu a organizáciu kódu.
 * `std::span` – Nevlastniace zobrazenie na sekvencie dát.
-* **three-way comparison (<=>)** – Automatizuje definovanie porovnávanie.
-* `std::format` – Nová formátovacie knižnica.
+* **three-way comparison (`<=>`)** – Automatizuje definovanie porovnávania.
+* `std::format` – Nová formátovacia knižnica.
 
 
 ### C++23
 
 * Štandardná knižnica ako modul (`import std;`)
-* Dodefinovanie veľa nedefinovaného správania
+* Dodefinovanie mnohých prípadov nedefinovaného správania
 * Vylepšená podpora pre ranges
-* stacktrace knižnica
-* `std::println` - Nový spôsob výstupu na konzolu
+* Knižnica stacktrace
+* `std::println` – Nový spôsob výstupu na konzolu
 
 ---
 
@@ -247,9 +247,9 @@
 
 * Málo jazykov má oficiálny ISO štandard, C++ ho má
 * The Committee: WG21
-* Zapojený ľudia priamo z priemyslu (Intel, Microsoft, Google, Red Hat, IBM a iné)
+* Zapojení sú ľudia priamo z priemyslu (Intel, Microsoft, Google, Red Hat, IBM a ďalšie spoločnosti)
 
-![C++ comitee C+20](./lectures/1_intro/comittee.png)
+![C++ committee C++20](./lectures/1_intro/comittee.png)
 
 ---
 
@@ -462,25 +462,25 @@ T smaller(T left, T right) {
 > You must unlearn what you have learned
 >           — Master Yoda
 
-* V tejto časti si ešte ukážeme C konštrukcie v ďaľších prednáškach sa tiež môžu vyskytnúť ale iba okrajovo, keďže stále sa s nimi môžete stretnúť, ale do moderného C++ nepatria
+* V tejto časti si ešte ukážeme konštrukcie z C. V ďalších prednáškach sa tiež môžu vyskytnúť, ale iba okrajovo, keďže sa s nimi stále môžete stretnúť, hoci do moderného C++ nepatria
 
 ---
 
 ![bjarne quote](./lectures/1_intro/bjarne-quote.png)
 
-Je naozaj veľmi dôležité aby ste vedeli čo robíte, inak C++ nie je pre vás. 
+Je naozaj veľmi dôležité, aby ste vedeli, čo robíte, inak C++ nie je pre vás.
 
-* Vyrábame security problémy
-* Kód sa nebude dať maintainovať
+* Vytvárame bezpečnostné problémy
+* Kód sa nebude dať udržiavať
 * Pravdepodobne ani s tou rýchlosťou to nebude terno
 
 ---
 
 ## Je C rýchlejšie ako C++?
 
-* Neexistuje žiaden dôvod prečo by C malo byť rýchlejšie
-* Skoro všetky C programy sú platné C++ programy
-* Naopak C++ má potenciál byť rýchlejšie
+* Neexistuje nijaký dôvod, prečo by C malo byť rýchlejšie
+* Takmer všetky programy v C sú platnými programami v C++
+* Naopak, C++ má potenciál byť rýchlejší
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 7;">
@@ -546,7 +546,7 @@ int cmp_int(const void* a, const void* b) {
 
 ## Makrá
 
-* V C sa používali makrá na generovanie funkcií, ktoré boli akoby type generic
+* V C sa používali makrá na generovanie funkcií, ktoré boli akoby typovo generické
 
 ```c
 #define MAX(a, b)
@@ -582,7 +582,7 @@ if (1*1; > 100) {
 
 <div class="fragment">
 
-Ak aj odstránime `;` stále sú tam problémy
+Aj keď odstránime `;`, stále sú tam problémy
 
 <div style="display: flex;">
 <div style="flex: 1;">
@@ -617,8 +617,8 @@ Sequencing problems 😢
 ### Inline funkcie
 
 <ul>
-  <li>Kompilátor je pravdepodobne lepší ako my v rozhodovaní ktoré funkcie inlinovať</li>
-  <li class="fragment">V C++ existovalo klúčové slovo <code>inline</code>, v minuloti služilo na inline funkcie, dnes má už skôr iné významy
+  <li>Kompilátor je pravdepodobne lepší ako my v rozhodovaní, ktoré funkcie inlinovať</li>
+  <li class="fragment">V C++ existovalo kľúčové slovo <code>inline</code>, v minulosti slúžilo na inline funkcie, dnes má už skôr iné významy
 
 ```c
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -643,7 +643,7 @@ int k = std::max({ 1, 3, 4, 8, 10, -1 });
 ## Explicitná správa pamäte
 
 * C neposkytuje veľa nástrojov na uľahčenie správy pamäte
-* Programátori majú preto tendenciu používať pamäť na zásobníku (stack), keďže tá sa sama uprace po opustení aktuálneho frame-u
+* Programátori majú preto tendenciu používať pamäť na zásobníku (stack), keďže tá sa sama uprace po opustení aktuálneho rámca
 
 <div class="fragment" style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -692,21 +692,25 @@ std::end(path_fragments), [](const std::string& val) {
 
 ---
 
-## Manipulácia stringov
+## Manipulácia s reťazcami
 
-* Ťažké a veľmi rozvláčne v C
+* Ťažká a veľmi rozvláčna v C
 
-```cpp
+```c
 const char* name = "example";
 size_t file_name_len = strlen(name) + strlen(".txt") + 1;
-char* file_name = (char*)malloc(file_name_len);
-strcpy_s(file_name, file_name_len, name);
-strcat_s(file_name, file_name_len, ".txt");
+char* file_name = malloc(file_name_len);
+if (file_name != NULL) {
+  strcpy(file_name, name);
+  strcat(file_name, ".txt");
+  // use file_name
+  free(file_name);
+}
 ```
 
 
-* Jednoduché v C++ 
-* Na 99% rovnako rýchle ako riešenie vyššie (niekedy ešte rýchlejšie – SSO)
+* Jednoduchá v C++
+* Na 99 % rovnako rýchla ako riešenie vyššie (niekedy ešte rýchlejšia – SSO)
 
 ```cpp
 std::string name = "example";
@@ -721,27 +725,27 @@ std::string file_name = name + ".txt";
 
 ## Vývoj C++
 
-* Aktuálne je nastavený model, každé tri roky nová verzia
-* Do C++ sa hlavne pridáva, odoberanie je s ohľadom na obrovské codebase problematické
-* Kompilátory sú ale občas pozadu
+* Aktuálne je nastavený model, v ktorom vychádza každé tri roky nová verzia
+* Do C++ sa najmä pridáva, odoberanie je s ohľadom na obrovské kódové základne problematické
+* Kompilátory sú však občas pozadu
 
 ---
 
 ## Iné jazyky
 
 * C++ je veľmi starý programovací jazyk
-* Pokusom o nahradenie bolo a je viacero
+* Pokusov o jeho nahradenie bolo a je viacero
 * **D** bol myslený ako priamy nástupca, aktuálne je popularita veľmi nízka
-* **Go** je viacej high level (má napríklad garbage collector) jazyk postavený okolo goroutines, s príchodom cloudu sa začal použivať vo väčšej miere
-* **Rust** NIST odporúča C a C++ nepoužívať v kritických systémoch, veľmi ľahko sa dá urobiť nepovolená pamäťová operácia, ako jednu z náhrad odporúčil Rust. Výhodou je v celku unikátny model vlastníctva pamäte, ktorý umožnuje mať bezpečnú aplikáciu aj bez garbagge collectoru.
+* **Go** je viac high-level jazyk (má napríklad garbage collector) postavený na goroutines; s príchodom cloudu sa začal používať vo väčšej miere
+* **Rust** – NIST odporúča nepoužívať C a C++ v kritických systémoch, pretože sa v nich veľmi ľahko dá vykonať nepovolená pamäťová operácia. Ako jednu z náhrad odporúča Rust. Jeho výhodou je pomerne unikátny model vlastníctva pamäte, ktorý umožňuje vytvoriť bezpečnú aplikáciu aj bez garbage collectora.
 
 ---
 
 ## C++2 (Syntax 2)
 
-* Expiriment od [Herba Suttera](https://github.com/hsutter/cppfront)
+* Experiment od [Herba Suttera](https://github.com/hsutter/cppfront)
 * Nová C++ syntax, ktorá zjednodušuje a odstraňuje nebezpečné konštrukcie (resp. ich robí explicitnými)
-* "Kompilátor" preloží súbor, kde sa nachádza aj pôvodná syntax aj nová do pôvodnej
+* „Kompilátor“ preloží súbor, v ktorom sa nachádza pôvodná aj nová syntax, do pôvodnej syntaxe
 * V podstate mŕtvy projekt
 
 ```cpp
@@ -766,7 +770,7 @@ int main() {                                    // Cpp1
 ## Carbon
 
 * Nový programovací jazyk od [Chadlera Carrutha](https://github.com/chandlerc) z Google
-* Ako C++ je v podstate kompatibilné s C, tak Carbon chce byť kompatibilný s C++
+* Tak ako je C++ v podstate kompatibilný s C, chce byť Carbon kompatibilný s C++
 * Stále vo vývoji
 
 <div style="display: flex; align-items: center;">
@@ -849,7 +853,7 @@ Ak návratová hodnota nie je špecifikovaná, použije sa `0` ako implicitná n
   </li>
   <li class="fragment">
 
-Môžeme namiesto int použiť `void`?
+Môžeme namiesto `int` použiť `void`?
 
 ```cpp
 void main() { }
@@ -868,7 +872,7 @@ Nie, štandard umožňuje iba `int` ako návratovú hodnotu.
 <ul>
   <li>
 
-Ktoré z nasledujúcich prototypov funkcie main sú platné v C++ programe?
+Ktoré z nasledujúcich prototypov funkcie `main` sú platné v programe v C++?
 
 ```cpp
 int main() { } // 1
@@ -880,7 +884,7 @@ int main(int argc, char** argv, char** x) // 5
   </li>
   <li class="fragment">
 
-V podstate sú všetky dobré, ale iba bez parametrov a (`int`, `char**`) musia dovoľovať všetky implementácie, ostatné sú *implementation defined*.
+V podstate sú všetky platné, ale iba verziu bez parametrov a verziu s (`int`, `char**`) musia podporovať všetky implementácie; ostatné sú *implementation defined*.
   </li>
 </ul>
 
@@ -902,7 +906,7 @@ V podstate sú všetky dobré, ale iba bez parametrov a (`int`, `char**`) musia 
     </div>
     <div class="fragment" style="flex: 2;">
 
-Počet parametrov predaných z prostredia do programu (počet konzolových parametrov +1).
+Počet parametrov odovzdaných z prostredia do programu (počet konzolových parametrov + 1).
     </div>
   </li>
   <li style="display: flex;">
@@ -912,7 +916,7 @@ Počet parametrov predaných z prostredia do programu (počet konzolových param
     </div>
     <div class="fragment" style="flex: 2;">
 
-Pole parametrov predaných z prostredia do programu (konzolové parametre + ...).
+Pole parametrov odovzdaných z prostredia do programu (konzolové parametre + ...).
     </div>
   </li>
   <li style="display: flex;">
