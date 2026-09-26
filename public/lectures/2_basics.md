@@ -20,22 +20,22 @@
 # Hello world!
 
 ```cpp
-import std;
-
-int main() {
-    std::println("Hello World");
-}
-```
-
-* Na gcc13 sa neskopiluje out of the box 🧐...
-<!-- .element: class="fragment" -->
-
-
-```cpp
 #include <iostream>
  
 int main() {
     std::cout << "Hello world!\n";
+}
+```
+
+
+* Konečne sa dočkávame moderného spôsobu zápisu "Hello World" v C++20 s modulmi. 🚀 Kompilátory ich už podporujú, stále je to ale experimentálne.
+* My budeme taký hybridný, budeme používať moduly, ale spomenieme aj hlavičkové súbory.
+
+```cpp
+import std;
+
+int main() {
+    std::println("Hello World");
 }
 ```
 
@@ -58,6 +58,19 @@ int main(int argc, char* argv[]);
 Zvyčajne `argc` obsahuje počet parametrov + 1, `argv` potom obsahuje ako prvý prvok meno (cestu) programu a potom parametre
 </div>
 </div>
+
+---
+
+## `import`
+
+* V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
+* Použivajú kľúčové slovo `import` a `export`
+* Nakríklad keď chceme použiť štandardnú knižnicu, môžeme ju importovať ako modul:
+
+```cpp
+import std; // use this
+import std.compat; // more symbols, for compatibility with older codebases
+```
 
 ---
 
@@ -98,22 +111,35 @@ Systémový hlavičkový súbor.
 </div>
 
 
-## `import`
+### Výhody `import std;` oproti `#include`
 
-* Z iných jazykov ste možno zvyknutí na `import`, `using` alebo `require`
-* Tieto sa celkom podobajú na `#include`, ale sú zásadne iné (`#include` je preprocesorový príkaz, ktorý vloží obsah súboru do zdrojového kódu)
-* V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
-* Použivajú kľúčové slovo `import` a `export`
-* Bohužial nie sú ešte dostupné vo všetkých kompilátoroch a je to také experimentálne
+* Rýchlejšie kompilovanie, pretože modul sa načíta len raz
+* Celá štandardná knižnica je dostupná, nie je potrebné `#include` jednotlivé hlavičkové súbory
+* Jednoduchšie používanie, pretože nie je potrebné pamätať si všetky hlavičkové súbory a ich závislosti
+* Budúcnosťou C++ je modulárny systém, ktorý nahradí tradičné `#include` direktívy
 
 ---
 
 ## Namespace `std::`
 
 * Skoro všetky užitočné triedy a funkcie sú "skryté" v namespace `std`
-* Vždy keď chceme niečo použiť zo štandardnej knižnice musíme najprv `include`-nuť správny súbor a potom s prefixom `std::` nájdeme triedy/funkcie, ktoré chceme 
+* Vždy keď chceme niečo použiť zo štandardnej knižnice musíme najprv `import`-nuť štandardnú knižnicu a potom s prefixom `std::` nájdeme triedy/funkcie, ktoré chceme 
 
 ![Kniha C++ štandardná knižnica](./lectures/2_basics/c++-standard-lib.png)
+
+---
+
+## `std::println`
+
+* `std::println` je nová funkcia v C++23
+* Umožňuje jednoduché vypisovanie na štandardný výstup s automatickým novým riadkom
+* Podobná ako `std::cout` s `'\n'`, ale pohodlnejšia
+
+```cpp
+std::println("Hello, {}!", "world");
+```
+
+* `{}` je zástupný symbol pre hodnotu, ktorá sa má vložiť do reťazca.
 
 ---
 
@@ -160,6 +186,27 @@ Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne po
 ## Undefined behavior
 
 ![Unicorns and rainbows](./lectures/2_basics/unicorn.png)
+
+
+* Undefined behavior nastáva, keď program vykonáva operácie, ktoré nie sú definované štandardom C++. Môže viesť k nepredvídateľným výsledkom, pádom programu alebo bezpečnostným chybám.
+* Kompilátor nemusí varovať pred undefined behavior, preto je dôležité byť opatrný pri písaní kódu.
+* Kompilátor môže optimalizovať kód spôsobom, ktorý predpokladá, že undefined behavior nenastane, čo môže viesť k nečakaným výsledkom ak nastane.
+
+
+```cpp
+int test(int a) {
+  if (a < a + 1) {
+    return true;
+  } else {
+    return false;
+  }
+}
+```
+
+* Funkcia sa skompiluje na `return true`
+<!-- .element: class="fragment" -->
+* Tento jav je spôsobený tým, že výraz `a < a + 1` je vždy pravdivý pre všetky celočíselné typy okrem prípadov, kde nastane overflow, čo je ale undefined behavior.
+<!-- .element: class="fragment" -->
 
 ---
 
@@ -840,7 +887,8 @@ int k = std::max(3, 1); // a++ is evaluated first
 
 <div class="fragment">
 
-Poradie vyhodnocovania parametrov funkcie je nedefinované (nešpecifikované od C++17)
+* Poradie vyhodnocovania parametrov funkcie je nešpecifikované
+* Štandard iba hovorí, že prametre sú vyhodnotené pred samotným vykonaním funkcie
 </div>
 
 
@@ -984,12 +1032,6 @@ for (size_t i = 0; i < std::size(arr); ++i) { // why ++i
   std::cout << arr[i] << '\n';
 }
 
-```
-
-* Kedysi sa namiesto `std::size` používal `countof` trik. 
-
-```c
-#define countof(arr) (sizeof(arr)/sizeof(arr[0]))
 ```
 
 ---
