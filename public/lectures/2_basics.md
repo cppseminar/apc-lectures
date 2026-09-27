@@ -28,7 +28,7 @@ int main() {
 ```
 
 
-* C++20 prinieslo moduly a C++23 štandardné knižničné moduly `std` a `std.compat`. Podpora v kompilátoroch a build systémoch je stále neúplná.
+* C++20 prinieslo moduly a C++23 štandardné knižničné moduly `std` a `std.compat`. Úroveň podpory sa stále líši medzi kompilátormi, štandardnými knižnicami a build systémami.
 * My budeme takí hybridní, budeme používať moduly, ale spomenieme aj hlavičkové súbory.
 
 ```cpp
@@ -113,7 +113,7 @@ Systémový hlavičkový súbor.
 
 ### Výhody `import std;` oproti `#include`
 
-* Rýchlejšie kompilovanie, pretože modul sa načíta len raz
+* Môže zrýchliť kompiláciu, pretože rozhranie knižnice netreba opakovane textovo spracúvať
 * Celá štandardná knižnica je dostupná, nie je potrebné `#include` jednotlivé hlavičkové súbory
 * Jednoduchšie používanie, pretože nie je potrebné pamätať si všetky hlavičkové súbory a ich závislosti
 * Budúcnosťou C++ je modulárny systém, ktorý nahradí tradičné `#include` direktívy
@@ -222,7 +222,7 @@ int test(int a) {
 * Syntax je `typ` `názov` `= hodnota` `;`, kde `= hodnota` je voliteľná
 
 ```cpp
-int i; // signed integer uninitialized (0 or undefined)
+int i; // uninitialized; reading its value is undefined behavior
 ```
 
 ---
@@ -232,7 +232,7 @@ int i; // signed integer uninitialized (0 or undefined)
 * Všetky typy z jazyka C sú podporované
 
 ```cpp
-int i; // signed integer uninitialized (0 or undefined)
+int i; // uninitialized; reading its value is undefined behavior
 unsigned int u = 1337ul; // unsigned integer
 bool ok = false; // true/false
 double pi = 3.14159; // floating point double precision
@@ -244,6 +244,8 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 * `short`, `long`, `long long` (rozdielne znamienkové signed typy)
 * `unsigned short`, `unsigned`, `unsigned long` (pre neznamienkové typy)
 
+note: Teoreticky char nemusí byť striktne ASCII. 
+
 ---
 
 ## Presná bitová veľkosť
@@ -251,13 +253,14 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 * `long` je na niektorej platforme 32bit a na inej 64bit, podobne aj `size_t`
 * Riešia to typy definované v súbore `#include <cstdint>`
 * Nemusia byť definované na všetkých platformách (`CHAR_BIT == 8`)
-* Odporúčame zvyknúť si skoro vždy používať tieto typy
+* Používame ich, keď potrebujeme presný počet bitov, napríklad pre binárne formáty, protokoly alebo registre
+* Pre bežné celočíselné výpočty je spravidla vhodnejší typ `int`
 
 ```cpp
-int8_t i8 = 127;
-int16_t i16 = 32'000;
-uint32_t u32 = 4'000'000'000;
-int64_t i64 = 10'000'000'000'000;
+std::int8_t i8 = 127;
+std::int16_t i16 = 32'000;
+std::uint32_t u32 = 4'000'000'000;
+std::int64_t i64 = 10'000'000'000'000;
 ```
 
 note: CHAR_BIT je nastavené na číslo, ktoré reprezentuje počet bitov v type `char`. Platformy kompatibilné s POSIX požadujú `8`.
@@ -286,19 +289,6 @@ std::cout << sizeof(double) << '\n'; // 8
 
 Na Windows je `long` typicky 4 bajty (LLP64 ABI), na 64-bitových Unix systémoch typicky 8 bajtov (LP64 ABI). Nezávisí to priamo od kompilátora.
 </div>
-
-
-## `std::adressof`
-
-* Operátor `&` má jeden problém, môže byť preťažený a potom nevracia adresu premennej
-* Je to síce zlý dizajn, ale keď budeme používať kód napísaný inými ľuďmi, môže sa to stať
-* Riešením je použiť funkciu `std::addressof` z hlavičkového súboru `<memory>`
-
-```cpp
-#include <memory>
-
-int* p = std::addressof(x);
-```
 
 ---
 
@@ -385,13 +375,14 @@ for (int i = 0; i < 10; ++i) {
 </div>
 
 
-### Existuje jedna výnimka 
+### Opakované používanie objektu
 
-* V cykloch, ktoré sú krátke a vykonávajú sa často, môžeme ušetriť veľa alokácií, ak presunieme niektoré premenné pred cyklus (stále ich treba inicializovať)
+* Predvolene ponechávame premennú v najužšom možnom scope
+* Ak meranie ukáže problém, pri niektorých typoch môžeme opakovaným použitím objektu zachovať jeho kapacitu a obmedziť alokácie
 
 ```cpp
 for (int i = 0; i < n; ++i) {
-    std::string bad = "Very long... string";
+  std::string value = "Very long... string";
     // use string
 }
 ```
@@ -404,7 +395,8 @@ for (int i = 0; i < n; ++i) {
 }
 ```
 
-* Neplatí pre typy ako `int`, `double` a smerníky. Ich inicializácia nič nestojí. 
+  * Ide o optimalizáciu, ktorú treba podložiť meraním; nemala by zbytočne rozširovať scope premennej
+  * Pri jednoduchých typoch ako `int`, `double` a smerníky spravidla uprednostníme užší scope
 
 ---
 
@@ -453,9 +445,9 @@ auto sq = sqrt(i); // whatever returns sqrt (double in this case)
 auto first_name = "Bjarne"; // const char*, not std::string
 auto surname = std::string("Stroustrup"); // std::string
 
-auto *ptr = &i; // int 
-auto ptr = &i; // int*
-auto* ptr = i; // compilation error  
+auto* ptr1 = &i; // int*
+auto ptr2 = &i; // int*
+auto* ptr3 = i; // compilation error
 ```
 
 * `auto*` sa nedá použiť, ak vydedukovaný typ nie je smerník
@@ -496,9 +488,9 @@ int main() {
 
 ---
 
-## Almost always use `auto`
+## Almost always use `auto`?
 
-* Herb Sutter prišiel s myšlienkou, že vždy by sme mali používať `auto`
+* Herb Sutter navrhol štýl, v ktorom pri inicializácii preferujeme `auto`
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -506,7 +498,7 @@ int main() {
 ```cpp
 short i = 7;
 std::string s = "default";
-short* = &i;
+short* p = &i;
 ```
 </div>
 <div style="flex: 1;">
@@ -514,31 +506,14 @@ short* = &i;
 ```cpp
 auto i = short(7);
 auto s = std::string("default");
-auto* = &i;
+auto* p = &i;
 ```
 </div>
 </div>
 
-* Vyzerá to, že by to mohlo byť menej efektívne (kópia?) ale v skutočnosti si s tým kompilátor poradí
-* Výhodou je, že typ nemôže ostať neinicializovaný, keďže `auto x;` je chyba kompilácie
-* Rovnako ak zmeníme jeden typ, pomocou `decltype` vieme automaticky upraviť ďalšie
-
-<div style="display: flex; align-items: center;">
-<div style="flex: 1;">
-
-```cpp
-float f = 1.23;
-float g = 0;
-```
-</div>
-<div style="flex: 1;">
-
-```cpp
-auto f = 1.23f;
-decltype(f) g = 0;
-```
-</div>
-</div>
+* Dedukcia typu nemá režijné náklady počas vykonávania programu
+* Premenná musí byť inicializovaná, pretože `auto x;` je chyba kompilácie
+* Explicitný typ ponecháme tam, kde lepšie vyjadruje zámer alebo požadovanú konverziu
 
 ---
 
@@ -782,7 +757,7 @@ if (i & 2 == 2) {
 
 ```cpp
 int i = 0x10001001;
-if ((i & 2) == 2) {
+if ((i & 2) == 2) {  // explicit, to ensure correct precedence
   std::cout << "Will this print?\n";
 }
 ```
@@ -814,33 +789,6 @@ auto v = b ? 1 : "4"; // will not compile
 ```
 
 Druhý a tretí operand musia byť kompatibilné, inak zlyhá kompilácia.
-
-
-### C vs C++
-
-Ternárny operátor sa vyhodnocuje trochu inak v C
-
-```cpp
-int a, b;
-// fill up a
-
-a>=0? b=1 : b=2;
-```
-
-<div class="fragment">
-
-V C sa nedá skompilovať
-
-```cpp
-(a>=0 ? b=1 : b) = 2; // illegal in C
-```
-
-C++ má iné pravidlá
-
-```cpp
-a >= 0 ? (b = 1) : (b = 2); // OK C++
-```
-</div>
 
 ---
 
@@ -1223,6 +1171,7 @@ const char json[] = R"###({
 ### Operácie s C-stringami
 
 * Vždy sa uistite, že máte reťazce naozaj ukončené nulou, inak sa môžu stať zlé veci (undefined behavior)
+* V modernom C++ preferujeme `std::string` a `std::string_view`; C-reťazce používame najmä pri komunikácii s C rozhraniami
 
 ```cpp
 const char* str = "Hello";
@@ -1237,8 +1186,8 @@ std::cout << msg << '\n'; // Hello world!
 strstr(msg, "rld"); // returns pointer to string or NULL
 ```
 
-* Všetky operácie z C sú podporované
-* `strpbrk`, `strspn`, `strtok`...
+* Funkcie ako `strcpy` a `strcat` nepoznajú veľkosť cieľového poľa a ľahko spôsobia buffer overflow
+* Pri práci s C API sú v hlavičke `<cstring>` dostupné aj `strpbrk`, `strspn`, `strtok` a ďalšie
 
 note: strpbrk - Scans the null-terminated byte string pointed to by dest for any character from the null-terminated byte string pointed to by breakset, and returns a pointer to that character. strspn - Returns the length of the maximum initial segment (span) of the null-terminated byte string pointed to by dest, that consists of only the characters found in the null-terminated byte string pointed to by src. 
 
@@ -1361,18 +1310,31 @@ c.p.y = 12;
 ![xkcd komiks o smerníkoch](./lectures/2_basics/pointers.png)
 
 
+## `std::addressof`
+
+* Operátor `&` má jeden problém, môže byť preťažený a potom nevracia adresu premennej
+* Je to síce zlý dizajn, ale keď budeme používať kód napísaný inými ľuďmi, môže sa to stať
+* Riešením je použiť funkciu `std::addressof` z hlavičkového súboru `<memory>`
+
+```cpp
+#include <memory>
+
+int* p = std::addressof(x);
+```
+
+
 ##  Null smerník
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 6;">
 
-* Adresa (`0`) je rezervovaná ako neplatná 
-* Užitočné na identifikáciu neinicializovaného smerníka 
+* Null smerník neukazuje na žiadny objekt
+* Používame ho na vyjadrenie, že smerník nemá platný cieľ
 * Dereferencia invalidného smerníka je nedefinovaná
 * Konštanty pre null
-   * `NULL`, makro z jazyka C
-   * `0`, starý C++ typ
-   * `nullptr`, preferované v moderných C++
+  * `nullptr`, preferované v moderných C++
+  * `NULL`, staršie makro z jazyka C
+  * `0`, starší spôsob zápisu v C++
 </div>
 <div style="flex: 4;">
 <a href="https://www.youtube.com/watch?v=HSmKiws-4NU">
@@ -1380,6 +1342,14 @@ c.p.y = 12;
 </a>
 </div>
 </div>
+
+```cpp
+int* ptr = nullptr;
+std::cout << ptr; // OK
+// *ptr = 0;      // undefined behavior
+```
+
+note: Null smerník nemusí byť reprezentovaný adresou `0`. Celočíselná konštanta `0` sa iba implicitne konvertuje na null smerník.
 
 
 ## `int *a` alebo `int* a`?
@@ -1508,86 +1478,6 @@ OK, `a` nainicializujeme na hodnotu `b`, teda `7`.
 </ul>
 
 
-### Null smerník
-
-<ul>
-  <li style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-int a = 0;
-
-int *ptr = std::addressof(a);
-```
-</div>
-    <div style="flex: 3;">
-
-Nemusíme použiť operátor `&`, ale funkciu `std::addressof`.
-</div>
-  </li>
-  <li style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-ptr = 0;
-```
-</div>
-    <div style="flex: 3;">
-
-`ptr` je null smerník.
-</div>
-  </li>
-  <li style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-ptr = NULL;
-```
-</div>
-    <div style="flex: 3;">
-
-`ptr` je null smerník.
-</div>
-  </li>
-  <li style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-ptr = nullptr;
-```
-</div>
-    <div style="flex: 3;">
-
-`ptr` je null smerník.
-</div>
-  </li>
-  <li class="fragment" style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-*ptr = 0;
-```
-</div>
-    <div style="flex: 3;">
-
-Nedefinované správanie.
-</div>
-  </li>
-  <li class="fragment" style="display: flex;">
-    <div style="flex: 2;">
-
-```cpp
-std::cout << ptr;
-```
-</div>
-    <div style="flex: 3;">
-
-Samotný smerník čítať môžeme.
-</div>
-  </li>
-</ul>
-
-
 ### Segmentation fault
 
 * Zďaleka najčastejšou chybou v C++ programoch je Segmentation fault (Access violation)
@@ -1664,6 +1554,8 @@ sizeof(array) == sizeof(pointer)
 
 </ul>
 
+note: String pooling robí kompilátor ako optimalizáciu, kde identické reťazce sú uložené len raz v pamäti. Samozrejme z hľadiska štandardu C++ sa na to nesmieme spoliehať. Rovnako smerníky rozličných typov môžu mať teoreticky rôzne veľkosti. 
+
 
 ### Operator `->`
 
@@ -1697,6 +1589,8 @@ int main() {
 * Inkrement a dekrement posúva o veľkosť typu (nie `1`)
    * `int*` sa zvýši o štyri bajty (`sizeof(int)`)
    * `char*` sa zvýši o jeden bajt (`sizeof(char)`)
+
+note: `int` technicky nemusí byť reprezentovaný štyrmi bajtami, záleží na implementácii.
 
 
 <div style="display: flex;">
@@ -1829,23 +1723,6 @@ Polia sa dajú implicitne konvertovať na smerníky. Vieme vyrobiť aj smerník 
 </div>
   </li>
 </ul>
-
-
-### Je nasledujúci výraz platný C++? Ak áno, aký je výsledok?
-
-```cpp
-std::cout << 2["ABCDE"] << std::endl;
-```
-
-<div class="fragment">
-
-`operator[]` *subscript operator* je definovaný ako `a[b] = *(a + b)`
-
-```cpp
-std::cout << *(2 + "ABCDE") << std::endl;
-std::cout << *("ABCDE" + 2) << std::endl;
-```
-</div>
 
 ---
 
@@ -2013,6 +1890,7 @@ Výsledkom `*r` je `int`, takže sa modifikovať dá, výsledok `*c` je `const i
   <div data-id="code" style="flex: 1; text-align: left;">
 
 ```cpp
+int a = 3;
 ```
   </div>
   <div data-id="memory" style="flex: 1; text-align: left;">
@@ -2032,50 +1910,6 @@ Výsledkom `*r` je `int`, takže sa modifikovať dá, výsledok `*c` je `const i
         <td colspan="3">...</td>
       </tr>
       <tr>
-        <td><span style="color: red;">➡</span></td>
-        <td class="address">0x00010000</td>
-        <td>0xdeadbeef</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fffc</td>
-        <td>0xcdcdcdcd</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fff8</td>
-        <td>0x0badc0de</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fff4</td>
-        <td>0xc0ffeeee</td>
-      </tr>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
-
-## Pamäť 
-
-<!-- .slide: data-auto-animate -->
-
-<div style="display: flex;">
-  <div data-id="code" style="flex: 1; text-align: left;">
-
-```cpp
-int a = 3;
-```
-  </div>
-  <div data-id="memory" style="flex: 1; text-align: left;">
-    <table>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-      <tr>
         <td></td>
         <td class="address">0x00010000</td>
         <td>0x00000003</td>
@@ -2087,51 +1921,6 @@ int a = 3;
       </tr>
       <tr>
         <td></td>
-        <td class="address">0x0000fff8</td>
-        <td>0x0badc0de</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fff4</td>
-        <td>0xc0ffeeee</td>
-      </tr>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
-
-## Pamäť 
-
-<!-- .slide: data-auto-animate -->
-
-<div style="display: flex;">
-  <div data-id="code" style="flex: 1; text-align: left;">
-
-```cpp
-int a = 3;
-int dummy;
-```
-  </div>
-  <div data-id="memory" style="flex: 1; text-align: left;">
-    <table>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x00010000</td>
-        <td>0x00000003</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fffc</td>
-        <td>0xcdcdcdcd</td>
-      </tr>
-      <tr>
-        <td><span style="color: red;">➡</span></td>
         <td class="address">0x0000fff8</td>
         <td>0x0badc0de</td>
       </tr>
@@ -2337,56 +2126,6 @@ p = &dummy;
   </div>
 </div>
 
-
-## Pamäť 
-
-<!-- .slide: data-auto-animate -->
-
-<div style="display: flex;">
-  <div data-id="code" style="flex: 1; text-align: left;">
-
-```cpp
-int a = 3;
-int dummy;
-int* p = nullptr;
-p = &a;
-*p = 8;
-p = &dummy;
-float f = 2.7;
-```
-  </div>
-  <div data-id="memory" style="flex: 1; text-align: left;">
-    <table>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x00010000</td>
-        <td>0x00000008</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fffc</td>
-        <td>0xcdcdcdcd</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fff8</td>
-        <td>0x0000fffc</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td class="address">0x0000fff4</td>
-        <td>0x402ccccd</td>
-      </tr>
-      <tr>
-        <td colspan="3">...</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
 ---
 
 ## Volanie funkcií 
@@ -2480,16 +2219,18 @@ Ak zadám `fff`, tak to vypíše `"Odd"`, musíme kontrolovať stream pomocou `s
 ### Pôjde nasledujúci kód skompilovať a ak áno, aký je výsledok?
 
 ```cpp
-if (char* p = (char*)malloc(2)) {
-  std::cout << "A";
+#include <cstdlib>
+
+if (const char* home = std::getenv("HOME")) {
+  std::cout << home;
 } else {
-  std::cout << "B";
+  std::cout << "HOME is not set";
 }
 ```
 
 <div class="fragment">
 
-Deklarácia v rámci `if`-u funguje, odkedy je C++ na svete. Stačí, aby sa inicializovaná premenná dala skonvertovať na `bool`. Pozor, premenná je potom dostupná aj v `else` vetve. 
+Deklarácia v rámci `if`-u funguje, odkedy je C++ na svete. Stačí, aby sa inicializovaná premenná dala skonvertovať na `bool`. Premenná je dostupná v oboch vetvách, ale nie za celým príkazom `if`.
 </div>
 
 ---
@@ -2699,8 +2440,8 @@ function.h
 <div style="flex: 4;">
 
 ```cpp
-#include "header.h"
-#include "header.h"
+#include "function.h"
+#include "function.h"
 
 int f(int a, int b) {
   return a + b;
@@ -2714,7 +2455,7 @@ function.cpp
 </div>
 
 <div class="fragment">
-Toto je OK, signatúry funkcie môžeme redefinovať.
+Toto je OK, rovnakú deklaráciu funkcie môžeme opakovať. Definícia funkcie môže byť v programe iba jedna.
 </div>
 
 
@@ -2725,7 +2466,7 @@ Toto je OK, signatúry funkcie môžeme redefinovať.
 struct point {
   int x;
   int y;
-}
+};
 ```
 </div>
 <div style="flex: 1;">
@@ -2784,7 +2525,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 
 * Namiesto define guards sa dá použiť `#pragma once` na začiatku súboru
 * Funguje na každom používanom kompilátore, ale nie je C++ štandard 
-* Moduly v C++20 toto celé zmenia a mali by pomôcť s organizáciou kódu, bohužiaľ stále úplne nefungujú
+* Moduly v C++20 poskytujú alternatívu k hlavičkovým súborom, ich praktická dostupnosť závisí od toolchainu
 
 ```cpp
 #pragma once
@@ -2927,7 +2668,7 @@ Modulom a ich organizácii sa budeme podrobnejšie venovať v ďalších predná
 * Podporuje multiplatformový vývoj a generovanie projektov pre rôzne IDE
 
 ```cmake
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.20)
 project(MyProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -2952,15 +2693,35 @@ add_executable(my_executable main.cpp)
 ### `set`
 
 * Nastavuje premenné CMake
-* `CMAKE_CXX_STANDARD 20` nastavuje štandard C++ na C++20
+* `CMAKE_CXX_STANDARD 23` nastavuje štandard C++ na C++23
 * `CMAKE_CXX_STANDARD_REQUIRED ON` znamená, že požadovaný štandard musí byť podporovaný kompilátorom
-* `CMAKE_CXX_EXTENSIONS OFF` znamená, že sa nepovolia žiadne rozšírenia kompilátora (namiesto `std=gnu++20` sa použije `std=c++20`)
+* `CMAKE_CXX_EXTENSIONS OFF` znamená, že sa nepovolia žiadne rozšírenia kompilátora (namiesto `std=gnu++23` sa použije `std=c++23`)
 
 
 ### `add_executable`
 
 * Definuje spustiteľný súbor a jeho zdrojové súbory
 * V tomto prípade vytvára spustiteľný súbor `my_executable` zo súboru `main.cpp`
+
+
+### Generovanie build systému a build
+
+* CMake generuje build systém (Makefile, Ninja, Visual Studio project, ...) na základe `CMakeLists.txt`
+* Tento build systém sa potom použije na kompiláciu a linkovanie projektu
+
+```bash
+# Create a build directory
+mkdir build
+cmake -S . -B build
+```
+
+```bash
+# Build the project using cmake command
+cmake --build build
+
+# Or using make if Makefile was generated (default on Unix systems)
+make -C build
+```
 
 
 ### Pridanie nového `.cpp` súboru
@@ -2999,32 +2760,7 @@ target_sources(my_executable PRIVATE
 </div>
 </div>
 
-```bash
-cmake -S . -B build
-cmake --build build
-```
-
 Oba spôsoby pridajú `geometry.cpp` do rovnakého targetu. `target_sources` vyžaduje, aby bol target už vytvorený.
-
-
-### Generovanie build systému a build
-
-* CMake generuje build systém (Makefile, Ninja, Visual Studio project, ...) na základe `CMakeLists.txt`
-* Tento build systém sa potom použije na kompiláciu a linkovanie projektu
-
-```bash
-# Create a build directory
-mkdir build
-cmake -S . -B build
-```
-
-```bash
-# Build the project using cmake command
-cmake --build build
-
-# Or using make if Makefile was generated (default on Unix systems)
-make -C build
-```
 
 
 ## Rôzne konfigurácie
@@ -3043,7 +2779,38 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 ---
 
+## Upozornenia a sanitizéry
 
+<div style="display: flex;">
+<div style="flex: 1;">
+
+### Compiler warnings
+
+* Kompilátor upozorní na podozrivý kód už počas kompilácie
+* Upozornenia treba čítať a opravovať, ideálne ich považovať za chyby
+
+```bash
+-Wall -Wextra -Wpedantic
+```
+
+</div>
+<div style="flex: 1;">
+
+### Sanitizéry
+
+* Pridajú do programu kontroly, ktoré hľadajú chyby počas jeho vykonávania
+* Pomáhajú odhaliť napríklad chyby v práci s pamäťou a undefined behavior
+
+```bash
+-fsanitize=address,undefined
+```
+
+</div>
+</div>
+
+Používame ich počas vývoja a testovania. Nenahrádzajú testy ani kontrolu kódu.
+
+---
 
 # ĎAKUJEM
 
