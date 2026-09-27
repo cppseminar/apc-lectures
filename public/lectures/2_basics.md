@@ -2884,6 +2884,42 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 
 ---
 
+## Moduly
+
+* C++20 moduly umožňujú pomenovať rozhranie a explicitne určiť, ktoré symboly sú dostupné používateľom
+* Rozhranie modulu kompilátor spracuje a ostatné zdrojové súbory ho načítajú pomocou `import`
+* `import` nevkladá zdrojový text ako `#include`; makrá ani ostatné neexportované mená sa neprenášajú
+* Build systém musí zostaviť moduly pred súbormi, ktoré ich importujú
+
+<div style="display: flex;">
+<div style="flex: 1;">
+
+```cpp
+export module geometry;
+
+export int area(int a, int b) {
+  return a * b;
+}
+```
+
+</div>
+<div style="flex: 1;">
+
+```cpp
+import geometry;
+
+int main() {
+  return area(3, 4);
+}
+```
+
+</div>
+</div>
+
+Modulom a ich organizácii sa budeme podrobnejšie venovať v ďalších prednáškach.
+
+---
+
 ## CMake
 
 * CMake je nástroj na automatizáciu procesu buildovania
@@ -2894,7 +2930,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 cmake_minimum_required(VERSION 3.12)
 project(MyProject LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -2925,6 +2961,50 @@ add_executable(my_executable main.cpp)
 
 * Definuje spustiteľný súbor a jeho zdrojové súbory
 * V tomto prípade vytvára spustiteľný súbor `my_executable` zo súboru `main.cpp`
+
+
+### Pridanie nového `.cpp` súboru
+
+1. Vytvoríme nový zdrojový súbor, napríklad `geometry.cpp`
+2. Pridáme ho medzi zdrojové súbory targetu
+3. Znovu spustíme konfiguráciu a build
+
+<div style="display: flex;">
+<div style="flex: 1;">
+
+**Pri vytvorení targetu**
+
+```cmake
+add_executable(my_executable
+  main.cpp
+  geometry.cpp
+)
+```
+
+</div>
+<div style="flex: 1;">
+
+**Do existujúceho targetu**
+
+```cmake
+add_executable(my_executable
+  main.cpp
+)
+
+target_sources(my_executable PRIVATE
+  geometry.cpp
+)
+```
+
+</div>
+</div>
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+Oba spôsoby pridajú `geometry.cpp` do rovnakého targetu. `target_sources` vyžaduje, aby bol target už vytvorený.
 
 
 ### Generovanie build systému a build
@@ -2962,6 +3042,8 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
    * **MinSizeRel**: optimalizácia pre minimálnu veľkosť
 
 ---
+
+
 
 # ĎAKUJEM
 
