@@ -12,8 +12,8 @@
 * Typy, základné operácie a funkcie
 * Základné zložené typy
 * Smerníky a referencie
-* Príkazy na riadene programu
-* Kompilácia, cmake
+* Príkazy na riadenie programu
+* Kompilácia, CMake
 
 ---
 
@@ -29,7 +29,7 @@ int main() {
 
 
 * Konečne sa dočkávame moderného spôsobu zápisu "Hello World" v C++20 s modulmi. 🚀 Kompilátory ich už podporujú, stále je to ale experimentálne.
-* My budeme taký hybridný, budeme používať moduly, ale spomenieme aj hlavičkové súbory.
+* My budeme takí hybridní, budeme používať moduly, ale spomenieme aj hlavičkové súbory.
 
 ```cpp
 import std;
@@ -64,8 +64,8 @@ Zvyčajne `argc` obsahuje počet parametrov + 1, `argv` potom obsahuje ako prvý
 ## `import`
 
 * V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
-* Použivajú kľúčové slovo `import` a `export`
-* Nakríklad keď chceme použiť štandardnú knižnicu, môžeme ju importovať ako modul:
+* Používajú kľúčové slová `import` a `export`
+* Napríklad keď chceme použiť štandardnú knižnicu, môžeme ju importovať ako modul:
 
 ```cpp
 import std; // use this
@@ -77,7 +77,7 @@ import std.compat; // more symbols, for compatibility with older codebases
 ## `#include <iostream>`
 
 * `#include` iba vloží súbor (zvyčajne hlavičkový súbor [header file]) do iného súboru 
-* Súbory v `<>` obsahujú štandardné a/alebo systémové knižnice. Štandardné by mali byť dostupné na všetkých implementáciách vyhovujúcich danej verzií štandardu (my používame C++20/23)
+* Súbory v `<>` obsahujú štandardné a/alebo systémové knižnice. Štandardné by mali byť dostupné na všetkých implementáciách vyhovujúcich danej verzii štandardu (my používame C++20/23)
 * Súbory v `""` obsahujú naše [user defined] hlavičkové súbory
 
 <div style="display: flex; align-items: center;">
@@ -123,7 +123,7 @@ Systémový hlavičkový súbor.
 ## Namespace `std::`
 
 * Skoro všetky užitočné triedy a funkcie sú "skryté" v namespace `std`
-* Vždy keď chceme niečo použiť zo štandardnej knižnice musíme najprv `import`-nuť štandardnú knižnicu a potom s prefixom `std::` nájdeme triedy/funkcie, ktoré chceme 
+* Vždy, keď chceme niečo použiť zo štandardnej knižnice, musíme najprv `import`-nuť štandardnú knižnicu a potom s prefixom `std::` nájdeme triedy/funkcie, ktoré chceme 
 
 ![Kniha C++ štandardná knižnica](./lectures/2_basics/c++-standard-lib.png)
 
@@ -178,7 +178,7 @@ std::cout.flush();
 </div>
 <div style="flex: 1;">
 
-Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne používaného `locale` do typu aký používa stream.
+Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne používaného `locale` do typu, aký používa stream.
 </div>
 
 ---
@@ -190,7 +190,7 @@ Dva ekvivalentné programy. Funkcia `widen` konvertuje znak pomocou aktuálne po
 
 * Undefined behavior nastáva, keď program vykonáva operácie, ktoré nie sú definované štandardom C++. Môže viesť k nepredvídateľným výsledkom, pádom programu alebo bezpečnostným chybám.
 * Kompilátor nemusí varovať pred undefined behavior, preto je dôležité byť opatrný pri písaní kódu.
-* Kompilátor môže optimalizovať kód spôsobom, ktorý predpokladá, že undefined behavior nenastane, čo môže viesť k nečakaným výsledkom ak nastane.
+* Kompilátor môže optimalizovať kód spôsobom, ktorý predpokladá, že undefined behavior nenastane, čo môže viesť k nečakaným výsledkom, ak nastane.
 
 
 ```cpp
@@ -218,7 +218,7 @@ int test(int a) {
 
 * C++ je staticky typovaný jazyk (podobne ako C)
 * Preto pred prvým použitím premennej musíme definovať jej typ
-* Deklarácie typu sú podbne ako v C
+* Deklarácie typu sú podobné ako v C
 * Syntax je `typ` `názov` `= hodnota` `;`, kde `= hodnota` je voliteľná
 
 ```cpp
@@ -260,13 +260,13 @@ uint32_t u32 = 4'000'000'000;
 int64_t i64 = 10'000'000'000'000;
 ```
 
-note: CHAR_BITS je nastavené na číslo, ktoré reprezentuje počet bitov c type `char`. Všetky platformy (napr. POSIX), ale požadujú `8`.
+note: CHAR_BITS je nastavené na číslo, ktoré reprezentuje počet bitov v type `char`. Všetky platformy (napr. POSIX) ale požadujú `8`.
 
 ---
 
 ## Usporiadanie v pamäti
 
-* Každá premenná ma v pamäti miesto, ktoré sa dá zistiť pomocou operátora `&`
+* Každá premenná má v pamäti miesto, ktoré sa dá zistiť pomocou operátora `&`
 * Veľkosť typov je do istej miery závislá od implementácie a dá sa zistiť pomocou operátora `sizeof`
 * Veľkosti sú v "char units" a nie bajtoch (zvyčajne je ale char unit 8bitov)
 
@@ -387,7 +387,7 @@ for (int i = 0; i < 10; ++i) {
 
 ### Existuje jedna výnimka 
 
-* V cykloch, ktoré sú krátke a vykonávajú sa často, môžeme ušetriť veľa alokácií ak presunieme niektoré premenné pred cyklus (stále ich treba inicializovať)
+* V cykloch, ktoré sú krátke a vykonávajú sa často, môžeme ušetriť veľa alokácií, ak presunieme niektoré premenné pred cyklus (stále ich treba inicializovať)
 
 ```cpp
 for (int i = 0; i < n; ++i) {
@@ -458,10 +458,10 @@ auto ptr = &i; // int*
 auto* ptr = i; // compilation error  
 ```
 
-* `auto*` sa nedá použiť ak vydedukovaný typ nie je smerník
+* `auto*` sa nedá použiť, ak vydedukovaný typ nie je smerník
 
 
-* Ak potrebujeme presné číslené typy musíme použiť suffixy
+* Ak potrebujeme presné číselné typy, musíme použiť suffixy
    * `u` alebo `U` pre `unsigned int`
    * `l` alebo `L` pre `long`
    * `ll` alebo `LL` pre `long long`
@@ -470,7 +470,7 @@ auto* ptr = i; // compilation error
 ```cpp
 auto a = 10l; // long
 auto b = 20ul; // unsigned long
-auto c = 30ull; // usigned long long
+auto c = 30ull; // unsigned long long
 ```
 
 
@@ -545,7 +545,7 @@ decltype(f) g = 0;
 ## `enum`
 
 * `enum` je v podstate iba pomenované celé číslo
-* Problém je, že takéto `enum`y nám zaplňujú globálny namespace, kedže hodnoty sa dá použiť bez názvu `enum`u
+* Problém je, že takéto `enum`y nám zapĺňajú globálny namespace, keďže hodnoty sa dajú použiť bez názvu `enum`u
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -608,7 +608,7 @@ int e = color::yellow;
 
 <div class="fragment">
 
-* Iba predmenná `b` vpravo sa podarí skompilovať
+* Iba premenná `b` vpravo sa podarí skompilovať
 * Strácame automatickú konverziu na `int`
 </div>
 
@@ -667,7 +667,7 @@ enum class color : uint32_t {
     <td><code>a</code> bude mať rovnakú hodnotu ako <code>b</code>, výsledkom je <code>&a</code></td>
   </tr>
   <tr>
-    <td>Aritmeticke operátory</td>
+    <td>Aritmetické operátory</td>
     <td><code>+</code>, <code>-</code>, <code>*</code></td>
     <td><code>a + b</code></td>
     <td>Ako štandardné matematické operácie, výsledkom je nová hodnota</td>
@@ -682,7 +682,7 @@ enum class color : uint32_t {
     <td>Operátor zvyšku</td>
     <td><code>%</code></td>
     <td><code>a % b</code></td>
-    <td>Zvyšok po celočíselnom delení, funguje ina celočíselných hodnotách</td>
+    <td>Zvyšok po celočíselnom delení, funguje iba na celočíselných hodnotách</td>
   </tr>
   <tr>
     <td>Aritmetické priradenia</td>
@@ -706,13 +706,13 @@ enum class color : uint32_t {
     <td>Logické operátory</td>
     <td><code>&&</code>, <code>||</code></td>
     <td><code>a && b</code></td>
-    <td>Výsledok je <code>true</code> ak sú <code>a</code> aj <code>b</code> pravda, inak <code>false</code>.</td>
+    <td>Výsledok je <code>true</code>, ak sú <code>a</code> aj <code>b</code> pravdivé, inak <code>false</code>.</td>
   </tr>
   <tr>
     <td>Operátor negácie</td>
     <td><code>!</code></td>
     <td><code>!a</code></td>
-    <td>Výsledok je <code>true</code> ak je <code>a</code> nepravda, a naopak.</td>
+    <td>Výsledok je <code>true</code>, ak je <code>a</code> nepravdivé, a naopak.</td>
   </tr>
   <tr>
     <td>Bitové operácie</td>
@@ -888,7 +888,7 @@ int k = std::max(3, 1); // a++ is evaluated first
 <div class="fragment">
 
 * Poradie vyhodnocovania parametrov funkcie je nešpecifikované
-* Štandard iba hovorí, že prametre sú vyhodnotené pred samotným vykonaním funkcie
+* Štandard iba hovorí, že parametre sú vyhodnotené pred samotným vykonaním funkcie
 </div>
 
 
@@ -1023,7 +1023,7 @@ Kompilačná chyba (*too many initializers*).
 
 ```cpp
 int arr[] = { 1, 2, 3, 4, 5 }; // we can omit array size
-// then it will have size to accomodate all elements
+// then it will have size to accommodate all elements
 bool ok = arr[0] == 1; // true
 int undef = arr[5]; // undefined behavior (bad)
 arr[arr[0] + 2] = 3; // { 1, 2, 3, 3, 5 }
@@ -1079,7 +1079,7 @@ std::cout << s << '\n';
 </div>
 <div style="flex: 2;">
   
-Vypiše `"ABXDE"`, stringy môžeme aj modifikovať. 
+Vypíše `"ABXDE"`, stringy môžeme aj modifikovať. 
 </div>
 </div>
 
@@ -1095,7 +1095,7 @@ std::cout << s1 << '\n'; // 12345
 </div>
 <div style="flex: 2;">
   
-Vyrobí pole desiatich znakov a mieste `0` až `4` bude string `"12345"`, ostatné znaky budú inicializované na `\0`
+Vyrobí pole desiatich znakov a na mieste `0` až `4` bude string `"12345"`, ostatné znaky budú inicializované na `\0`
 </div>
 </div>
 
@@ -1132,9 +1132,9 @@ if (strcmp(str, "Name:")) {
 
 ### Raw literals
 
-* Konštrucií `"string"` sa hovorí aj literál
+* Konštrukcii `"string"` sa hovorí aj literál
 * Ak chceme v rámci neho použiť niektoré znaky (nový riadok, `"`, `'\'`, ...) musíme ich escapovať pomocou `\`
-* Niektoré reťazce vyzerajú veľmi zle so všetkých escape sekvenciami (regex, cesty k súborom...)
+* Niektoré reťazce vyzerajú veľmi zle so všetkými escape sekvenciami (regex, cesty k súborom...)
 * Môžeme použiť raw literály. **R**"**delimiter(**string**)delimiter**", delimiter je nepovinný a užitočný hlavne ak samotný reťazec obsahuje znak `)`
 
 <div style="display: flex;">
@@ -1220,7 +1220,7 @@ struct circle {
 
 ### Inicializácia štruktúr
 
-* Štandardne je štruktúra neinicializovaná, takže čítanie jej hodnôť je nedefinované správanie (tieto pravidlá sú iné ak máme definovaný konštruktor, ale o tom neskôr)
+* Štandardne je štruktúra neinicializovaná, takže čítanie jej hodnôt je nedefinované správanie (tieto pravidlá sú iné, ak máme definovaný konštruktor, ale o tom neskôr)
 
 <ul>
   <li style="display: flex;">
@@ -1276,8 +1276,8 @@ circle c = {
   
 Môžeme aj vymenovať členov, ktoré sa majú inicializovať
 
-* Ostatné sa inicializujú na `0` (alebo default konštruktora)
-* Musia byť v poradí ako sú v štruktúre, inak chyby kompilácie
+* Ostatné sa inicializujú na `0` (alebo pomocou defaultného konštruktora)
+* Musia byť v poradí, v akom sú v štruktúre, inak nastanú chyby kompilácie
 * C++20 designated initializers
 </div>
 </div>
@@ -1312,7 +1312,7 @@ c.p.y = 12;
 * Opačný proces, získanie hodnoty na adrese, sa robí pomocou operátora dereferencie `*`
 * Referencia je iba alias inej premennej (vnútorne je implementovaná ako smerník)
 
-![xkcd komix o smernikoch](./lectures/2_basics/pointers.png)
+![xkcd komiks o smerníkoch](./lectures/2_basics/pointers.png)
 
 
 ##  Null smerník
@@ -1339,7 +1339,7 @@ c.p.y = 12;
 ## `int *a` alebo `int* a`?
 
 * Oba zápisy sú ekvivalentné
-* Pozor ale pri inicializácií viacerých premenných na jednom riadku <small>(čo inak skôr neodporúčame)</small>
+* Pozor ale pri inicializácii viacerých premenných na jednom riadku <small>(čo inak skôr neodporúčame)</small>
 
 <ul>
   <li class="fragment" style="display: flex;">
@@ -1444,7 +1444,7 @@ b_ptr = a_ptr;
 </div>
     <div style="flex: 3;">
   
-OK, smerník na `b` zmeníme, aby ukazoval na `a` .
+OK, smerník na `b` zmeníme, aby ukazoval na `a`.
 </div>
   </li>
   <li class="fragment" style="display: flex;">
@@ -1456,7 +1456,7 @@ OK, smerník na `b` zmeníme, aby ukazoval na `a` .
 </div>
     <div style="flex: 3;">
   
-OK, `a` nainicializujeme na hodnotu `b` teda `7`.
+OK, `a` nainicializujeme na hodnotu `b`, teda `7`.
 </div>
   </li>
 </ul>
@@ -1647,7 +1647,7 @@ int main() {
 ## Aritmetika so smerníkmi
 
 * C++ predpokladá lineárnu (neprerušovanú) pamäť, preto k smerníkom môžeme pripočítavať a odpočítavať hodnoty a získame ďalšie smerníky (nie nutné platné)
-* Programátori sú zodpovedný za dereferencovanie iba platných smerníkov
+* Programátori sú zodpovední za dereferencovanie iba platných smerníkov
 * Inkrement a dekrement posúva o veľkosť typu (nie `1`)
    * `int*` sa zvýši o štyri bajty (`sizeof(int)`)
    * `char*` sa zvýši o jeden bajt (`sizeof(char)`)
@@ -1663,7 +1663,7 @@ int *ptr = &arr[3];
 </div>
     <div style="flex: 3;">
   
-`ptr` je smernik na tretí (zero based) prvok pola
+`ptr` je smerník na tretí (zero based) prvok poľa
 </div>
 </div>
 <div style="display: flex;">
@@ -1688,7 +1688,7 @@ Modifikujeme pole
 </div>
     <div class="fragment" style="flex: 3;">
   
-Posunieme o jeden, takže ukazujeme na posledný prvok pola.
+Posunieme o jeden, takže ukazujeme na posledný prvok poľa.
 </div>
   </div>
   <div style="display: flex;">
@@ -1701,7 +1701,7 @@ Posunieme o jeden, takže ukazujeme na posledný prvok pola.
 </div>
     <div class="fragment" style="flex: 3;">
   
-Posunieme o jeden, takže ukazujeme mimo pola. Takýto smerník nesmieme dereferencovať.
+Posunieme o jeden, takže ukazujeme mimo poľa. Takýto smerník nesmieme dereferencovať.
 </div>
   </div>
   <div style="display: flex;">
@@ -1715,7 +1715,7 @@ ptr = ptr - 4;
 </div>
     <div class="fragment" style="flex: 3;">
   
-Znovu sa vrátime do pola na druhý prvok, ten už môžeme modifikovať.
+Znovu sa vrátime do poľa na druhý prvok, ten už môžeme modifikovať.
 </div>
   </div>
 
@@ -1746,7 +1746,7 @@ ptr[0]
 </div>
     <div style="flex: 3;">
 
-Hodnota na pozícií `ptr`.
+Hodnota na pozícii `ptr`.
 </div>
   </li>
   <li style="display: flex;">
@@ -1785,7 +1785,7 @@ Polia sa dajú implicitne konvertovať na smerníky. Vieme vyrobiť aj smerník 
 </ul>
 
 
-### Je nasledujúci výraz platný C++? Ak áno aký je výsledok?
+### Je nasledujúci výraz platný C++? Ak áno, aký je výsledok?
 
 ```cpp
 std::cout << 2["ABCDE"] << std::endl;
@@ -2364,8 +2364,8 @@ void g() {
 }
 ```
 
-* Vyhodou volania `&` a `const &` je, že na pozadí sa len presunie smerník a nie celý typ
-* Nekonštantná referencia sa v súčasnosti už veľmi nepoužíva, má zmysel len pri vstupno výstupných parametrov
+* Výhodou volania `&` a `const &` je, že na pozadí sa len presunie smerník a nie celý typ
+* Nekonštantná referencia sa v súčasnosti už veľmi nepoužíva, má zmysel len pri vstupno-výstupných parametroch
 
 ---
 
@@ -2427,11 +2427,11 @@ Aj samotnú deklaráciu môžeme dať do inicializácie `if`.
 </div>
 <div class="fragment">
 
-Ak zadám `fff`, tak to vypiše `"Odd"`, musíme kontrolovať stream pomocou `std::cin.fail()`.
+Ak zadám `fff`, tak to vypíše `"Odd"`, musíme kontrolovať stream pomocou `std::cin.fail()`.
 </div>
 
 
-### Pôjde nasledujúci kód skompilovať a ak áno aký je výsledok?
+### Pôjde nasledujúci kód skompilovať a ak áno, aký je výsledok?
 
 ```cpp
 if (char* p = (char*)malloc(2)) {
@@ -2443,7 +2443,7 @@ if (char* p = (char*)malloc(2)) {
 
 <div class="fragment">
 
-Deklarácia v rámci `if`-u funguje odkedy je C++ na svete. Stačí aby sa inicializovaná premenná dala skonvertovať na `bool`. Pozor premenná je potom dostupná aj v `else` vetve. 
+Deklarácia v rámci `if`-u funguje, odkedy je C++ na svete. Stačí, aby sa inicializovaná premenná dala skonvertovať na `bool`. Pozor, premenná je potom dostupná aj v `else` vetve. 
 </div>
 
 ---
@@ -2487,14 +2487,14 @@ for (size_t i = 0; i < numbers.size(); ++i) {
 }
 ```
 
-V C++11 a vyššie existuje lepší spôsob ako iterovať prvky
+V C++11 a vyššie existuje lepší spôsob, ako iterovať prvky
 
 ---
 
 ## Range based for loop
 
 * Syntaktický cukor okolo iterátorov nad kontajnermi
-* Starý spôsob iteratovanie cez kontajnery bol 
+* Starý spôsob iterovania cez kontajnery bol 
 
 ```cpp
 std::vector<int> numbers = { /* ... */ };
@@ -2531,7 +2531,7 @@ for (int i : numbers) {
 ```
 
 
-* Pre zložitejšie typy a prípady keď treba modifikovať prvky kontajneru musíme použiť referencie
+* Pre zložitejšie typy a prípady, keď treba modifikovať prvky kontajnera, musíme použiť referencie
 
 ```cpp
 std::vector<std::string> names = { /* ... */ };
@@ -2586,7 +2586,7 @@ std::vector<int> get_numbers(size_t n) {
 ```
 
 
-### Pôjde nasledujúci kód skompilovať a ak áno aký je výsledok?
+### Pôjde nasledujúci kód skompilovať a ak áno, aký je výsledok?
 
 ```cpp
 int i = 1;
@@ -2612,7 +2612,7 @@ Vypíše iba `1`, `continue` vždy skáče na koniec cyklu.
    * Zdrojové súbory (`*.cpp`, `*.cc` alebo `*.c` pre C súbory)
    * Hlavičkové súbory (`*.h`, `*.hpp`, bez prípony)
 * Každý `.cpp` súbor je zvyčajne spárovaný s `.h` súborom, ktorý deklaruje verejný interface a ten je potom v `.cpp` súbore implementovaný 
-* Aj `.cpp` aj `.h` súbory môže include-ovať iné `.h` súbory, kvôli použitiu tried a funkcií, ktoré daný `.h` súbor deklaruje
+* Aj `.cpp` aj `.h` súbory môžu include-ovať iné `.h` súbory kvôli použitiu tried a funkcií, ktoré daný `.h` súbor deklaruje
 * Hlavičkové súbory môžu obsahovať aj implementáciu, a niekedy aj musia, obyčajne sa tomu snažíme vyhýbať 
 
 ---
@@ -2621,7 +2621,7 @@ Vypíše iba `1`, `continue` vždy skáče na koniec cyklu.
 
 * include directíva iba nakopíruje referencovaný súbor na svoje miesto
    * `#include <filename> / #include "filename"`
-   * Rozdiel iba mieste hľadania súborov 
+  * Rozdiel je iba v mieste hľadania súborov 
 * `<>` systémové a `""` užívateľsky definované
 * Hlavný dôvod prečo používame include je zviditeľnenie symbolov zo súboru (triedy, funkcie, premenné, konštanty, makrá, šablóny, ...)
 
@@ -2631,7 +2631,7 @@ Vypíše iba `1`, `continue` vždy skáče na koniec cyklu.
 
 ![boromir lamenting multiple include](./lectures/2_basics/multiple-include.png)
 
-* `#include` súbory iba nakopíruje, takže sa symboly ľahko redefinujú (chyba pri kompilácií)
+* `#include` súbory iba nakopíruje, takže sa symboly ľahko redefinujú (chyba pri kompilácii)
 
 
 <div style="display: flex;">
@@ -2736,7 +2736,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 
 * Namiesto define guards sa dá použiť `#pragma once` na začiatku súboru
 * Funguje na každom používanom kompilátore, ale nie je C++ štandard 
-* Moduly v C++20 toto celé zmenia a mali by pomôcť s organizáciou kódu, bohužial stále úplne nefungujú
+* Moduly v C++20 toto celé zmenia a mali by pomôcť s organizáciou kódu, bohužiaľ stále úplne nefungujú
 
 ```cpp
 #pragma once
@@ -2808,7 +2808,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
     <span data-id="link">Linking...</span>
   </div>
   <div style="flex: 1; text-align: left;">
-    Linker spojí objektové súbory do jednej výstupnej binárky. Jeho úloha je urobiť relokácie, teda pofixovať adresy funkcií v objektových súboroch (ak je v jednom objektovom súbore referenciu na funkciu v inom objektovom súbore). V istých prípadoch môže robiť aj optimalizácie (vyhadzovať funkcie, ktoré sa nikdy nevolajú...).
+    Linker spojí objektové súbory do jednej výstupnej binárky. Jeho úloha je urobiť relokácie, teda pofixovať adresy funkcií v objektových súboroch (ak je v jednom objektovom súbore referencia na funkciu v inom objektovom súbore). V istých prípadoch môže robiť aj optimalizácie (vyhadzovať funkcie, ktoré sa nikdy nevolajú...).
   </div>
 </div>
 
@@ -2828,7 +2828,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
   <div style="flex: 1; text-align: left;">
     Výstupom je spravidla binárka</br>
     <ul style="margin-left: 2em;">
-      <li>spustitelný súbor (<code>*.exe</code>)</li>
+      <li>spustiteľný súbor (<code>*.exe</code>)</li>
       <li>dynamická knižnica (<code>*.dll</code>, <code>*.so</code>).</li>
     </ul></br>
   </div>
