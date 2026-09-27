@@ -28,7 +28,7 @@ int main() {
 ```
 
 
-* Konečne sa dočkávame moderného spôsobu zápisu "Hello World" v C++20 s modulmi. 🚀 Kompilátory ich už podporujú, stále je to ale experimentálne.
+* C++20 prinieslo moduly a C++23 štandardné knižničné moduly `std` a `std.compat`. Podpora v kompilátoroch a build systémoch je stále neúplná.
 * My budeme takí hybridní, budeme používať moduly, ale spomenieme aj hlavičkové súbory.
 
 ```cpp
@@ -63,7 +63,7 @@ Zvyčajne `argc` obsahuje počet parametrov + 1, `argv` potom obsahuje ako prvý
 
 ## `import`
 
-* V C++20 pribudli moduly, ktoré umožňujú výrazne rýchlejšie načítanie knižníc a ich použitie
+* V C++20 pribudli moduly, ktoré môžu výrazne zrýchliť kompiláciu knižníc a zjednodušiť ich použitie
 * Používajú kľúčové slová `import` a `export`
 * Napríklad keď chceme použiť štandardnú knižnicu, môžeme ju importovať ako modul:
 
@@ -92,7 +92,7 @@ import std.compat; // more symbols, for compatibility with older codebases
 </div>
 <div style="flex: 1;">
 
-Súbory bez prípony `.h` sú C++ štandardné hlavičkové súbory. Súbory z C knižnice majú príponu `.h`. 
+Súbory bez prípony `.h` sú C++ štandardné hlavičkové súbory. Funkcie C knižnice sú v C++ dostupné aj cez hlavičky ako `<cstdio>` a `<cstring>`, ktoré preferujeme pred `<stdio.h>` a `<string.h>`. 
 </div>
 </div>
 
@@ -164,7 +164,7 @@ std::cout << 3 << ' ' << "things.";
 * V literatúre sa vyskytuje aj `std::endl`
 * `std::endl` tiež flush-ne buffer
     * Pomalší zápis
-    * Dáta sa ale nemôžu "stratiť"
+  * Dáta sa odošlú do operačného systému, ale ich fyzické uloženie to negarantuje
 
 <div style="display: flex; align-items: center;">
 <div style="flex: 1;">
@@ -205,7 +205,7 @@ int test(int a) {
 
 * Funkcia sa skompiluje na `return true`
 <!-- .element: class="fragment" -->
-* Tento jav je spôsobený tým, že výraz `a < a + 1` je vždy pravdivý pre všetky celočíselné typy okrem prípadov, kde nastane overflow, čo je ale undefined behavior.
+* Tento jav je spôsobený tým, že pri type `int` je výraz `a < a + 1` vždy pravdivý, pokiaľ nenastane signed overflow, ktorý je undefined behavior. Unsigned overflow je naopak definovaný modulo $2^N$.
 <!-- .element: class="fragment" -->
 
 ---
@@ -250,7 +250,7 @@ size_t n = 1'000'000'000; // possible to separate with "'"
 
 * `long` je na niektorej platforme 32bit a na inej 64bit, podobne aj `size_t`
 * Riešia to typy definované v súbore `#include <cstdint>`
-* Nemusia byť definované na všetkých platformách (`CHAR_BITS == 8`)
+* Nemusia byť definované na všetkých platformách (`CHAR_BIT == 8`)
 * Odporúčame zvyknúť si skoro vždy používať tieto typy
 
 ```cpp
@@ -260,7 +260,7 @@ uint32_t u32 = 4'000'000'000;
 int64_t i64 = 10'000'000'000'000;
 ```
 
-note: CHAR_BITS je nastavené na číslo, ktoré reprezentuje počet bitov v type `char`. Všetky platformy (napr. POSIX) ale požadujú `8`.
+note: CHAR_BIT je nastavené na číslo, ktoré reprezentuje počet bitov v type `char`. Platformy kompatibilné s POSIX požadujú `8`.
 
 ---
 
@@ -284,7 +284,7 @@ std::cout << sizeof(double) << '\n'; // 8
 </div>
 <div style="flex: 1;">
 
-Na MS Windows Visual Studio je `long` 4, na gcc je 8.
+Na Windows je `long` typicky 4 bajty (LLP64 ABI), na 64-bitových Unix systémoch typicky 8 bajtov (LP64 ABI). Nezávisí to priamo od kompilátora.
 </div>
 
 
@@ -664,7 +664,7 @@ enum class color : uint32_t {
     <td>Operátor priradenia</td>
     <td><code>=</code></td>
     <td><code>a = b</code></td>
-    <td><code>a</code> bude mať rovnakú hodnotu ako <code>b</code>, výsledkom je <code>&a</code></td>
+    <td><code>a</code> bude mať rovnakú hodnotu ako <code>b</code>, výsledkom je lvalue odkazujúca na <code>a</code></td>
   </tr>
   <tr>
     <td>Aritmetické operátory</td>
@@ -863,10 +863,10 @@ void print_rectangle(int a, int b) {
 }
 ```
 
-Ak má funkcia návratový typ, potom musí obsahovať aspoň jeden `return`.
+Ak vykonávanie funkcie s návratovým typom iným ako `void` dosiahne jej koniec bez vrátenia hodnoty, nastáva undefined behavior. Výnimkou je funkcia `main`, ktorá implicitne vráti `0`.
 
 
-### Aký je výsledok nasledujúceho kódu
+### Aký je výsledok v C++14?
 
 ```cpp
 int a = 1; 
@@ -874,32 +874,78 @@ int k = std::max(++a, a++);
 ```
 <div class="fragment">
 
-Jedna z často vyskytujúcich odpovedí je 2, pretože výsledkom prefixového inkrementu je už zväčšená hodnota 
-
-```cpp
-int k = std::max(2, 1); // ++a is evaluated first
-```
-
-```cpp
-int k = std::max(3, 1); // a++ is evaluated first
-```
+Undefined behavior. Vyhodnotenia argumentov sú navzájom neosekvenované a obe modifikujú `a`.
 </div>
+
+---
+
+### Od C++17
+
+```cpp
+int a = 1;
+int k = std::max(++a, a++);
+```
 
 <div class="fragment">
 
-* Poradie vyhodnocovania parametrov funkcie je nešpecifikované
-* Štandard iba hovorí, že parametre sú vyhodnotené pred samotným vykonaním funkcie
+* Argumenty sú navzájom *indeterminately sequenced*
+* Jeden argument sa vyhodnotí celý pred druhým, ale poradie nie je určené
+* Výsledkom je `k == 3` a `a == 3`
 </div>
 
+---
 
-### Sekvenčné body (sequence points)
+### Prečo je výsledkom vždy `3`?
 
-* Sekvenčné body sú miesta v programe, kde sa garantuje, že všetky vedľajšie efekty predchádzajúcich vyhodnotení boli dokončené, a žiadne vedľajšie efekty nasledujúcich vyhodnotení ešte nezačali.
-* Pred samotným vykonaním funkcie sa najprv vyhodnotia všetky jej parametre, ale ich poradie vyhodnotenia nie je garantované.
-* Medzi dvoma sekvenčnými bodmi sa konkrétna premenná môže modifikovať maximálne jedenkrát. Ak sa premenná modifikuje viackrát medzi sekvenčnými bodmi, nastáva nedefinované správanie.
-* Vyhnite sa používaniu operátorov `++`, `--` a `=` (priradenie) v rámci komplexných výrazov, najmä ak sa tieto operátory aplikujú na tú istú premennú. Napríklad výraz ako `std::max(++a, a++)` má nedefinované správanie, pretože poradie vyhodnotenia parametrov nie je garantované.
+Poradie argumentov nie je určené. `std::max` ich však prijíma ako `const T&`.
 
-Od C++17 sa už nepoužíva termín "sequence points", ale hovorí sa o "sequenced before" (sequenced relationships), ktoré presnejšie definujú poradie operácií.
+<div style="display: flex;">
+<div style="flex: 1;">
+
+**Najprv zľava**
+
+1. `++a`: `a == 2`, referencia na `a`
+2. `a++`: hodnota `2`, potom `a == 3`
+3. `max` porovná `3` a `2`
+
+</div>
+<div style="flex: 1;">
+
+**Najprv sprava**
+
+1. `a++`: hodnota `1`, potom `a == 2`
+2. `++a`: `a == 3`, referencia na `a`
+3. `max` porovná `3` a `1`
+
+</div>
+</div>
+
+V oboch prípadoch platí `k == 3` a `a == 3`.
+
+---
+
+### Čo zostáva undefined behavior?
+
+```cpp
+int a = 1;
+int k = ++a + a++;
+```
+
+<div class="fragment">
+
+* Operátor `+` neurčuje poradie vyhodnotenia svojich operandov
+* Obe modifikácie `a` sú navzájom neosekvenované
+* Undefined behavior aj v C++17 a novších štandardoch
+</div>
+
+---
+
+### Poradie vyhodnocovania
+
+* Od C++11 štandard opisuje poradie pomocou vzťahov *sequenced before*, *indeterminately sequenced* a *unsequenced*.
+* Dve neosekvenované modifikácie tej istej premennej, alebo modifikácia neosekvenovaná voči čítaniu jej hodnoty, spôsobujú undefined behavior.
+* Od C++17 sú argumenty funkcie navzájom *indeterminately sequenced*: ich vyhodnotenia sa neprekrývajú, ale poradie nie je určené.
+* Vyhnite sa používaniu operátorov `++`, `--` a `=` na tej istej premennej v komplexnom výraze.
 
 ---
 
@@ -910,8 +956,8 @@ Od C++17 sa už nepoužíva termín "sequence points", ale hovorí sa o "sequenc
 ## Polia
 
 * Jednoduché C polia sú tiež funkčné v C++
-* Najrýchlejšie, pretože polia sú vložené do objektov (funkcií)
-* Alokované na stack-u
+* Majú súvislé uloženie prvkov bez dodatočnej dynamickej alokácie
+* Lokálne polia s automatickou dobou života sú v praxi zvyčajne uložené na zásobníku
 
 ```cpp
 int a[100]; // array of 100 ints
@@ -1059,7 +1105,7 @@ Pole šiestich znakov, ekvivalentné `{'A', 'B', 'C', 'D', 'E', '\0'}`.
 
 ```cpp
 char first = s[0];
-char last = s[4]
+char last = s[4];
 char terminator = s[5];
 ```
 </div>
@@ -1106,7 +1152,7 @@ Vyrobí pole desiatich znakov a na mieste `0` až `4` bude string `"12345"`, ost
 <div style="flex: 1;">
 
 ```cpp
-const char* str;
+const char* str = "Name:";
 
 if (str == "Name:") {
   // ... 
@@ -1116,9 +1162,9 @@ if (str == "Name:") {
 <div style="flex: 1;">
   
 ```cpp
-const char* str;
+const char* str = "Name:";
 
-if (strcmp(str, "Name:")) {
+if (strcmp(str, "Name:") == 0) {
   // ... 
 }
 ```
@@ -1187,7 +1233,7 @@ char msg[128];
 strcpy(msg, str); // copy, make sure buffer is long enough
 strcat(msg, " world!"); // concatenation
 
-std::cout << msg << '\n'; // My stringMy string
+std::cout << msg << '\n'; // Hello world!
 strstr(msg, "rld"); // returns pointer to string or NULL
 ```
 
@@ -1310,7 +1356,7 @@ c.p.y = 12;
 * Každá (pomenovaná) premenná má v pamäti svoje miesto
 * Adresu tohto miesta vieme získať pomocou unárneho operátora `&`
 * Opačný proces, získanie hodnoty na adrese, sa robí pomocou operátora dereferencie `*`
-* Referencia je iba alias inej premennej (vnútorne je implementovaná ako smerník)
+* Referencia je alias iného objektu; vnútorne je zvyčajne implementovaná ako smerník.
 
 ![xkcd komiks o smerníkoch](./lectures/2_basics/pointers.png)
 
@@ -1926,7 +1972,7 @@ const int *c = &x;
 </div>
 <div style="flex: 3;">
 
-`r` je smerník na `int`, a `c` je konštantný smerník na `int`.
+`r` je smerník na `int` a `c` je smerník na konštantný `int`. Konštantný smerník by mal typ `int* const`.
 </div>
 </div>
 
@@ -1939,7 +1985,7 @@ std::cout << *r << *c;
 </div>
 <div style="flex: 3;">
 
-Čítať môžeme aj regulárny smerník aj konštantný smerník.
+Čítať môžeme cez smerník na `int` aj cez smerník na konštantný `int`.
 </div>
 </div>
 
@@ -2578,6 +2624,8 @@ std::vector<int> get_numbers(size_t n) {
 
     if (!std::cin) // not a number, failbit set
       break;
+
+    result.push_back(x);
   }
 
   return result;
@@ -2843,7 +2891,7 @@ Nevyzerá ale pekne a unikátnosť vedie k pridlhým názvom.
 * Podporuje multiplatformový vývoj a generovanie projektov pre rôzne IDE
 
 ```cmake
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(MyProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
