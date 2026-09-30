@@ -2763,6 +2763,27 @@ target_sources(my_executable PRIVATE
 Oba spôsoby pridajú `geometry.cpp` do rovnakého targetu. `target_sources` vyžaduje, aby bol target už vytvorený.
 
 
+### Pridanie nového C++ modulu
+
+1. Vytvoríme rozhranie modulu, napríklad `geometry.cppm`
+2. Pridáme ho do `FILE_SET` typu `CXX_MODULES`
+3. Modul potom môžeme použiť pomocou `import geometry;`
+
+```cmake
+cmake_minimum_required(VERSION 3.28)
+
+add_executable(my_executable main.cpp)
+
+target_sources(my_executable PRIVATE
+  FILE_SET CXX_MODULES FILES
+    geometry.cppm
+)
+```
+
+* CMake zistí závislosti medzi modulmi a zostaví ich v správnom poradí
+
+---
+
 ## Rôzne konfigurácie
 
 * CMake umožňuje definovať rôzne build konfigurácie (Debug, Release, RelWithDebInfo, MinSizeRel)
