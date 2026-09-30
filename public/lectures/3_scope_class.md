@@ -30,7 +30,7 @@
 
 ## Životnosť lokálnych premenných
 
-* Lokálne premenné vo funkciách začínajú existenciu pri deklarácií a sú zničené na konci scope-u, v ktorom boli deklarované
+* Lokálne premenné vo funkciách začínajú existenciu pri deklarácii a sú zničené na konci scope-u, v ktorom boli deklarované
 
 ```cpp
 void f() {
@@ -154,7 +154,7 @@ int a = 0;
    * Konštruktory a deštruktory sa volajú iba keď je to potrebné
 * Program sa jednoduchšie číta
    * Premenné sa nepoužívajú viackrát na rôzne úlohy (toto odrádza od používania veľmi všeobecných mien)
-   * Súvisiace časti programu sú viac lokalizované, tak nie je potrebne scrolovať hore dole
+  * Súvisiace časti programu sú viac lokalizované, tak nie je potrebné scrolovať hore dole
 
 ---
 
@@ -233,20 +233,20 @@ note: nekonečný cyklus je inak viacmenej undefined
 
 ```cpp
 class widget { // meno triedy
-public: // modifikator pristupu
-  widget(const char* s); // konstruktor
-  ~widget(); // destruktor
+public: // modifikátor prístupu
+  widget(const char* s); // konštruktor
+  ~widget(); // deštruktor
  
-  int observe() const; // metoda
-  void mutate(int x); // metoda
+  int observe() const; // metóda
+  void mutate(int x); // metóda
  
-private: // modifikator pristupu
-  int data = 0; // data, instancne premenne
+private: // modifikátor prístupu
+  int data = 0; // dáta, inštančné premenné
   std::string str;
-}; // ; je velmi dolezita
+}; // ; je veľmi dôležitá
 ```
 
-* Triedy majú konštruktory a deštruktory, ktoré sa volajú pri vytvorení alebo deštrukcií
+* Triedy majú konštruktory a deštruktory, ktoré sa volajú pri vytvorení alebo deštrukcii
 * Metódy sú funkcie, ktoré implicitne dostanú smerník na objekt, nad ktorým boli zavolané
 * Inštančné premenné sú dáta, ktoré sú spojené s daným objektom
 * Ak nedáte na koniec `;`, neskôr v súbore sa bude kompilátor sťažovať
@@ -257,7 +257,7 @@ private: // modifikator pristupu
 
 ```cpp
 widget::widget(const char* s)
-  : data(10) // inicializacny list v konstruktore
+  : data(10) // inicializačný list v konštruktore
   , str(s) {
 }
  
@@ -265,7 +265,7 @@ widget::~widget() {
   std::cout << "~widget" << '\n';
 }
  
-// konstantne metody nemozu menit stav objektu
+// konštantné metódy nemôžu meniť stav objektu
 int widget::observe() const {
   // data++; // error
   std::cout << data << '\n';
@@ -397,7 +397,7 @@ private:
 
 ```cpp
 void f(std::string s) {
-  // string s sa vzdy skopiruje
+  // string s sa vždy skopíruje
 }
 ```
 </div>
@@ -405,7 +405,7 @@ void f(std::string s) {
 
 ```cpp
 void f(const std::string& s) {
-  // string s sa nekopiruje, iba sa presunie smernik
+  // string s sa nekopíruje, iba sa presunie smerník
 }
 ```
 </div>
@@ -479,7 +479,7 @@ Nová premenná typu `A` s menom `a` je skonštruovaná volaním `A::A()`.
 
 *Scott Meyers, 2001*
 
-Vlastne je to deklarácia funkcie s menom `a`, ktorá nemá žiaden parameter `a` vracia objekt typu `A`.
+Vlastne je to deklarácia funkcie s menom `a`, ktorá nemá žiaden parameter a vracia objekt typu `A`.
 
 Väčšina programátorov očakáva nový objekt, štandard ale vyžaduje deklaráciu funkcie. 
 
@@ -490,7 +490,7 @@ Väčšina programátorov očakáva nový objekt, štandard ale vyžaduje deklar
 
 ## Explicitné konštruktory
 
-* Ak konštruktor triedy `C` obsahuje iba jeden parameter typu `T`, potom tento konštruktor sa môže použiť  a implicitnú konverziu z `T` na `C`
+* Ak konštruktor triedy `C` obsahuje iba jeden parameter typu `T`, potom tento konštruktor sa môže použiť na implicitnú konverziu z `T` na `C`
 
 ```cpp
 class Convert {
@@ -583,7 +583,7 @@ struct MyClass
 
 Existuje iba jeden malý rozdiel. Všetky členy v štruktúre sú predvolene `public`, v triede `private`.
 
-Niektorí programátori používajú stále triedy, iný preferujú štruktúry pre *POD typy (plain old data)* a urobia všetko `public`.
+Niektorí programátori používajú stále triedy, iní preferujú štruktúry pre *POD typy (plain old data)* a urobia všetko `public`.
 </div>
 
 ---
@@ -601,9 +601,9 @@ Niektorí programátori používajú stále triedy, iný preferujú štruktúry 
 
 ---
 
-## Život objetku
+## Život objektu
 
-* Vždy keď sa má objekt vytvoriť zavolá sa definovaný konštruktor
+* Vždy keď sa má objekt vytvoriť, zavolá sa definovaný konštruktor
 * Ak je konštrukcia úspešná, garantovane sa nám zavolá deštruktor na konci života objektu
 
 ---
@@ -691,7 +691,7 @@ private:
 
 ## Konštanty
 
-* Z istého pohľadu programovanie je o udržiavaný invariantov a konštantnosť hodnôt a premenných môže pri tom veľmi pomôcť
+* Z istého pohľadu programovanie je o udržiavaní invariantov a konštantnosť hodnôt a premenných môže pri tom veľmi pomôcť
 * Konštantné dáta môžu byť pristupované z viacerých vlákien bez obavy o nedefinované správanie (data race)
 * V C++ existuje viacero spôsobov ako definovať koncept konštanty 
    * `const`
@@ -776,7 +776,7 @@ void main() {
    * Vieme získať *compile time constant*, ktorú vieme napríklad použiť ako veľkosť pola
    * Nemusíme hodnoty predpočítavať ručne, ale môžeme to nechať na kompilátor
    * Kedysi sa na to používali šablóny, ale to bolo veľmi nepraktické a neprehľadné
-* Vo novších verziách C++ sa `constexpr` rozširovalo a odstraňovali sa obmedzenia
+* V novších verziách C++ sa `constexpr` rozširovalo a odstraňovali sa obmedzenia
 
 ```cpp
 constexpr size_t a = 10;
@@ -785,7 +785,7 @@ constexpr size_t a = 10;
 
 ## `constexpr` a `const`
 
-* Pri deklaráciach premenných `constexpr` implikuje `const`
+* Pri deklaráciách premenných `constexpr` implikuje `const`
 * Nasledujúce dva zápisy sú ekvivalentné
 
 ```cpp
@@ -867,12 +867,12 @@ int y[count_primes(5)]; // OK
 ```
 
 
-## `constexpr` funkcie v ne `constexpr` kontexte
+## `constexpr` funkcie v nekonštantnom kontexte
 
 * `constexpr` funkcie môžu byť volané aj s runtime hodnotami
 * Pokiaľ nenútime kompilátor aby vyhodnotil výraz počas kompilácie, tak sa môže rozhodnúť, či počas kompilácie, alebo počas behu programu
 * Ako kompilátor donútiť?
-   * Výsledok priradíme do `constexpr` premenné
+  * Výsledok priradíme do `constexpr` premennej
    * Výsledok použijeme ako veľkosť poľa
 
 ```cpp
@@ -891,7 +891,7 @@ note: Máme urobiť všetky funkcie `constexpr`? Asi nie, ale... podobne ako uro
 
 ## `constexpr` konštruktory?
 
-* Pred C++20 `constexpr` v podstate vedelo similovať iba stack
+* Pred C++20 `constexpr` v podstate vedelo simulovať iba stack
 * Mohli sme deklarovať premenné, ale nie priamo alokovať pamäť na heape
 * V C++20 sa to zmenilo a môžeme alokovať pamäť na heape, ale nemôžeme posunúť adresu do runtime
 
@@ -935,7 +935,7 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 * Matematické operácie
 * Regulárne výrazy
 * ...
-* Kontainery a algoritmy
+* Kontajnery a algoritmy
 
 ---
 
@@ -963,12 +963,12 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 
 ---
 
-## Kontainery a algoritmy
+## Kontajnery a algoritmy
 
 ![Iterators between containers and algorithms](./lectures/3_scope_class/iterators.png)
 
-* Interátory poskytujú jednotný interface na prácu s kontajnermi, ten potom algoritmy využívajú 
-* Ak máme n kontainerov a m algoritmov
+* Iterátory poskytujú jednotný interface na prácu s kontajnermi, ten potom algoritmy využívajú 
+* Ak máme n kontajnerov a m algoritmov
 
 <p style="font-size: larger; text-align: center;">
   <b>O(n+m) vs O(nm)</b>
@@ -976,7 +976,7 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 
 ---
 
-## Kontainery
+## Kontajnery
 
 * vector<T>
 * array<T, N>
@@ -996,7 +996,7 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 
 * Abstrakcia nad dynamickým poľom (`T` môže byť akýkoľvek typ)
 * Garantovane lineárna pamäť (od C++11)
-* Vector sa stará o alokávie svojej pamäti, automaticky zväčšuje keď treba a dealokuje v deštruktore 
+* Vector sa stará o alokácie svojej pamäti, automaticky ju zväčšuje, keď treba, a dealokuje v deštruktore 
 
 <table style="font-size: 70%;">
   <tr>
@@ -1089,7 +1089,7 @@ vec[200] = 0; // undefined
   <tr>
     <td><code>erase</code></td>
     <td>O(n)</td>
-    <td>Zmaže prvok(y) definované iterátorom</td>
+    <td>Zmaže prvok/prvky definované iterátorom</td>
   </tr>
   <tr>
     <td><code>empty</code></td>
@@ -1114,12 +1114,12 @@ vec[200] = 0; // undefined
   <tr>
     <td><code>clear</code></td>
     <td>O(n)</td>
-    <td>Odstráni všetky prvky z vectora (ale neuvoľní pamäť), O(1) pre primitívny typy</td>
+    <td>Odstráni všetky prvky z vectora (ale neuvoľní pamäť), O(1) pre primitívne typy</td>
   </tr>
   <tr>
     <td><code>shrink_to_fit</code></td>
     <td>O(n)</td>
-    <td>Uvoľní nepoužitú pamäť, O(1) pre primitívny typy</td>
+    <td>Uvoľní nepoužitú pamäť, O(1) pre primitívne typy</td>
   </tr>
   <tr>
     <td><code>begin</code>/<code>end</code></td>
@@ -1150,7 +1150,7 @@ std::vector<int> params;
   for (const auto& i : params) {
     std::cout << i << " ";
 }
-  // vector automatically deallocate memory
+  // vector automatically deallocates memory
 }
 ```
 
@@ -1191,15 +1191,15 @@ Nikdy by to ani neskončilo a navyše to spôsobí nedefinované správanie.
 
 * Reprezentuje jeden reťazec znakov
 * Neexistuje Unicode podpora
-* Stále je to STL kontainer, takže na nim všetky algoritmy pracujú správne
+* Stále je to STL kontajner, takže na ňom všetky algoritmy pracujú správne
 * String vie svoju veľkosť a kapacitu
-* V postate je to taký lepší std::vector<char> s pár funkciami navyše
+* V podstate je to taký lepší std::vector<char> s pár funkciami navyše
 * `std::string` je `std::basic_string<char>`
 
 
 ## Operácie
 
-* Väčšina toho čo podporuje `vector` je prítomná s rovnakou sématikou
+* Väčšina toho čo podporuje `vector` je prítomná s rovnakou sémantikou
     * `push_back`, `insert`, `resize`, `reserve`, ...
     * Zložitosti sú rovnaké
 * Špecifické string operácie často pracujú s indexami a nie iterátormi
@@ -1281,14 +1281,14 @@ n = str.rfind("ccc", std::string::npos, 2); // 7?
 n = str.find_first_not_of("abcd", 0, 3); // 9?
 ```
 
-* Count je vlastne veľkosť stringu, ktorý sa hladá
+* Count je vlastne veľkosť stringu, ktorý sa hľadá
 <!-- .element: class="fragment" -->
 
 ---
 
 ## Novinky v C++20
 
-* V C++20 stringu pribudli funkcia, ktoré sa doteraz nahradzovali custom kódom, alebo boostom
+* V C++20 stringu pribudli funkcie, ktoré sa doteraz nahradzovali custom kódom, alebo boostom
 
 ```cpp
 auto str = std::string("This is C++20 string");
@@ -1481,9 +1481,9 @@ h(s);
 
 ## Usmernenia
 
-* Volanie hodnotou nemusí byť zle
-   * Hlavne pre typy bez konštruktorov do pár (desiatok) bajtov
-   * Ani inokedy nie je zlé, ale to už musíte čo to vedieť o C++, takže si to necháme na neskôr
+* Volanie hodnotou nemusí byť zlé
+  * Hlavne pre typy bez konštruktorov do pár (desiatok) bajtov
+  * Ani inokedy nie je zlé, ale to už musíte niečo vedieť o C++, takže si to necháme na neskôr
 * Inak preferujte `const&`
 * Bez `const` iba ak potrebujete výstupný parameter, čo by ste veľmi nemali
 
