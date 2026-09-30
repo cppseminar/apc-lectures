@@ -232,18 +232,18 @@ note: nekonečný cyklus je inak viacmenej undefined
 ## Hlavičkový súbor / interface
 
 ```cpp
-class widget { // meno triedy
-public: // modifikátor prístupu
-  widget(const char* s); // konštruktor
-  ~widget(); // deštruktor
+class widget { // class name
+public: // access modifier
+  widget(const char* s); // constructor
+  ~widget(); // destructor
  
-  int observe() const; // metóda
-  void mutate(int x); // metóda
+  int observe() const; // method
+  void mutate(int x); // method
  
-private: // modifikátor prístupu
-  int data = 0; // dáta, inštančné premenné
+private: // access modifier
+  int data = 0; // data, instance variables
   std::string str;
-}; // ; je veľmi dôležitá
+}; // ; is very important
 ```
 
 * Triedy majú konštruktory a deštruktory, ktoré sa volajú pri vytvorení alebo deštrukcii
@@ -257,7 +257,7 @@ private: // modifikátor prístupu
 
 ```cpp
 widget::widget(const char* s)
-  : data(10) // inicializačný list v konštruktore
+  : data(10) // constructor initializer list
   , str(s) {
 }
  
@@ -265,7 +265,7 @@ widget::~widget() {
   std::cout << "~widget" << '\n';
 }
  
-// konštantné metódy nemôžu meniť stav objektu
+// const methods cannot modify the object state
 int widget::observe() const {
   // data++; // error
   std::cout << data << '\n';
@@ -397,7 +397,7 @@ private:
 
 ```cpp
 void f(std::string s) {
-  // string s sa vždy skopíruje
+  // string s is always copied
 }
 ```
 </div>
@@ -405,7 +405,7 @@ void f(std::string s) {
 
 ```cpp
 void f(const std::string& s) {
-  // string s sa nekopíruje, iba sa presunie smerník
+  // string s is not copied, only a pointer is passed
 }
 ```
 </div>
