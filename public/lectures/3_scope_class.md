@@ -59,6 +59,22 @@ void f() {
 
 ---
 
+## Scope spravuje zdroje
+
+```cpp
+void f() {
+  std::string s = "No leak";
+  std::vector<int> values = { 1, 2, 3 };
+} // s and values release their resources automatically
+```
+
+* Objekt získa zdroj pri vytvorení a uvoľní ho v deštruktore
+* Tento princíp sa nazýva **RAII** (*Resource Acquisition Is Initialization*)
+* Uprednostňujeme objekty, ktoré spravujú zdroje automaticky, pred ručným `new` a `delete`
+* `std::string`, `std::vector` a smart pointery sú príklady RAII objektov
+
+---
+
 ## Životnosť objektov
 
 * <small>(Skoro)</small> každý objekt začína svoju existenciu volaním konštruktora
@@ -130,6 +146,25 @@ void f() {
   // result is not visible here
 }
 ```
+
+---
+
+## Skrývanie mien
+
+```cpp
+int value = 10;
+
+void print() {
+  std::cout << value; // global value: 10
+
+  int value = 20;    // hides the global value
+  std::cout << value; // local value: 20
+}
+```
+
+* Deklarácia vo vnorenom scope môže skryť meno z vonkajšieho scope-u (*shadowing*)
+* Program je platný, ale rovnaké meno môže viesť k omylom
+* Shadowingu sa radšej vyhýbame; kompilátor naň môže upozorniť napríklad cez `-Wshadow`
 
 ---
 
@@ -287,14 +322,14 @@ void widget::mutate(int x) {
 class foo {
 public:
   foo(int x) {
-    // s is default constructed 
+    // members are constructed first
     i = x;
     s = std::to_string(x);
     f = x;
   }
 private:
-  std::string s;
   int i;
+  std::string s;
   float f;
 };
 ```
@@ -313,13 +348,46 @@ public:
     // function properly
   }
 private:
-  std::string s;
   int i;
+  std::string s;
   float f;
 };
 
 ```
 </div>
+</div>
+
+* Inicializačný list skonštruuje členy priamo; priradenie v tele konštruktora ich najprv skonštruuje a potom prepíše
+
+
+## Poradie inicializácie členov
+
+* Aký je výsledok nasledujúceho kódu?
+
+```cpp
+class print {
+public:
+  print(std::string x)
+    : b(x + a)
+    , a(x) {
+      std::println("{}", b);
+  }
+private:
+  std::string a;
+  std::string b;
+};
+
+int main() {
+  print p("hello");
+}
+```
+
+<div class="fragment">
+
+* Výsledkom kódu bude `hellohello`
+* Členy sa vždy inicializujú v poradí deklarácie v triede, nie v poradí inicializačného listu
+* Inicializačný list preto zapisujeme v rovnakom poradí ako členské premenné, kompilátor nás na to môže upozorniť, ak je poradie odlišné.
+
 </div>
 
 ---
@@ -354,9 +422,8 @@ private:
 
 ## Metódy get a set
 
-* Nazývajú sa aj mutator a accessor
 * Zapuzdrujú členské premenné
-* V iných jazykoch sa volajú aj properties
+* Nazývajú sa aj mutator a accessor, v niektorých jazykoch sa volajú aj properties
 
 ```cpp
 class person {
@@ -366,7 +433,7 @@ public:
  
   int get_age() const { return age; }
   void set_age(int age) { 
-    assert(age >= 0); 
+    assert(age >= 0); // at least in debug we know
     this->age = age; 
   }
  
@@ -378,8 +445,27 @@ private:
 };
 ```
 
-* Ak nedovolíme priamy prístup k premenným, môžeme vynútiť kontroly alebo závislosti
+* Ak nedovolíme priamy prístup k premenným, môžeme vynútiť invarianty pri každej zmene
 
+---
+
+## `assert`
+
+```cpp
+#include <cassert>
+
+void set_age(int age) {
+  assert(age >= 0);
+  this->age = age;
+}
+```
+
+* `assert(expression)` kontroluje predpoklady a programátorské chyby počas vývoja
+* Ak je výraz nepravdivý, vypíše diagnostiku a ukončí program pomocou `std::abort`
+* Ak je pred includovaním `<cassert>` definované `NDEBUG`, kontrola sa nevykoná
+* Výraz v `assert` preto nesmie mať vedľajšie účinky potrebné pre správny beh programu
+
+---
 
 ## `const std::string&`?
 
@@ -485,25 +571,56 @@ Väčšina programátorov očakáva nový objekt, štandard však vyžaduje dekl
 
 ## Explicitné konštruktory
 
-* Ak konštruktor triedy `C` obsahuje iba jeden parameter typu `T`, môže sa použiť na implicitnú konverziu z `T` na `C`
+* Konštruktor volateľný s jedným argumentom môže kompilátor použiť na implicitnú konverziu
+* `explicit` takúto konverziu zakáže, ale priame vytvorenie objektu zostáva povolené
 
 ```cpp
-class Convert {
+class user_id {
 public:
-  Convert(int i) { std::cout << i << '\n'; }
-  explicit Convert(std::string f) { std::cout << f << '\n'; }
+  explicit user_id(int value)
+    : value(value) { }
+private:
+  int value;
 };
- 
-int f(const Convert&);
- 
+
+void load_user(user_id id);
+
 int main() {
-  f(15); // OK, Convert::Convert(int) is used as conversion
-  f(5.4); // OK (warning), :(
-  // f(std::string("abc")); will not compile
+  user_id a{42};           // OK: direct initialization
+  user_id b(42);           // also OK
+  // user_id c = 42;       // error: implicit conversion
+  // load_user(42);        // error: implicit conversion
+  load_user(user_id{42});  // OK: intent is explicit
 }
 ```
 
-* Pravidlo: Všetky jednoparametrové konštruktory označíme automaticky slovom `explicit`.
+**Pravidlo:** Konverzný konštruktor označíme ako `explicit`, pokiaľ implicitná konverzia nie je zámernou súčasťou rozhrania.
+
+---
+
+## Kedy má implicitná konverzia zmysel?
+
+```cpp
+class complex_number {
+public:
+  complex_number(double real)
+    : real(real), imaginary(0) { }
+private:
+  double real;
+  double imaginary;
+};
+
+void draw(complex_number value);
+draw(2.5); // natural: every real number is also complex
+```
+
+Implicitnú konverziu ponecháme, keď:
+
+* zdrojová hodnota vždy prirodzene reprezentuje cieľový typ,
+* konverzia je lacná, bezpečná a neprekvapivá,
+* zjednodušuje bežné použitie bez straty významu.
+
+Použijeme `explicit`, keď typ pridáva nový doménový význam (`user_id`, jednotky, handle), vykonáva validáciu alebo by konverzia mohla byť stratová či drahá.
 
 ---
 
@@ -576,7 +693,7 @@ struct MyClass
 
 <div class="fragment">
 
-Existuje iba jeden malý rozdiel. Všetky členy v štruktúre sú predvolene `public`, v triede `private`.
+Jazykové možnosti sú rovnaké. Rozdiel je iba v predvolených prístupových právach: členy a dedenie sú pri `struct` predvolene `public`, pri `class` predvolene `private`.
 
 Niektorí programátori vždy používajú triedy, iní preferujú štruktúry pre *POD typy (plain old data)* a všetko označia ako `public`.
 </div>
@@ -600,6 +717,94 @@ Niektorí programátori vždy používajú triedy, iní preferujú štruktúry p
 
 * Vždy, keď sa má objekt vytvoriť, zavolá sa definovaný konštruktor
 * Ak je konštrukcia úspešná, pri bežnom ukončení scope sa zavolá deštruktor; nútené ukončenie programu, napríklad cez `std::abort`, deštruktory automatických objektov nevolá
+
+---
+
+## Rule of zero
+
+```cpp
+class person {
+public:
+  explicit person(std::string name)
+    : name(std::move(name)) { }
+
+private:
+  std::string name;
+  std::vector<std::string> roles;
+};
+```
+
+* `std::string` a `std::vector` uvoľnia svoje zdroje automaticky
+* `person` preto nepotrebuje vlastný deštruktor ani kopírovacie a presúvacie operácie
+* Ak členy dodržiavajú RAII, trieda má zvyčajne dodržiavať **rule of zero**
+
+---
+
+## RAII podrobnejšie
+
+RAII zviaže životnosť zdroja so životnosťou objektu, ktorý ho vlastní:
+
+1. Konštruktor zdroj získa a vytvorí platný objekt, alebo zlyhanie oznámi výnimkou
+2. Metódy pracujú s platným zdrojom a udržiavajú invariant objektu
+3. Deštruktor zdroj spoľahlivo uvoľní a nevyvoláva výnimky
+
+Zdrojom nemusí byť iba pamäť. Môže to byť otvorený súbor, socket, databázová transakcia alebo zamknutý mutex.
+
+**Vlastníctvo má byť jednoznačné:** z typu objektu má byť jasné, kto a dokedy zdroj vlastní.
+
+---
+
+## RAII funguje pri každom opustení scope-u
+
+```cpp
+void save(const std::vector<std::string>& lines) {
+  std::ofstream file{"report.txt"};
+  if (!file)
+    throw std::runtime_error{"cannot open report.txt"};
+
+  for (const auto& line : lines) {
+    if (line.empty())
+      return; // file is closed
+    file << line << '\n';
+  }
+} // file is closed
+```
+
+* Deštruktor sa zavolá pri dosiahnutí `}`, pri `return` aj počas šírenia výnimky
+* Lokálne objekty sa ničia v opačnom poradí, než boli skonštruované
+* Uvoľnenie preto nemusíme ručne opakovať pre každú návratovú cestu
+* Pri násilnom ukončení procesu, napríklad cez `std::abort`, sa na deštruktory spoliehať nedá
+
+note: O výnimkách bude reč neskôr, tak tu skôr tak okrajovo
+
+---
+
+## RAII a rule of zero nie sú to isté
+
+```cpp
+class report {
+public:
+  explicit report(const std::filesystem::path& path)
+    : output(path) {
+    if (!output)
+      throw std::runtime_error{"cannot open report"};
+  }
+
+  void add(std::string line) {
+    lines.push_back(std::move(line));
+  }
+
+private:
+  std::ofstream output;          // owns an open file
+  std::vector<std::string> lines; // owns allocated memory
+};
+```
+
+* Nízkoúrovňový RAII typ zapuzdrí jeden zdroj a môže potrebovať vlastný deštruktor
+* Aplikačné triedy skladajú hotové RAII typy a zvyčajne nepíšu žiadnu z piatich špeciálnych operácií
+* Kopírovanie a presúvanie výslednej triedy prirodzene vychádza z možností jej členov
+
+note: Päť špeciálnych operácií sú konštruktor, kopírovací konštruktor, presúvací konštruktor, kopírovací priradzovací operátor a deštruktor, o tých bude podrobne reč v prednáške o rvalue referenciách a move sémantike.
 
 ---
 
@@ -691,30 +896,8 @@ private:
 * V C++ existuje viacero spôsobov, ako definovať koncept konštanty 
    * `const`
    * `constexpr`
-   * `#define`
    * `enum`
-
----
-
-## `#define`
-
-* Preprocesorové makrá možno použiť ako konštanty
-* Makrá sú expandované ešte pred samotnou kompiláciou, preto fungujú mimo typového systému v podstate iba textovo 
-* Číselné konštanty sa lepšie vyjadrujú pomocou `const` alebo `enum`-u
-* Občas užitočné pri reťazcoch 
-   * Zreťazovanie (concatenation) počas kompilácie
-
-```cpp
-#define DIRECTORY "C:"
-#define FILENAME "log.txt"
-#define SEPARATOR "\\"
-#define PATH DIRECTORY SEPARATOR FILENAME
- 
-int main() {
-  std::cout << PATH << std::endl; // "C:\log.txt"
-}
-
-```
+* `#define` vytvára textové makrá mimo typového systému; pre konštanty preferujeme `constexpr`, `const` alebo `enum`
 
 ---
 
@@ -748,7 +931,7 @@ void g() {
 ### `const` a globálne objekty
 
 * Objekty so statickou dobou uloženia (napr. globálne premenné) sú pred ďalšou inicializáciou nulovo inicializované (*zero initialized*)
-* `const` skalárne objekty musia mať inicializátor; triedny 
+* `const` skalárne objekty musia mať inicializátor; triedny objekt možno inicializovať jeho predvoleným konštruktorom
 * `const` objekty môžu byť umiestnené do pamäte iba na čítanie; pokus o ich zmenu má nedefinované správanie a môže spôsobiť access violation
 
 ```cpp
@@ -886,6 +1069,30 @@ int main() {
 
 note: Máme urobiť všetky funkcie `constexpr`? Asi nie, ale... podobne ako urobiť všetko `const`...
 
+---
+
+## Ako vynútiť výpočet počas kompilácie?
+
+```cpp
+constexpr size_t count = count_primes(100); // must be compile time
+static_assert(is_prime(97));                 // checked by compiler
+
+consteval int square(int value) {            // every call must be compile time
+  return value * value;
+}
+
+constexpr int area = square(12); // OK
+
+int side;
+std::cin >> side;
+// int runtime_area = square(side); // error
+```
+
+* `constexpr` funkcia sa môže vykonať počas kompilácie aj počas behu
+* Konštantný kontext, napríklad inicializácia `constexpr` premennej alebo `static_assert`, vyžaduje výsledok počas kompilácie
+* `consteval` (od C++20) vyžaduje compile-time vyhodnotenie každého volania
+* Optimalizátor môže predpočítať aj obyčajný výraz, ale to nie je záruka jazyka
+
 
 ## `constexpr` konštruktory?
 
@@ -995,46 +1202,24 @@ note: <https://quuxplusone.github.io/blog/2023/09/08/constexpr-string-firewall/>
 * Abstrakcia nad dynamickým poľom (`T` musí spĺňať požiadavky operácií, ktoré nad vectorom používame; nemôže byť napríklad referencia ani `void`)
 * Garantovane súvislá pamäť (požiadavka platí spätne od C++98 cez LWG 69)
 * Vector sa stará o alokáciu svojej pamäte, automaticky ju zväčšuje, keď treba, a dealokuje ju v deštruktore 
-
-<table style="font-size: 70%;">
-  <tr>
-    <th>Operácia</th>
-    <th>Zložitosť</th>
-    <th>Poznámka</th>
-  </tr>
-  <tr>
-    <td>insert</td>
-    <td>O(n)</td>
-    <td>O(1) amortizovane pri vkladaní na koniec</td>
-  </tr>
-  <tr>
-    <td>erase</td>
-    <td>O(n)</td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>search</td>
-    <td>O(n)</td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>access</td>
-    <td>O(1)</td>
-    <td><code>operator[]</code></td>
-  </tr>
-</table>
+* Náhodný prístup je $O(1)$, pridanie na koniec amortizovane $O(1)$ a vloženie či zmazanie uprostred $O(n)$
 
 ---
 
 ## Expanzia vectora
 
-* Vector štandardne narastá v násobkoch
-   * 2 gcc a clang
-   * 1.5 MSVC
+* Keď sa pamäť zaplní, vector alokuje väčší blok a presunie doň prvky
+* Štandard neurčuje rastový faktor; implementácie zvyčajne zväčšujú kapacitu geometricky (2 gcc a clang; 1.5 MSVC)
 * Operácie `resize`, `erase` a `clear` kapacitu nezmenšujú. `shrink_to_fit` môže kapacitu zmenšiť, ale je to iba nezáväzná požiadavka
 * Ak nastane realokácia, každý iterátor (smerník, referencia), ktorý ukazoval na prvok vectora, je neplatný
-* Preto je veľmi zlé manipulovať s vectorom počas iterovania cez neho
-* Skoro vždy chcete použiť vector
+
+```cpp
+std::vector<int> values;
+values.reserve(4); // size = 0, capacity >= 4
+values.push_back(10); // size = 1, capacity >= 4
+values.resize(3); // size = 3, capacity >= 4
+values.clear(); // size = 0, capacity unchanged
+```
 
 ---
 
@@ -1075,56 +1260,55 @@ vec[200] = 0; // undefined
     <th>Poznámka</th>
   </tr>
   <tr>
+    <td><code>operator[]</code> / <code>at</code></td>
+    <td>O(1)</td>
+    <td>Prístup bez kontroly / s kontrolou hraníc</td>
+  </tr>
+  <tr>
     <td><code>push_back</code></td>
-    <td>O(1)</td>
-    <td>Vloží prvok na koniec vectora, amortizovaná zložitosť</td>
+    <td>amortizovane O(1)</td>
+    <td>Vloží prvok na koniec</td>
   </tr>
   <tr>
-    <td><code>insert</code></td>
+    <td><code>insert</code> / <code>erase</code></td>
     <td>O(n)</td>
-    <td>Vloží prvok(y) na zadanú pozíciu definovanú iterátorom</td>
+    <td>Vloží alebo zmaže prvky na zadanej pozícii</td>
   </tr>
   <tr>
-    <td><code>erase</code></td>
+    <td><code>size</code> / <code>capacity</code></td>
+    <td>O(1)</td>
+    <td>Počet prvkov / veľkosť alokovaného priestoru</td>
+  </tr>
+  <tr>
+    <td><code>reserve</code></td>
+    <td>najviac O(n)</td>
+    <td>Zväčší kapacitu bez zmeny veľkosti</td>
+  </tr>
+  <tr>
+    <td><code>resize</code></td>
     <td>O(n)</td>
-    <td>Zmaže prvok/prvky definované iterátorom</td>
-  </tr>
-  <tr>
-    <td><code>empty</code></td>
-    <td>O(1)</td>
-    <td>Test, či je vector prázdny</td>
-  </tr>
-  <tr>
-    <td><code>front</code>/<code>back</code></td>
-    <td>O(1)</td>
-    <td>Vráti prvý/posledný prvok; ak je vector prázdny, správanie je nedefinované</td>
-  </tr>
-  <tr>
-    <td><code>size</code>/<code>capacity</code></td>
-    <td>O(1)</td>
-    <td>Vráti veľkosť/kapacitu vectora</td>
-  </tr>
-  <tr>
-    <td><code>resize</code>/<code>reserve</code></td>
-    <td>O(n)</td>
-    <td>Zmení veľkosť/kapacitu vectora</td>
+    <td>Zmení počet prvkov</td>
   </tr>
   <tr>
     <td><code>clear</code></td>
     <td>O(n)</td>
-    <td>Odstráni všetky prvky z vectora, ale nezmení jeho kapacitu; štandard garantuje O(n), väčšinou O(1) pre primitívne typy</td>
-  </tr>
-  <tr>
-    <td><code>shrink_to_fit</code></td>
-    <td>O(n)</td>
-    <td>Požiada o zmenšenie kapacity; požiadavka nemusí byť splnená, zložitosť je najviac O(n), väčšinou O(1) pre primitívne typy</td>
-  </tr>
-  <tr>
-    <td><code>begin</code>/<code>end</code></td>
-    <td>O(1)</td>
-    <td>Podpora iterátorov</td>
+    <td>Odstráni všetky prvky, kapacitu nezmení</td>
   </tr>
 </table>
+
+---
+
+## Kedy sa zneplatnia iterátory?
+
+| Operácia | Zneplatnené iterátory, smerníky a referencie |
+|---|---|
+| `push_back` | všetky pri realokácii, inak iba `end()` |
+| `insert` | všetky pri realokácii, inak od miesta vloženia |
+| `erase` | mazané prvky a všetky prvky za nimi |
+| `reserve`, `shrink_to_fit` | všetky, ak sa zmení kapacita |
+| `clear` | všetky |
+
+**Pravidlo:** Po operácii, ktorá mohla zmeniť uloženie alebo poradie prvkov, nepoužívame starý iterátor bez overenia garancií operácie.
 
 
 ## Príklad
@@ -1171,6 +1355,22 @@ for (auto i = v.begin(); i != v.end(); ++i) {
 ```
 
 Oba cykly spôsobujú nedefinované správanie, takže ich výsledok ani ukončenie nemožno predpovedať. 
+
+<div class="fragment">
+
+```cpp
+const auto original_size = v.size();
+v.reserve(original_size * 2);
+
+for (size_t i = 0; i < original_size; ++i) {
+  if (v[i] % 2 != 0) {
+    v.push_back(v[i]);
+  }
+}
+```
+
+Najprv si uložíme pôvodnú veľkosť a rezervujeme dostatok pamäte. Indexy zostávajú platné a nové prvky už opätovne nespracujeme.
+</div>
 
 ---
 
@@ -1428,7 +1628,7 @@ s.resize_and_overwrite(100, [](char* buf, std::size_t buf_size) -> std::size_t {
 ## Predávanie hodnotou a smerníkom
 
 ```cpp
-// by value, can be slow
+// by value, can be slow, value is owned by the function
 void f(std::string x) { }
 
 // just pointer, should we check for null?
@@ -1447,13 +1647,13 @@ g(&s);
 h(&s);
 ```
 
-* Niektorí preferujú verziu so smerníkom, lebo zanecháva stopu pri volaní. Takmer nikto však nepreferuje verziu s konštantným smerníkom; lepšie je ...
+* Smerník používame najmä vtedy, keď je neprítomnosť objektu (`nullptr`) platnou súčasťou rozhrania
 
 
 ## Predávanie cez referenciu
 
 ```cpp
-// by value, can be slow
+// owns its value: copies an lvalue, can move from an rvalue
 void f(std::string x) { }
 
 // reference cannot be null
@@ -1472,18 +1672,51 @@ g(s);
 h(s);
 ```
 
-* Volajúci nevidí rozdiel
-* Volaná funkcia sa nemusí obávať hodnoty `nullptr` a k premenným pristupuje pomocou `x.`, nie `x->`
+* Referencia vyjadruje, že objekt musí existovať
+* Nekonštantná referencia oznamuje, že funkcia môže objekt meniť
+* Volaná funkcia sa nemusí obávať hodnoty `nullptr` a k objektu pristupuje pomocou `x.`, nie `x->`
+
+---
+
+## Hodnota alebo `const&`?
+
+```cpp
+void by_value(std::string text) {
+  text += "!"; // modifies the function's own object
+}
+
+void by_const_reference(const std::string& text) {
+  std::cout << text; // reads the caller's object without a copy
+  // text += "!";   // error
+}
+```
+
+* `T` je samostatný objekt vlastnený funkciou; z lvalue sa skopíruje, z rvalue sa môže presunúť
+* `const T&` je iba alias na existujúci objekt: nekopíruje ho, nevlastní ho a nedovolí ho meniť
+* Pre malé typy ako `int` je hodnota jednoduchšia a zvyčajne lacnejšia; pri veľkých objektoch iba na čítanie používame `const T&`
+* Referencia nesmie prežiť objekt, na ktorý odkazuje
+
+```cpp
+void print(const std::string& text); // object must exist
+void print(const std::string* text); // same read-only access, but may be nullptr
+```
+
+`const T*` rieši rovnaký základný problém ako `const T&`: prístup bez kopírovania a bez možnosti meniť `T`. Nie je to však úplne iný zápis toho istého typu: smerník môže byť `nullptr`, možno ho presmerovať a používa syntax `->` alebo `*`.
 
 ---
 
 ## Usmernenia
 
-* Volanie hodnotou nemusí byť zlé
-  * Hlavne pre typy bez konštruktorov do pár (desiatok) bajtov
-  * Ani inokedy nie je zlé, ale to už musíte niečo vedieť o C++, takže si to necháme na neskôr
-* Inak preferujte `const&`
-* Bez `const` iba ak potrebujete výstupný parameter, čo by ste veľmi nemali
+| Zámer | Typ parametra |
+|---|---|
+| malý, lacno kopírovateľný vstup | `T` |
+| väčší objekt iba na čítanie | `const T&` |
+| funkcia potrebuje vlastnú kópiu | `T`, potom prípadne `std::move` |
+| funkcia musí meniť existujúci objekt | `T&` |
+| objekt môže chýbať | `T*` alebo `const T*` |
+| text iba na čítanie bez vlastníctva | `std::string_view` |
+
+Výstupné parametre používame striedmo; návratová hodnota zvyčajne vyjadruje výsledok zrozumiteľnejšie.
 
 ---
 
