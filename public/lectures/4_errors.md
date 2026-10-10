@@ -332,9 +332,6 @@ int main() {
 ## V C++ použijeme `std::getline`
 
 ```cpp
-#include <iostream>
-#include <string>
-
 int main() {
     std::cout << "Enter your name: ";
 
@@ -365,6 +362,8 @@ int main() {
 
 ## Neplatné parametre
 
+Zjednodušený príklad: spojíme adresár a názov súboru pomocou `\`.
+
 ```cpp
 std::string join_path(const char* dir, const char* file) {
     std::string result = dir;
@@ -378,29 +377,29 @@ std::string join_path(const char* dir, const char* file) {
 }
 ```
 
-* Problémy
-    * `dir` môže byť `nullptr`
-    * dir môže byť prázdny reťazec
-    * `file` môže byť `nullptr`
+* `dir` alebo `file` môže byť `nullptr`: nemáme platný reťazec
+* Prázdny `dir` vytvorí prázdny `result`; volať na ňom `back()` je chyba
+* Podobne ako pri externom vstupe si musíme určiť, ktoré hodnoty funkcia prijíma
 
 ---
 
-## parameter != nullptr
+## Aké vstupy funkcia prijíma?
 
-* Môžeme na začiatku funkcie skontrolovať parametre a ak je niečo zlé, tak vrátiť chybu
+* `dir` môže byť prázdny: výsledkom bude iba názov súboru
+* `file` musí byť neprázdny a nesmie začínať `\`
+* Oba parametre musia ukazovať na platné, nulou ukončené reťazce
 
 ```cpp
-std::string join_path(const char* dir, const char* file)
-{
-    if (dir == nullptr || file == nullptr)
-        return {};
-    // ...
+bool valid_path_parts(const char* dir, const char* file) {
+    return dir != nullptr && file != nullptr
+        && file[0] != '\0' && file[0] != '\\';
 }
 ```
 
-* Prečo je `nullptr` taký špeciálny?
-* `strlen` neoveruje či je jeho vstup `nullptr`
-* Je prázdny reťazec najlepší spôsob ako hlásiť chybu?
+* `&&` vyhodnocuje zľava doprava a skončí pri prvej nepravdivej podmienke
+* Preto k `file[0]` pristúpime až po kontrole `file != nullptr`
+* Takáto kontrola samozrejme neodhalí, či sú reťazce ukončené nulou a či sú vôbec platná pamäť
+* `strlen` napríklad nekontroluje `str != nullptr`
 
 ---
 
@@ -410,15 +409,202 @@ std::string join_path(const char* dir, const char* file)
 * Z `<cassert>`; pri definovanom `NDEBUG` sa výraz nevyhodnotí
 * Zlyhanie vypíše diagnostiku a zavolá `std::abort`
 * Výraz nesmie mať vedľajšie účinky potrebné pre správny beh programu
+* Pozor `import std;` neimportuje toto makro
 
 ```cpp
+#include <cassert>
+
 int divide_positive(int numerator, int denominator) {
     assert(denominator > 0);
     return numerator / denominator;
 }
 ```
 
-* `assert` nie je náhrada validácie vstupu; produkčné assertions môžu byť zámerné
+* `assert` nie je náhrada validácie vstupu, slúžia výhradne na kontrolu počas developmentu
+
+
+## Externý vstup najprv overíme
+
+```cpp
+std::optional<int> checked_divide(int numerator, int denominator) {
+    if (denominator <= 0)
+        return std::nullopt;
+
+    return numerator / denominator;
+}
+```
+
+* Neplatný vstup je tu očakávaný neúspech
+* Kontrola funguje aj pri definovanom `NDEBUG`
+* `std::nullopt` znamená, že výsledok nemáme; `std::optional` si vysvetlíme v ďalšej kapitole
+
+---
+
+## Neočakávaná vetva `assert(false)`
+
+```cpp
+const char* direction_name(int direction) {
+    switch (direction) {
+    case 0: return "left";
+    case 1: return "right";
+    default:
+        assert(false && "Unexpected direction");
+        return "unknown";
+    }
+}
+```
+
+* Očakávame, že náš kód odovzdá iba `0` alebo `1`
+* Iná hodnota pri aktívnom `assert` vyvolá diagnostiku a ukončenie programu
+* Pri `NDEBUG` sa `assert` vynechá; tu funkcia vráti `"unknown"`
+* Vstup od používateľa overíme zvlášť, nie cez `assert`
+
+
+## Nedosiahnuteľné miesto
+
+```cpp
+#include <utility>
+
+const char* direction_name(int direction) {
+    switch (direction) {
+    case 0: return "left";
+    case 1: return "right";
+    default: std::unreachable();
+    }
+}
+```
+
+* Volajúci musí zaručiť, že `direction` je iba `0` alebo `1`
+* Od C++23 takto oznámime kompilátoru, že vetva `default` je nedosiahnuteľná
+* Na rozdiel od `assert` nič nekontrolujeme: iná hodnota spôsobí nedefinované správanie aj pri `NDEBUG`
+* Nie je to spracovanie neplatného vstupu ani zaručené ukončenie programu
+
+---
+
+## Vhodnejší typ parametra: `std::string_view`
+
+* Od C++17; pohľad na reťazec, ktorý si pamätá začiatok a dĺžku
+* Nekopíruje znaky a nevlastní ich pamäť
+* Prijíma napríklad `std::string` aj reťazcový literál
+* Má `empty()`, `size()`, `front()`, `back()` a vyhľadávanie
+* `front()` a `back()` používame iba na neprázdnom pohľade
+* Má `data()`, ale nie `c_str()`: reťazec nemusí byť ukončený nulou
+
+
+## Používanie `std::string_view`
+
+```cpp
+std::string_view name = "report.txt";
+assert(!name.empty() && name.size() == 10);
+assert(name.front() == 'r' && name.back() == 't');
+assert(name[0] == 'r');
+assert(name.starts_with("report") && name.ends_with(".txt"));
+assert(name.contains("port"));
+
+auto dot = name.find('.');
+assert(dot == 6);
+assert(name.find('/') == std::string_view::npos);
+
+auto stem = name.substr(0, dot); // report
+const char* data = stem.data();
+assert(data == name.data()); // same memory
+assert(data[stem.size()] == '.'); // no nul terminator
+
+std::println("{}", stem); // with cout it is complicated
+```
+
+* `substr` nekopíruje znaky; `contains` je od C++23
+* `data()` používame spolu s dĺžkou, tu za `"report"` nasleduje `.`, nie `\0`
+
+
+## Pohľad musí mať na čo pozerať
+
+```cpp
+std::string name = "report.txt";
+std::string_view view = name;
+std::string_view empty;
+
+assert(view == "report.txt");
+assert(empty.empty());
+```
+
+* `name` musí existovať počas používania `view`
+* Zmeny v `name` môžu pohľad zneplatniť, napríklad pri presune dát do novej pamäte
+* Prázdny pohľad je platný vstup, `nullptr` ako reťazec ním v C++23 nie je
+* Lepší typ zjednoduší rozhranie, ale nevyrieši životnosť dát za nás
+
+---
+
+## Rozhranie a predpoklady spolu
+
+```cpp
+std::string join_path(std::string_view dir, std::string_view file) {
+    assert(!file.empty());
+    assert(file.front() != '\\');
+
+    std::string result(dir);
+    if (!result.empty() && result.back() != '\\') {
+        result.push_back('\\');
+    }
+
+    result += file;
+    return result;
+}
+```
+
+* `join_path("docs", "report.txt")` vráti `"docs\\report.txt"`
+* `join_path("", "report.txt")` vráti `"report.txt"`
+* Volajúci zodpovedá za platný názov súboru; assertions pomáhajú odhaliť chybu v jeho kóde
+* Funkcia vracia výsledok, v ďalšej časti ukážeme, ako upozorniť na jeho ignorovanie
+
+---
+
+# Atribúty
+
+---
+
+## Atribúty
+
+* Štandardizované anotácie kódu so syntaxou od C++11
+* Podľa atribútu sa zapisujú k deklarácii alebo príkazu
+* Slúžia napríklad na upozornenia a optimalizáciu; každý má vlastné pravidlá
+* Neznámy atribút môže kompilátor ignorovať; podporu overíme cez `__has_cpp_attribute`
+* Syntax je `[[attribute]]`
+
+---
+
+## Atribúty dostupné v C++17
+
+| Attribút                 | Správanie                             |
+| ------------------------ | ------------------------------------- |
+| `[[noreturn]]`           | Funkcia nikdy neskončí                |
+| `[[deprecated]]`         | Symbol bol označený ako zastaraný     |
+| `[[deprecated("msg")]]`  | Ako predchádzajúci s vlastnou správou |
+| `[[fallthrough]]`        | Potlaćenie upozornení v `switch`      |
+| `[[nodiscard]]`          | Navrátová hodnota sa musí použiť      |
+| `[[maybe_unused]]`       | Premenná môže byť nepoužitá.          |
+| `[[carries_dependency]]` | 😮 Aj ja by som rád vedel 😊         |
+
+* C++20 pridáva napríklad `[[likely]]` a `[[unlikely]]`, C++23 `[[assume]]`
+
+---
+
+## `[[likely]]` a `[[unlikely]]`
+
+```cpp
+std::optional<int> checked_divide(int numerator, int denominator) {
+    if (denominator > 0) [[likely]] {
+        return numerator / denominator;
+    } else [[unlikely]] {
+        return std::nullopt;
+    }
+}
+```
+
+* Od C++20; označujú očakávanú častejšiu alebo zriedkavejšiu cestu
+* Sú to odporúčania pre optimalizátor, nie kontroly ani záruka zrýchlenia
+* Obe vetvy zostávajú platné: aj zriedkavý prípad sa normálne spracuje
+* Používame ich na základe merania, nie automaticky pri každom `if`
 
 ---
 
@@ -449,117 +635,9 @@ int divide_positive(int numerator, int denominator) {
 | Podporované `[[assume]]` | Nedefinované správanie |
 
 * `[[assume]]` nezávisí od `NDEBUG` a nie je rýchlejší `assert`
+* Na rozdiel od `[[unlikely]]` nehovorí „zriedka“, ale „toto musí platiť“
 * Ak ho kompilátor ignoruje, nemôžeme počítať s optimalizáciou
 * Korektnosť programu nesmie závisieť od podpory tohto atribútu
-
----
-
-## Externý vstup najprv overíme
-
-```cpp
-std::optional<int> checked_divide(int numerator, int denominator) {
-    if (denominator <= 0)
-        return std::nullopt;
-
-    return numerator / denominator;
-}
-```
-
-* Neplatný vstup je tu očakávaný neúspech, nie sľub optimalizátoru
-* Kontrola funguje aj pri definovanom `NDEBUG`
-* `[[assume]]` pridávame až pri preukázanom predpoklade a merateľnom prínose
-* Po takejto kontrole ho kompilátor často ani nepotrebuje
-
----
-
-## Nedosiahnuteľný kód
-
-* `assert(false && "Unexpected state")` pomáha odhaliť chybu počas vývoja
-* Pri `NDEBUG` však program cez toto miesto normálne pokračuje
-* `std::unreachable()` z `<utility>` je od C++23 tvrdenie, že miesto nemožno dosiahnuť
-* Ak sa dosiahne, správanie je nedefinované; nie je to spracovanie chyby
-* Ak potrebujeme zaručene skončiť, použijeme napríklad `std::terminate`, nie predpoklad
-
----
-
-## std::string_view 
-
-* Môžeme použiť `std::string_view` (od C++17)
-    * Obálka okolo `char*` (dáta reťazca) a `size_t` (dĺžka reťazca)
-    * Môže byť `nullptr`, potom je ale dĺžka 0 (to sa dá dosiahnuť iba konštruktorom bez parametrov)
-    * Vykonštruovať sa dá aj zo stringu a `char*`
-    * Skoro celý read-only interface `std::string` je k dispozícií
-    * Nemá `c_str()`, iba `data()`, lebo nemusia byť ukončené nulou
-
-
-## Použivanie `std::string_view`
-
-```cpp
-std::strings_view s1;
-assert(s1.data() == nullptr && s1.length() == 0);
-assert(s1.find_first_of("a") == std::string_view::npos);
-
-// std::string_view s2(nullptr); // undefined
-std::string_view s3("String");
-assert(s3.find_first_of("i") == 3);
-
-std::string str("String");
-
-// will not own the string, so we need to make sure
-// the memory is still accessible, so it string_view is
-// more like non owning pointer
-std::string_view s4(str);
-assert(s4.find_first_of("i") == 3);
-```
-
----
-
-## Riešenie so std::string_view
-
-```cpp
-std::string join_path(std::string_view dir, std::string_view file) {
-    std::string result(dir);
-    if (result.empty() || result.back() != '\\') {
-        result.push_back('\\');
-    }
-
-    result += file;
-    return result;
-}
-```
-
-* Pri dvoch prázdnych reťazcoch vyrobí ("\\")
-* Ale funkcia je stále dobre definovaná pre všetky vstupy
-* Môžeme prípadne použiť pár `assert`-ov, ak nám to nevyhovuje
-
----
-
-# Atribúty
-
----
-
-## Atribúty
-
-* Štandardizované anotácie kódu
-* Spätne kompatibilné, staré kompilátory ich budú ignorovať (od C++17)
-* Slúžia na správu upozornení a optimalizáciu, zvyčajne neovplyvňujú samotné správanie kódu
-* Syntax je `[[attribute]]`
-
----
-
-## Atribúty dostupné v C++17
-
-| Attribút                 | Správanie                             |
-| ------------------------ | ------------------------------------- |
-| `[[noreturn]]`           | Funkcia nikdy neskončí                |
-| `[[deprecated]]`         | Symbol bol označený ako zastaraný     |
-| `[[deprecated("msg")]]`  | Ako predchádzajúci s vlastnou správou |
-| `[[fallthrough]]`        | Potlaćenie upozornení v `switch`      |
-| `[[nodiscard]]`          | Navrátová hodnota sa musí použiť      |
-| `[[maybe_unused]]`       | Premenná môže byť nepoužitá.          |
-| `[[carries_dependency]]` | 😮 Aj ja by som rád vedel 😊         |
-
-* V C++20 mnohé ďalšie (`[[likely]]`, `[[no_unique_adress]]`, ...)
 
 ---
 
@@ -572,7 +650,7 @@ std::string join_path(std::string_view path, std::string_view fragment) {
     assert(fragment[0] != '\\');
     
     std::string result;
-    bool add_separator = path.empty() || path.back() != '\\';
+    bool add_separator = !path.empty() && path.back() != '\\';
     
     result.reserve(path.length() + fragment.length() + (add_separator ? 1 : 0));
     result.assign(path);
