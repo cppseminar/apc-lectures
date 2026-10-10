@@ -279,120 +279,83 @@ auto* restored = static_cast<int*>(erased);
 
 ![Bug in my code? It is a features](./lectures/4_errors/bug-feature.png)
 
-* Logické chyby, naša aplikácia nerobí to čo má
-* Abnormálne ukončenie („pád aplikácie“)
+* Bug je chyba v programe: vypočíta zlý výsledok, uloží nesprávne dáta alebo spadne
+* Neplatný vstup alebo nedostupný súbor sú chybové stavy, s ktorými musíme počítať
+* Bug opravujeme; chybový stav spracujeme a zrozumiteľne oznámime
 
 ---
 
 ## Pády v C++ programoch
 
-* Často výsledkom nedefinovaného správania
-    * Dereferencia nullptr smerníka
-    * Delenie nulou
-    * Porušenie ochrany pamäte (*access violation*, *segmentation fault*)
-
-* Ťažko sa diagnostikujú, niekedy máme k dispozícií iba výpis (dump)
-* Oveľa lepšia je prevencia
-    * Nespoliehať sa na správanie, o ktorom sme si nie na 100% istý, že je definované
-    * Nepoužívať zastarané techniky a konštrukcie (surové smerníky)
+* Typické príčiny
+    * Prístup cez `nullptr` alebo smerník na už zaniknutý objekt
+    * Prístup mimo poľa alebo reťazca
+    * Celočíselné delenie nulou
+* Pri neplatnom prístupe do pamäte sa často stretneme s hlásením *segmentation fault* alebo *access violation*
+* Prevencia: používame `std::string`, `std::vector` a kontrolujeme vstupy pred použitím
+* Pád hľadáme pomocou debuggera; k diagnostike sa ešte vrátime
 
 ---
 
 ## Vždy kontrolujte vstup od užívateľa
 
-* Žiadnemu užívateľovi sa nedá veriť
-* Neúmyselné poškodenie
-    * Užívatelia nevedia, čo robia a čo sa od nich očakáva
-    * Pripraviť sa na najhoršie a vždy zobrazovať zmysluplné chyby
-* Úmyselné poškodenie
-    * Niektorí užívatelia budú chcieť spôsobiť nedefinované správanie aby využili náš program na získanie prístupu, prezradenie tajomstva
-    * Náš proces nesmie spadnúť za žiadnych okolností
+* Vstup môže byť prázdny, príliš dlhý alebo v nesprávnom formáte
+* Aj správne zapísaná hodnota môže byť mimo povoleného rozsahu
+* Platí to aj pre dáta zo súboru, siete a argumentov programu
+* Kontrolujeme ich skôr, než ich použijeme na indexovanie, výpočet alebo pretypovanie
+* Pri chybe oznámime problém; nepokračujeme s neplatnými dátami
+* Poškodený vstup môže byť omyl aj úmyselný útok
 
 ---
 
 ## Buffer overflow
 
 ```cpp
-#include <stdio.h>
+#include <cstdio>
 
 int main() {
     char name[128];
-    printf("Enter your name:");
-    scanf("%s", name);
-    printf("Hello %s!", name);
-}
-```
-
-* Ak je zadaný reťazec 127 znakov, alebo menší, tak je všetko v poriadku
-* Väčšie hodnoty vedú k nedefinovanému správaniu
-
-
-## Kompilátor sa nám snaží pomôcť
-
-> error C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS.
-
-![Failed debug abort](./lectures/4_errors/debug-abort.png)
-
-
-## `scanf_s` (C only)
-
-```cpp
-int main() {
-    char name[128];
-    printf("Enter your name:");
-    if (scanf_s("%s", name, (unsigned)std::size(name)) == 1) {
-        printf("Hello %s!", name);
+    std::printf("Enter your name: ");
+    if (std::scanf("%s", name) == 1) {
+        std::printf("Hello %s!", name);
     }
 }
 ```
 
-* Po každom `%s` nasleduje veľkosť buffra, ak je buffer malý, tak zlyhá
-* Problém je, že nie je dostupné na C++, iba na C11
+* Pole má miesto na 127 znakov a ukončovaciu nulu
+* `%s` bez obmedzenia dĺžky nezohľadňuje veľkosť poľa
+* Príliš dlhé slovo spôsobí zápis za koniec poľa: nedefinované správanie, poškodenie pamäte alebo pád
+* Kontrola návratovej hodnoty tu nestačí; potrebujeme aj bezpečný spôsob načítania
 
+---
 
-## Fixing scanf for C++
-
-```cpp
-int read_string(char* buffer, size_t buflen) {
-    char format[32];
-    if (buflen == 0)
-        return 0;
-
-    snprintf(format, std::size(format), "%%%zus", buflen - 1);
-    return scanf(format, *buffer*);
-}
-```
-
-Tu musíme veľmi pozorne riešiť ak sa nám vstup nezmestí do buffra. Lebo nevieme rozlíšiť medzi nedostatkom pamäti a reťazcom presne takej dĺžky ako máme buffer.
-
-```cpp
-int main() {
-    printf("Enter your name:");
-
-    char name[16];
-    read_string(name, std::size(name));
-}
-```
-
-
-## ... alebo rovno `std::getline`
+## V C++ použijeme `std::getline`
 
 ```cpp
 #include <iostream>
+#include <string>
 
-int main()
-{
+int main() {
     std::cout << "Enter your name: ";
 
     std::string name;
-    if (std::getline(std::cin, name)) {
-        std::cout << "Hello " << name << '\n';
+    if (!std::getline(std::cin, name)) {
+        std::cerr << "Cannot read name.\n";
+        return 1;
     }
+
+    if (name.empty() || name.size() > 127) {
+        std::cerr << "Name must contain 1 to 127 bytes.\n";
+        return 1;
+    }
+
+    std::cout << "Hello " << name << '\n';
 }
 ```
 
-* Tento prístup je možno pomalší
-* Ale zaručene spracováva správne všetky chybové stavy
+* `std::string` spravuje pamäť a `std::getline` načíta celý riadok vrátane medzier
+* Úspešné načítanie ešte neznamená platný vstup: pravidlá aplikácie kontrolujeme zvlášť
+* Rovnako si musíme ujasniť, aké vstupy smú dostať naše vlastné funkcie
 
 ---
 
