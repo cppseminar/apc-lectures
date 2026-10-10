@@ -9,13 +9,14 @@
 ## Obsah
 
 * pretypovanie
-* `assert`
-* atribúty
-* `std::optional`
+* `assert` a `[[assume]]`
+* `[[nodiscard]]`
+* `std::optional` a `std::expected`
 * postupy riešenia chybových stavov
    * Návratové kódy
    * `errno`
    * Výnimky
+* diagnostika
 
 ---
 
@@ -23,285 +24,250 @@
 
 ---
 
-## C štýl pretypovania
+## Konverzia nemusí byť explicitná
 
-* Konvertuje takmer všetko, do takmer všetkého
-    * Reinterpretuje smerníky a referencie
-    * Odstraňuje konštantnosť
-    * Zužovanie a rozširovanie číselných typov
-    * Zaokrúhľovanie
-    * Navigácia v hierarchií tried
+```cpp
+int count = 7;
+double exact = count; // 7
+
+long long hugenum = 9007199254740993LL;
+double approximate = hugenum; // 9007199254740992
+
+double price = 12.75;
+int truncated = price; // 12
+```
+
+* Konverzie sa dejú aj pri priradení, odovzdaní argumentu a návrate z funkcie
+* Implicitná konverzia môže stratiť informáciu
+* Explicitné pretypovanie vyjadruje zámer
+
+note: IEEE definuje pre double cca 53bit presnosti v inte.
 
 ---
 
-## Používanie C pretypovania
-
-* Menenie typov smerníkov
+## C štýl (trochu) skrýva zámer
 
 ```cpp
-int* i = new int(4);
-//char* c = i; // will not compile
+double price = 12.75;
+int whole = (int)price;
 
-char* c = (char*)i;
+long long huge = 9007199254740993LL;
+double approx = (double)9007199254740993LL
 
-delete i;
+const int limit = 10;
+int* writable = (int*)&limit;
 ```
 
-
-* Odstránenie konštantnosti (`const`)
-
-```cpp
-const char *s = "My const string";
-
-char *p = (char*)s;
-// better not to modify content of p
-```
-
-
-* Zužovanie typu (narrowing)
-
-```cpp
-int64_t i = 57342059000411;
-
-int c = (int)i; // narrowing
-```
-
-
-* Orezanie desatinej časti (akoby sme zavolali funkciu `floor`).
-
-```cpp
-double d = 123.456;
-
-char c = (char)d; // truncating
-```
+* Rovnaká syntax skrýva číselnú konverziu aj odstránenie `const`
+* Zápis cez `writable` by mal nedefinované správanie
+* C++ casty sa ľahšie hľadajú a presnejšie pomenúvajú operáciu
 
 ---
 
-## C++ „odradzuje“ od C pretypovania
+## Ktoré operácie to sú?
 
-> **An ugly operation should have an ugly syntactic form**
-> – Bjarne Stroustrup
-
-* C pretypovanie sa ťažko hľadá v programe
-* Pretože sa jednoducho píšu, programátori ich majú tendenciu používať aj keď netreba
-* Niektoré pretypovania môžu byť naozaj nebezpečné (nedefinované správania)
-    * Prístup do pamäte iba na čítania
-    * Odrezanie dôležitých dát (pri číselných konverziách)
-
----
-
-## `static_cast<T>`
-
-* Číselné konverzie
-    * Konverzie medzi bitovými dĺžkami (zužovanie, rozširovanie)
-    * Orezávanie (*truncating*) čísel s desatinnou čiarkou
-* Implicitné konverzie (volanie operátorov)
-* Pridávanie const
-* Navigácia v hierarchií objektov
-    * Upcast
-    * Downcast
-
----
-
-## Používanie `static_cast`
-
-Rozširovanie číselného typu (vždy bezpečné).
-
-```cpp
-int8_t i = 127;
-
-auto j = static_cast<int16_t>(i); // safe cast, no lost of information
-```
-
-Spolu so `static_cast` je najlepšie používať `auto` ako typ, keďže je už typ uvedený pri pretypovaní a nie je tam ani náhodou ďalšia implicitná konverzia.
-
-
-Zužovanie číselného typu (môžeme príjsť o dáta).
-
-```cpp
-int16_t i = 30'000;
-
-auto j = static_cast<int8_t>(i);
-```
-
-~~Výsledok vyššie je definovaný implementáciou, na iných platformách môže byť iný.~~ Od C++20 je to už definované ako $x \bmod 2^n$.
-
-```cpp
-uint32_t i = 300'000;
-
-// always i mod uint16_t max (65536)
-auto j = static_cast<uint16_t>(i); // 37856
-```
-
-Pre `unsigned` hodnoty to bolo vždy dobre definované. 
-
-
-Konverzia z integral typu na floating point a späť (môže dôjsť ku strate dát, alebo k orezaniu desatinej časti).
-
-```cpp
-uint64_t i = 3'000'111'222'333'444'555;
-
-auto f = static_cast<double>(i);
-
-// 3'000'111'222'333'444'608
-auto j = static_cast<uint64_t>(f); // trunc
-```
-
----
-
-## `dynamic_cast<T>`
-
-* Používa na sa pretypovanie polymorfných typov
-* Kontroluje sa počas behu programu
-* Viac o ňom bude na niektorej budúcej prednáške
-
----
-
-## `const_cast<T>`
-
-* Odstraňuje const
-* Spôsobuje nedefinované správanie
-
-```cpp
-const char* str = "Const string!";
-
-// char* s = static_cast<char*>(str); // will not compile
-char* s = const_cast<char*>(str);
-
-s[0] = 'B'; // undefined / most likely crash
-```
-
-| | |
+| Operácia | Nástroj |
 | --- | --- |
-| Používať extrémne opatrne, ak vôbec | ![Bear warning agains const_cast](./lectures/4_errors/disagreeing_bear.png) |
+| Konverzia hodnoty | `static_cast<T>` |
+| Kontrolovaná konverzia v polymorfnej hierarchii | `dynamic_cast<T>` |
+| Zmena `const` kvalifikácie | `const_cast<T>` |
+| Nízkoúrovňová konverzia smerníkov | `reinterpret_cast<T>` |
+| Kopírovanie bitovej reprezentácie do iného typu | `std::bit_cast<T>` |
+
+* Žiadny z týchto nástrojov nenahrádza kontrolu vstupu
+* Až na `dynamic_cast` nevedia povedať že zlyhali
 
 ---
 
-## `reinterpret_cast<T>`
+## `static_cast<T>` konvertuje hodnotu
 
-* Určite nevygeneruje žiadne CPU inštrukcie
-* Dajú sa reinterpretovať smerníky na iné smerníky 
-* Smerníky na čísla a opačne (ak majú dosť bitov)
-* Nedá sa ním odstrániť const
-* Môže viesť k nedefinovanému správaniu
-* C++ má [type alias rule](https://en.cppreference.com/w/cpp/language/reinterpret_cast) a preto iba malá sada pretypovania je definovné správanie (napr. konverzia z `int*` na `char*`)
+```cpp
+double price = 12.75;
+auto whole = static_cast<int>(price);
+```
+
+* Výsledok je celé číslo `12`, nie bity reprezentujúce `12.75`
+* Nekontroluje počas behu, či sa číselná hodnota zmestí do cieľového typu
+* `auto` zabráni ďalšej implicitnej konverzii pri uložení výsledku
 
 ---
 
-## Používanie `reinterpret_cast`
+## Celé čísla a ich rozsah
 
 ```cpp
-float f = 2.5f;
+std::int8_t small = 127;
+auto wide = static_cast<std::int16_t>(small);
 
-auto i = static_cast<int>(f); // 2;
-
-//auto j = reinterpret_cast<int>(f); // will not compile
-auto* j = reinterpret_cast<int*>(&f);
-
-*j; // undefined, 0x0099fcc0
+std::int16_t large = 30'000;
+auto narrow = static_cast<std::int8_t>(large);
 ```
 
-Reinterpretovanie smerikov na iné typy. Môže byť nedefinované. 
-
-
-```cpp
-int* p = new int(0);
-auto i = reinterpret_cast<uintptr_t>(p);
-
-auto* pp = reinterpret_cast<int*>(i);
-```
-
-Môžeme konvertovať aj smerníky na číselné typy. Tie musia mať dostatok bitov (`intptr_t` a `uintptr_t` majú vždy dosť).
-
-
-```cpp
-int i = 123;
-
-void* p = &i; // implicit
-
-auto* pi = static_cast<int*>(p);
-```
-
-Konverzia na `void*` je implicitná a z `void*` na typový smerník stačí `static_cast`.
+* Prvá konverzia zachová hodnotu: cieľový typ pokrýva celý rozsah zdrojového typu
+* Druhá v C++23 dá `48`, nie `30'000`
+* Od C++20 je výsledok celočíselnej konverzie jednoznačná hodnota cieľového typu kongruentná modulo $2^n$, kde $n$ je počet bitov cieľového typu
+* Definované správanie ešte neznamená správny výsledok pre našu aplikáciu
 
 ---
 
-## `typeid`
-
-* Základné informácie o type sa dajú získať pomocou operátora `typeid`
-` Pre polymorfné typy sa deje počas behu programu, inak počas kompilácie
+## Signed a unsigned
 
 ```cpp
-#include <typeinfo>
+int negative = -1;
+auto positive = static_cast<std::uint32_t>(negative);
 
-int main() {
-    const type_info& t = typeid(int);
+bool ordinary = negative < 1u;
+bool mathematical = std::cmp_less(negative, 1u);
+```
 
-    // will print something like int
-    std::cout << t.name() << '\n';
+* `positive` je `4'294'967'295`
+* `ordinary` je `false`: pri porovnaní sa `negative` konvertuje na `unsigned int`
+* `mathematical` je `true`: `std::cmp_less` porovná celé čísla bez tejto pasce
+* Väčší počet bitov sám osebe nezaručuje zachovanie zápornej hodnoty
+
+---
+
+## Najprv kontrola, potom cast
+
+```cpp
+std::optional<std::uint16_t> try_to_u16(int value) {
+    if (!std::in_range<std::uint16_t>(value))
+        return std::nullopt;
+
+    return static_cast<std::uint16_t>(value);
 }
 ```
 
-
-## `type_info`
-
-* Trieda reprezentujúca výsledok operátora `typeid`
-* Obsahuje veľmi základné informácie
-    * Meno typu
-    * Hash hodnotu
-    * Užitočnejšia s *RTTI*
-
-Notes: RTTI je runtime type inference, použivané dynamic_cast a polymorfnými triedami.
+* `std::in_range` je od C++20; kontroluje reprezentovateľnosť pre podporované celočíselné typy
+* `-1` a `70'000` sa nezmestia, `300` áno
+* K návratovému typu `std::optional` sa ešte vrátime
 
 ---
 
-## Pretypovanie a C++
-
-<ul>
-<li class="fragment">
-
-Nepoužívajte C štýl
-</li>
-<li class="fragment">
-
-Nepoužívajte `const_cast`
-</li>
-<li class="fragment">
-
-Nepoužívajte `reinterpret_cast` 
-</li>
-<li class="fragment">
-
-Nepoužívajte `dynamic_cast` 
-</li>
-<li class="fragment">
-
-Nepoužívajte `static_cast` 
-</li>
-<li class="fragment">
-
-Je najlepšie vyhnúť sa akémukoľvek pretypovaniu, ale keď sa inak nedá, tak zdola nahor
-</li>
-</ul>
- 
----
-
-## `std::bit_cast`
-
-* `reinterpret_cast` sa nedá použiť na bitové reinterpretácie
-* Od C++20, použiť sa dá iba ak oba typy sú triviálne a majú rovnakú veľkosť
+## Desatinné číslo na celé
 
 ```cpp
-#include <bit>
-#include <iostream>
-
-int main() {
-    float f = 1;
-    int i = std::bit_cast<int>(f);
-
-    std::cout << i << '\n'; // 1065353216
-}
+auto positive = static_cast<int>(12.75);
+auto negative = static_cast<int>(-12.75);
 ```
+
+* Výsledky sú `12` a `-12`: orezávame smerom k nule
+* Nie je to `std::floor`, ktorý by pre `-12.75` vrátil `-13.0`
+* Ak sa orezaná hodnota nezmestí do cieľového typu, správanie je nedefinované
+* Rovnako nemôžeme takto konvertovať NaN ani nekonečno na celé číslo
+* `std::in_range` nie je určené pre floating-point vstup
+
+---
+
+## Celé číslo na desatinné
+
+```cpp
+static_assert(std::numeric_limits<double>::radix == 2);
+static_assert(std::numeric_limits<double>::digits == 53);
+
+std::uint64_t original = 9'007'199'254'740'993;
+auto rounded = static_cast<double>(original);
+auto restored = static_cast<std::uint64_t>(rounded);
+// restored is 9'007'199'254'740'992
+```
+
+* Bežný `double` má 53 bitov presnosti, nie 64 bitov celočíselnej presnosti
+* `rounded` už nemôže presne reprezentovať `original`
+* Konverzia späť neobnoví stratenú informáciu
+* Predpoklady o reprezentácii sme tu explicitne overili cez `static_assert`
+
+---
+
+## Pretypovanie v hierarchii tried
+
+* Konverzia smerníka z odvodenej triedy na verejnú jednoznačnú bázu je zvyčajne implicitná
+* `static_cast` smerom nadol nekontroluje skutočný typ objektu
+* `dynamic_cast` môže pri polymorfných objektoch skontrolovať konverziu počas behu
+* Neúspešný `dynamic_cast` smerníka vráti `nullptr`, referencie vyhodí `std::bad_cast`
+* Konkrétne príklady si ukážeme pri dedičnosti a polymorfizme v nasledujícich prednáškach
+
+---
+
+## `const_cast` a odstránenie `const`
+
+```cpp
+int value = 10;
+const int* view = &value;
+*const_cast<int*>(view) = 20;
+
+const int fixed = 10;
+int* forbidden = const_cast<int*>(&fixed);
+// *forbidden = 1; // ub
+
+const char* string = "Immutable";
+char* dangerous = const_cast<char*>(string);
+// dangerous[0] = '/'; //ub
+```
+
+* Prvý zápis je definovaný: pôvodný objekt `value` nie je konštantný
+* Samotné vytvorenie smerníka `forbidden` nie je undefined až zápis cezeň by bol
+* Reťazcový literál tiež nesmieme meniť
+* Ideálne je nájsť spôsob ako náš program urobiť korekne bez `const_cast`, jeho použitie je posledná možnosť
+
+---
+
+## `reinterpret_cast` nemení objekt na iný typ
+
+```cpp
+float value = 2.5f;
+auto* wrong_type = reinterpret_cast<int*>(&value);
+```
+
+* V pamäti je stále objekt typu `float`, nevznikol tam `int`
+* Čítanie cez `*wrong_type` by porušilo pravidlá prístupu, takže je nedefinované
+* Reprezentáciu objektu možno prezerať cez `char`, `unsigned char` alebo `std::byte`
+* Cast nevyrieši ani problémy so zarovnaním a životnosťou objektu
+* Je to nástroj pre nízkoúrovňový kód, nie bežná číselná konverzia
+
+note: Co myslim tou reprezentaciou typy. Ak máme objekt std::string, tak ho môžeme čítať iba cez smerník na std::string a nie cez int*, výnimku majú tie tri typy uvedené na slide. Smernikom na char môžeme čítať všetko. Súvisí to aj so strict aliasing rule.
+
+---
+
+## `std::bit_cast` reprezentácia ako hodnota
+
+```cpp
+static_assert(sizeof(float) == sizeof(std::uint32_t));
+static_assert(std::numeric_limits<float>::is_iec559);
+static_assert(std::numeric_limits<float>::digits == 24);
+
+auto bits = std::bit_cast<std::uint32_t>(1.0f);
+auto restored = std::bit_cast<float>(bits);
+```
+
+* Od C++20; oba typy musia byť *trivially copyable* a rovnako veľké
+* V tomto príklade `bits == 0x3f800000` a `restored == 1.0f`
+* Vzniká nová hodnota, nepristupujeme k pôvodnému objektu cez nesprávny smerník
+* Nie je to prenosný formát serializácie, veľmi záleží na reprezentácii typov na konkrétnej platforme
+
+---
+
+## Návrat z `void*`
+
+```cpp
+int value = 123;
+void* erased = &value;
+auto* restored = static_cast<int*>(erased);
+```
+
+* Konverzia na `void*` je implicitná, späť stačí `static_cast`
+* Musíme poznať pôvodný typ a objekt musí stále existovať
+* Tu `restored == &value` a `*restored == 123`
+* Podobné rozhrania stretneme v C API (napr. kontext do threadu); v novom C++ kóde preferujeme zachovanie typu
+
+---
+
+## Kedy pretypovať?
+
+* Najprv overme, či správne typy a rozhranie neodstránia potrebu castu
+* Pre úmyselnú konverziu hodnoty použime `static_cast`
+* Ak môže dôjsť k strate dát, najprv overme rozsah a pravidlá aplikácie
+* Bitovú reprezentáciu a číselnú hodnotu riešime rozdielnymi nástrojmi
+* `const_cast` a `reinterpret_cast` vyžadujú konkrétne zdôvodnenie
+* Cast potláčajúci chybu kompilátora nie je automaticky oprava programu
 
 ---
 
@@ -477,49 +443,79 @@ std::string join_path(const char* dir, const char* file)
 
 ## `assert`
 
-* Runtime kontrola zadaných podmienok
-* Aktívne iba ak `NDEBUG` **nie je** definovaný (zvyčajne debug buildy)
-* Veľmi užitočné pre skorom zachytávaní problémov
-* Zlyhaný `assert` vedie k okamžitému ukončeniu programu
+* Pripomenutie: kontrolujeme predpoklady a programátorské chyby
+* Z `<cassert>`; pri definovanom `NDEBUG` sa výraz nevyhodnotí
+* Zlyhanie vypíše diagnostiku a zavolá `std::abort`
+* Výraz nesmie mať vedľajšie účinky potrebné pre správny beh programu
 
 ```cpp
-std::string join_path(const char* dir, const char* file) {
-    assert(dir != nullptr);
-    assert(file != nullptr);
-    assert(file[0] != '\0');
-    // ...
+int divide_positive(int numerator, int denominator) {
+    assert(denominator > 0);
+    return numerator / denominator;
 }
 ```
 
+* `assert` nie je náhrada validácie vstupu; produkčné assertions môžu byť zámerné
 
-## Zlyhaný assert
+---
 
-![Failed assert](./lectures/4_errors/failed-assert.png)
-
-* Hlási podmienku, súbor a číslo riadku
-* Pozor aby sa nám nedostali do produkčného buildu
-
-
-## assert(false)
+## `[[assume]]` náš sľub optimalizátoru
 
 ```cpp
-void print_message(int option) {
-switch (option) {
-case 0:
-    std::cout << "A";
-    break;
-case 1:
-    std::cout << "B";
-    break;
-default:
-    assert(false);
+int divide_positive(int numerator, int denominator) {
+    [[assume(denominator > 0)]];
+    return numerator / denominator;
 }
 ```
 
-* `assert(false)` nám má označovať nedosiahnuteľný kód
-* Dá sa ale aj lepšie
-    * Platný smerník je vždy `true`
-    * `assert(!"Unsupported option!");`
+* Štandardný atribút od C++23, zapísaný na prázdnom príkaze
+* Podmienka sa nevyhodnocuje; negeneruje runtime kontrolu ani hlásenie chyby
+* Kompilátor môže optimalizovať s predpokladom, že je podmienka pravdivá
+* Ak pri dosiahnutí tohto miesta neplatí, správanie je nedefinované
+* Nepoužívame vedľajšie účinky; podporu overíme cez `__has_cpp_attribute(assume)`
+
+---
+
+## Kontrola alebo predpoklad?
+
+| Nástroj | Ak podmienka neplatí |
+| --- | --- |
+| `if` a spracovanie chyby | Program vykoná zvolenú chybovú vetvu |
+| `assert`, bez `NDEBUG` | Diagnostika a ukončenie cez `abort` |
+| `assert`, s `NDEBUG` | Žiadna kontrola ani vyhodnotenie výrazu |
+| Podporované `[[assume]]` | Nedefinované správanie |
+
+* `[[assume]]` nezávisí od `NDEBUG` a nie je rýchlejší `assert`
+* Ak ho kompilátor ignoruje, nemôžeme počítať s optimalizáciou
+* Korektnosť programu nesmie závisieť od podpory tohto atribútu
+
+---
+
+## Externý vstup najprv overíme
+
+```cpp
+std::optional<int> checked_divide(int numerator, int denominator) {
+    if (denominator <= 0)
+        return std::nullopt;
+
+    return numerator / denominator;
+}
+```
+
+* Neplatný vstup je tu očakávaný neúspech, nie sľub optimalizátoru
+* Kontrola funguje aj pri definovanom `NDEBUG`
+* `[[assume]]` pridávame až pri preukázanom predpoklade a merateľnom prínose
+* Po takejto kontrole ho kompilátor často ani nepotrebuje
+
+---
+
+## Nedosiahnuteľný kód
+
+* `assert(false && "Unexpected state")` pomáha odhaliť chybu počas vývoja
+* Pri `NDEBUG` však program cez toto miesto normálne pokračuje
+* `std::unreachable()` z `<utility>` je od C++23 tvrdenie, že miesto nemožno dosiahnuť
+* Ak sa dosiahne, správanie je nedefinované; nie je to spracovanie chyby
+* Ak potrebujeme zaručene skončiť, použijeme napríklad `std::terminate`, nie predpoklad
 
 ---
 
