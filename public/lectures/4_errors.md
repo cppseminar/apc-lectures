@@ -43,7 +43,6 @@ int truncated = price; // 12
 
 note: IEEE definuje pre double cca 53bit presnosti v inte.
 
----
 
 ## C štýl (trochu) skrýva zámer
 
@@ -52,7 +51,7 @@ double price = 12.75;
 int whole = (int)price;
 
 long long huge = 9007199254740993LL;
-double approx = (double)9007199254740993LL
+double approx = (double)9007199254740993LL;
 
 const int limit = 10;
 int* writable = (int*)&limit;
@@ -90,7 +89,6 @@ auto whole = static_cast<int>(price);
 * Nekontroluje počas behu, či sa číselná hodnota zmestí do cieľového typu
 * `auto` zabráni ďalšej implicitnej konverzii pri uložení výsledku
 
----
 
 ## Celé čísla a ich rozsah
 
@@ -107,7 +105,6 @@ auto narrow = static_cast<std::int8_t>(large);
 * Od C++20 je výsledok celočíselnej konverzie jednoznačná hodnota cieľového typu kongruentná modulo $2^n$, kde $n$ je počet bitov cieľového typu
 * Definované správanie ešte neznamená správny výsledok pre našu aplikáciu
 
----
 
 ## Signed a unsigned
 
@@ -124,7 +121,6 @@ bool mathematical = std::cmp_less(negative, 1u);
 * `mathematical` je `true`: `std::cmp_less` porovná celé čísla bez tejto pasce
 * Väčší počet bitov sám osebe nezaručuje zachovanie zápornej hodnoty
 
----
 
 ## Najprv kontrola, potom cast
 
@@ -141,7 +137,6 @@ std::optional<std::uint16_t> try_to_u16(int value) {
 * `-1` a `70'000` sa nezmestia, `300` áno
 * K návratovému typu `std::optional` sa ešte vrátime
 
----
 
 ## Desatinné číslo na celé
 
@@ -156,7 +151,6 @@ auto negative = static_cast<int>(-12.75);
 * Rovnako nemôžeme takto konvertovať NaN ani nekonečno na celé číslo
 * `std::in_range` nie je určené pre floating-point vstup
 
----
 
 ## Celé číslo na desatinné
 
@@ -295,7 +289,6 @@ auto* restored = static_cast<int*>(erased);
 * Prevencia: používame `std::string`, `std::vector` a kontrolujeme vstupy pred použitím
 * Pád hľadáme pomocou debuggera; k diagnostike sa ešte vrátime
 
----
 
 ## Vždy kontrolujte vstup od užívateľa
 
@@ -510,11 +503,33 @@ const char* data = stem.data();
 assert(data == name.data()); // same memory
 assert(data[stem.size()] == '.'); // no nul terminator
 
-std::println("{}", stem); // with cout it is complicated
+std::println("{}", stem);
+std::cout << stem; // string_view pozná svoju dĺžku
 ```
 
 * `substr` nekopíruje znaky; `contains` je od C++23
 * `data()` používame spolu s dĺžkou, tu za `"report"` nasleduje `.`, nie `\0`
+
+
+## Pohľad na sekvenciu: `std::span`
+
+```cpp
+int sum(std::span<const int> values) {
+    return std::accumulate(values.begin(), values.end(), 0);
+}
+
+int array[] = {1, 2, 3};
+std::vector<int> vector = {4, 5, 6};
+
+assert(sum(array) == 6);
+assert(sum(vector) == 15);
+```
+
+* Od C++20; pohľad na súvislú sekvenciu prvkov
+* Nevlastní pamäť a nekopíruje prvky
+* Prijíma napríklad pole, `std::array` aj `std::vector`
+* `std::string_view` je pohľad na znaky, `std::span<T>` funguje pre ľubovoľný typ `T`
+* Aj pri `span` musí pôvodná sekvencia existovať počas používania pohľadu
 
 
 ## Pohľad musí mať na čo pozerať
@@ -573,21 +588,41 @@ std::string join_path(std::string_view dir, std::string_view file) {
 
 ---
 
-## Atribúty dostupné v C++17
+## Vybrané štandardné atribúty
 
-| Attribút                 | Správanie                             |
-| ------------------------ | ------------------------------------- |
-| `[[noreturn]]`           | Funkcia nikdy neskončí                |
-| `[[deprecated]]`         | Symbol bol označený ako zastaraný     |
-| `[[deprecated("msg")]]`  | Ako predchádzajúci s vlastnou správou |
-| `[[fallthrough]]`        | Potlaćenie upozornení v `switch`      |
-| `[[nodiscard]]`          | Navrátová hodnota sa musí použiť      |
-| `[[maybe_unused]]`       | Premenná môže byť nepoužitá.          |
-| `[[carries_dependency]]` | 😮 Aj ja by som rád vedel 😊         |
+| Atribút                         | Od    | Správanie                                  |
+| ------------------------------- | ----- | ------------------------------------------ |
+| `[[noreturn]]`                  | C++11 | Funkcia sa nikdy normálne nevráti          |
+| `[[deprecated("správa")]]`      | C++14 | Symbol je zastaraný                        |
+| `[[fallthrough]]`               | C++17 | Potlačí upozornenie pri prepade v `switch` |
+| `[[nodiscard]]`                 | C++17 | Upozorní na ignorovanú návratovú hodnotu   |
+| `[[maybe_unused]]`              | C++17 | Potlačí upozornenie na nepoužitý symbol    |
+| `[[likely]]`, `[[unlikely]]`    | C++20 | Označia očakávanú cestu vykonávania        |
+| `[[no_unique_address]]`         | C++20 | Člen nemusí zaberať samostatné miesto      |
 
-* C++20 pridáva napríklad `[[likely]]` a `[[unlikely]]`, C++23 `[[assume]]`
+* C++23 pridáva napríklad `[[assume]]`
 
----
+
+## `[[deprecated]]`, `[[noreturn]]` a kontrola podpory
+
+```cpp
+#if __has_cpp_attribute(deprecated)
+[[deprecated("Use parse_number() instead")]]
+#endif
+int parse_int(std::string_view text);
+
+#if __has_cpp_attribute(noreturn)
+[[noreturn]]
+#endif
+void fail(std::string_view message) {
+    throw std::runtime_error(std::string(message));
+}
+```
+
+* Volanie `parse_int` môže vyvolať upozornenie kompilátora s našou správou
+* `[[noreturn]]` sľubuje, že `fail` sa volajúcemu nevráti
+* `__has_cpp_attribute(názov)` vráti nenulovú hodnotu, ak kompilátor atribút podporuje
+
 
 ## `[[likely]]` a `[[unlikely]]`
 
@@ -621,7 +656,6 @@ int divide_positive(int numerator, int denominator) {
 * Podmienka sa nevyhodnocuje; negeneruje runtime kontrolu ani hlásenie chyby
 * Kompilátor môže optimalizovať s predpokladom, že je podmienka pravdivá
 * Ak pri dosiahnutí tohto miesta neplatí, správanie je nedefinované
-* Nepoužívame vedľajšie účinky; podporu overíme cez `__has_cpp_attribute(assume)`
 
 ---
 
@@ -636,7 +670,6 @@ int divide_positive(int numerator, int denominator) {
 
 * `[[assume]]` nezávisí od `NDEBUG` a nie je rýchlejší `assert`
 * Na rozdiel od `[[unlikely]]` nehovorí „zriedka“, ale „toto musí platiť“
-* Ak ho kompilátor ignoruje, nemôžeme počítať s optimalizáciou
 * Korektnosť programu nesmie závisieť od podpory tohto atribútu
 
 ---
@@ -675,168 +708,193 @@ std::string join_path(std::string_view path, std::string_view fragment) {
 
 ## Voliteľná návratová hodnota
 
-* Predstavme si, že máme funkciu, ktorá vracia reťazec
-* Ak ale niečo zlyhá, tak chceme reportovať chybu
+* Chceme načítať prvý riadok zo súboru
+* Prázdny riadok je platný výsledok
+* Súbor ale nemusí existovať alebo sa z neho nemusí dať čítať
 
 ```cpp
-std::string get_string() {
-    // will return string if exists or nothing...
-    // the thing is how to represent nothing?
+std::string read_first_line(std::string_view path);
+```
+
+Ako odlíšime úspešný výsledok od neúspechu?
+
+
+## Špeciálna hodnota
+
+* Vyhradíme jednu hodnotu na reprezentáciu neúspechu
+* Často sa používa prázdny reťazec, `0`, `-1` alebo maximálna hodnota
+
+```cpp
+std::string read_first_line(std::string_view path) {
+    std::ifstream file{std::string(path)};
+    std::string line;
+
+    if (!file || !std::getline(file, line))
+        return {}; // neúspech alebo prázdny riadok?
+
+    return line;
 }
 ```
 
-
-## Špeciálna hodnota na reprezentáciu chyby
-
-* Prázdny reťatec pre `std::string`
-* `0`, `-1`, `MIN_INT`, `MAX_INT`
-* V poriadku, ak si môžeme dovoliť takto vyčleniť hodnotu
-
-```cpp
-std::string get_string() {
-    if (/* something bad happened */)
-        return std::string(); // no value
-
-    // ...
-}
-```
+* Funguje iba vtedy, keď vyhradená hodnota nemôže byť platným výsledkom
 
 
 ## Použijeme smerník
 
 ```cpp
-std::string* get_string() {
-    if (/* something bad happened */)
-        return nullptr; // no value
-
-    std::string* s = new std::string();
+std::string* read_first_line(std::string_view path) {
     // ...
-    return s;
+    return new std::string("first line");
 }
 ```
 
-* Surové smerníky sú zlé
-* Aj keď použijeme `std::unique_ptr`, stále sa nevyhneme alokácií na heap-e
+* `nullptr` môže jednoznačne znamenať neúspech
+* Z rozhrania nie je jasné, kto má výsledok uvoľniť
+* `std::unique_ptr` vyjadrí vlastníctvo, ale stále vyžaduje alokáciu na halde
 
 
 ## Výstupný parameter
 
 ```cpp
-bool get_string(std::string& s) {
-    if (/* something bad happened */)
-        return false; // failed
+bool read_first_line(std::string_view path, std::string& line) {
+    std::ifstream file{std::string(path)};
+    if (!file || !std::getline(file, line))
+        return false;
 
-    s = "output"; // compute output
-
-    return true;
+    return true; 
 }
 ```
 
-* Nie veľmi moderné
-* Lepšie je keď funkcia nemá žiadne výstupné parametre
-* Použite je komplikovanejšie
-* Návratový typ sa musí dať default skonštruovať
+* Návratová hodnota oznamuje úspech, výsledok sa zapisuje cez referenciu
+* Volajúci musí vytvoriť objekt ešte pred volaním
+* Nie je zrejmé, akú hodnotu má `line` po neúspechu
 
 
 ## `std::pair<bool, std::string>`
 
 ```cpp
-std::pair<bool, std::string> get_string() {
-    if (/* something bad happened */)
-        return { false, std::string() }; // no value
-    
-    std::string s;
-    // ...
-    return { true, s };
+std::pair<bool, std::string> read_first_line(std::string_view path) {
+    std::ifstream file{std::string(path)};
+    std::string line;
+
+    if (!file || !std::getline(file, line))
+        return {false, {}};
+
+    return {true, std::move(line)};
 }
 ```
 
-* Hodnota musí byť default skonštruovateľná
-* Hodnota sa vytvorí aj keď je nie je treba, teda ak je výsledok `false`
+* Výsledok aj informácia o úspechu sa vracajú spolu
+* `std::string` existuje aj pri neúspechu
+* Typ povoľuje aj nezmyselné kombinácie, napríklad `{false, "data"}`
 
 ---
 
-## Skutočný optional
+## `std::optional<T>`
 
-* Pridaný v C++17
-    * `boost::optional` nie je na 100% kompatibilný
-    * Existuje Abseil optional, ktorý funguje od C++11
+* Od C++17 reprezentuje hodnotu typu `T` alebo neprítomnosť hodnoty
+* Hodnota `T` pri prázdnom `optional` vôbec neexistuje
+* Nevyžaduje samostatnú alokáciu na halde
+* Neuchováva dôvod neúspechu
 
 ```cpp
-std::optional<std::string> get_string() {
-    if (/* something bad happened */)
-        return std::nullopt; // no value
+std::optional<std::string> read_first_line(std::string_view path) {
+    std::ifstream file{std::string(path)};
+    std::string line;
 
-    std::string s;
-    // ...
-    return s;
+    if (!file || !std::getline(file, line))
+        return std::nullopt;
+
+    return line;
 }
 ```
 
 
-## Interface `std::optional` 
+## Vytvorenie a kontrola `std::optional`
 
-```cpp [1|3|5-6|8-9|11-12|14|16-19|21-23|25]
-std::optional<std::string> o;
+```cpp
+std::optional<std::string> line;
 
-assert(!o.has_value());
+assert(!line.has_value());
+assert(!line);
 
-o = "Now has value";
-assert(o.has_value());
+line = "first line";
+assert(line.has_value());
 
-// operator -> will not check if value is assigned, undefined if no value
-o->append(" and it has overloaded ->operator.");
-
-auto str = o.value_or("empty");
-assert(str != "empty");
-
-o.reset(); // or = std::nullopt, will discard the value
-
-std::optional<std::string> o2;
-
-auto str2 = o2.value_or("empty");
-assert(str2 == "empty");
-
-[[maybe_unused]] auto x = o2.value(); // will throw exception std::bad_optional_access
-
-*o2; // undefined
-
-o2 = std::make_optional<std::string>("new optional");
+line.reset(); // alebo line = std::nullopt
+assert(!line);
 ```
+
+* V podmienke sa `optional` konvertuje na `bool`
+* `has_value()` vyjadruje rovnakú kontrolu explicitne
+* `reset()` zničí uloženú hodnotu
+
+
+## Prístup k hodnote `std::optional`
+
+```cpp
+auto line = read_first_line("notes.txt");
+
+if (line) {
+    line->append("!");
+    std::println("{}", *line);
+}
+
+auto text = line.value_or("<no line>");
+auto checked = line.value();
+auto unchecked = *line;
+```
+
+* `line->` pracujem priamo s hodnotou, ak neexistuje je to nedefinované správanie
+* `value()` pri prázdnom stave vyhodí `std::bad_optional_access`
+* `value_or()` vráti uloženú hodnotu alebo zadanú náhradnú hodnotu
+* `*line` tiež nekontroluje prázdny stav a môže spôsobiť nedefinované správanie
 
 ---
 
 ## `std::expected`
 
 * Pridaný v C++23
-* Podobný `std::optional`, ale s možnosťou vrátiť chybový stav
-* `std::expected<T, E>`, kde `T` je hodnota a `E` je chyba
+* `std::expected<T, E>` obsahuje buď hodnotu `T`, alebo chybu `E`
+* Podobné ako `union` v tom, že obsahuje buď jednu hodnotu, alebo druhú, ale nie obe súčasne
 
 ```cpp
-std::expected<std::string, std::error_code> get_string() {
-    if (/* something bad happened */)
-        return std::make_unexpected(std::error_code());
-    
-    std::string s;
-    // ...
-    return s;
+enum class read_error { cannot_open, cannot_read };
+
+std::expected<std::string, read_error>
+read_first_line(std::string_view path) {
+    std::ifstream file{std::string(path)};
+    if (!file)
+        return std::unexpected(read_error::cannot_open);
+
+    std::string line;
+    if (!std::getline(file, line))
+        return std::unexpected(read_error::cannot_read);
+
+    return line;
 }
 ```
 
 
-## `std::expected` volanie
+## Použitie `std::expected`
 
-* `std::expected` drží buď hodnotu, alebo chybu
-* Interface umožňuje jednoduché rozlíšenie chyby od úspechu
-* Rovnako sa dá ľahko dostať k platnej hodnote
+* Kontrola a prístup k hodnote fungujú podobne ako pri `std::optional`
+* Chybu získame cez `error()`
 
 ```cpp
-std::expected<std::string, std::error_code> s = get_string();
+auto result = read_first_line("notes.txt");
 
-if (s) {
-    std::cout << *s << '\n';
+if (result) {
+    std::println("{}", *result);
 } else {
-    std::cout << "Error: " << s.error().message() << '\n';
+    switch (result.error()) {
+    case read_error::cannot_open:
+        std::println("Cannot open file");
+        break;
+    case read_error::cannot_read:
+        std::println("Cannot read first line");
+        break;
+    }
 }
 ```
 
@@ -848,343 +906,239 @@ if (s) {
 
 ## Chybové stavy
 
-* Nie bugy
-* Stavy, v ktorých sa stalo niečo zlé
-    * Nedostatok pamäte
-    * Málo miesta na disku
-    * Užívateľ nemá prístup k nejakej časti systému
-    * Time out
-    * Pád iného procesu, na ktorom sme závislý
+* Očakávané zlyhania nie sú automaticky bugy
+* Program s nimi musí počítať a zvoliť ďalší postup
+    * Súbor neexistuje alebo používateľ nemá oprávnenie
+    * Na disku nie je dosť miesta
+    * Sieťová operácia prekročila časový limit
+    * Proces alebo služba, od ktorej závisíme, zlyhala
+    * Nepodarilo sa alokovať pamäť
+
+
+## Čo môžeme pri chybe urobiť?
+
+* Zotaviť sa a operáciu zopakovať alebo použiť náhradný postup
+* Oznámiť chybu volajúcemu
+    * návratový kód, `std::expected`, výnimka
+* Zalogovať problém a ukončiť aktuálnu operáciu
+* Ukončiť celý program, ak bezpečne nemôže pokračovať
+* Ignorovať iba chybu, o ktorej vieme, že nie je podstatná
 
 ---
 
-## Ošetrovanie chýb
-
-* Ignorácia chýb
-* Chybové kódy
-* `Errno` prístup
-* C++ výnimky
-* <small>Iné systémovo špecifické prístupy</small>
-
----
-
-## Ignorácia chýb
-
-* Niekedy môže mať zmysel
-* Ak aplikácií dôjde pamäť, moc sa s tým nedá robiť
-* Veľmi zlé, ak sa nepodarí otvoriť súbor, alebo sieťové spojenie
-* Bezpečnostná diera
+## Ignorovanie návratovej hodnoty
 
 ```cpp
-int main(int argc, char** argv) {
-    char* c = (char*)malloc(1000); // let's roll the dice
-    strcpy(c, "Hello");
+bool save_configuration();
+
+int main() {
+    // dp stuhhh
+
+    save_configuration(); // if it fails, what should we do? 
 }
 ```
 
+* Ignorovanie chyby môže viesť k strate dát alebo nekonzistentnému stavu
+* Ak chybu ignorujeme zámerne, má to byť z kódu a komentára zrejmé
+
 ---
 
-## `exit`, `abort`, `terminate`
+## Spôsoby ukončenia programu
 
-* `std::(quick_)exit`
-    * Normálne ukončenie programu
-    * Quick preskočí nejaké cleanupy
-    * `std::at_(quick_)exit` slúži na registráciu handlerov, ktoré sa pri exit-e majú zavolať
-* `std::terminate`
-    * Automaticky volané ak sa niečo zlé stane (neodchytená výnimka, výnimka z konštruktora globálneho objektu)
-    * `std::set(get)_terminate` nastaví handler na terminate
-    * Štandardný handler je volanie `abort`
-* `std::abort`
-    * Najrýchlejšia cesta ako ukončiť program
-    * Žiaden cleanup sa nevykoná
+| Nástroj | Čo sa uprace |
+| --- | --- |
+| návrat z `main` | lokálne objekty v `main`, potom ako `std::exit` |
+| `std::exit` | statické objekty a funkcie z `std::atexit` |
+| `std::quick_exit` | iba funkcie z `std::at_quick_exit` |
+| `std::_Exit` | žiadne C++ upratovanie |
+| `std::abort` | žiadne bežné C++ upratovanie |
+
+* `std::exit` nezničí automatické lokálne objekty preskočených funkcií
+* Výber závisí od toho, či ide o riadené alebo núdzové ukončenie
 
 
-## `abort`
-
-* Zavolať abort je stále lepšie ako neurobiť nič a spoľahnúť sa na to, že sa to pokazí neskôr
-* Nie je to veľmi užívateľsky prívetive
+## Registrácia handlera cez `std::atexit`
 
 ```cpp
-int main(int argc, char** argv) {
-    char* c = (char*)malloc(1000);
-    if (c == nullptr)
-        abort();
-
-    strcpy(c, "Hello");
-}
-```
-
-* V C++ exituje `std::terminate`, ktorý C++ volá na mnohých miestach, kde už nemá zmysel pokračovať
-
-
-## `exit`
-
-* Oveľa lepšie ako `abort` je zavolať `exit(error_code);`
-* Prípadne `quick_exit`, `_exit` alebo `_Exit` 😎
-
-<table>
-<tr>
-<td width="70%">
-
-```cpp
-void exit_logger() {
-    std::cout << "Exit was called.\n";
-
+void report_exit() {
+    std::println("Program is ending");
 }
 
 int main() {
-    if (std::atexit(exit_logger) != 0) {
-        std::cout << "At exit not worked\n";
+    if (std::atexit(report_exit) != 0) {
+        std::println("Cannot register exit handler");
         return EXIT_FAILURE;
     }
 
-    std::cout << "returning from main\n";
+    std::println("Program is running");
     return EXIT_SUCCESS;
 }
 ```
-</td>
-<td>
 
-`exit_logger` sa zavolá, je to z toho dôvodu, že return z `main`-u, vlastne akoby volal `exit`
-</td>
-</tr>
-</table>
+* Handler nemá parametre ani návratovú hodnotu
+* Zavolá sa pri návrate z `main` alebo cez `std::exit`
+* Nevolá sa pri ukončení cez `std::abort`
 
-* `exit` volá všetky registované funkcia a deštruktory globálnych objektov...
-* `quick_exit` volá iba funkcia zaregistrované pomocou `at_quick_exit`
-* `_Exit` nevolá nič
+
+## `std::terminate`
+
+* Volá sa napríklad pri neodchytenej výnimke
+* Zavolá sa aj vtedy, keď výnimka opustí funkciu označenú `noexcept`
+* Handler môžeme nastaviť cez `std::set_terminate`
+* Predvolený handler zavolá `std::abort`
+
+```cpp
+void write_required_audit_log(std::string_view message) {
+    std::ofstream file("audit.log", std::ios::app);
+    if (!file)
+        std::terminate();
+
+    file << message << '\n';
+    if (!file)
+        std::terminate();
+}
+```
+
+Ak bez auditného záznamu nesmieme pokračovať, zlyhanie ukončí celý program.
 
 ---
 
 ## Chybové kódy `bool`
 
-* Použije bool ako návratovú hodnotu
-* Nevieme ale komunikovať aký bol problém
-* Musíme používať výstupné parametre 😢
-
 ```cpp
-bool read_line(const std::string& path, std::string& line) {
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
-        return false;
-
-    if (!std::getline(ifs, line))
+[[nodiscard]]
+bool read_first_line(std::string_view path, std::string& line) {
+    std::ifstream file{std::string(path)};
+    if (!file || !std::getline(file, line))
         return false;
 
     return true;
 }
 ```
 
----
+* `bool` jednoducho odlíši úspech od neúspechu
+* Nevie však oznámiť, prečo operácia zlyhala
+* Výsledok musíme vrátiť cez výstupný parameter
+
 
 ## Chybové kódy `enum`
 
-* Ak nám dva stavy nestačia
-* Môžeme mať viaceré chybové stavy
-    * Súbor sa nepodarilo otvoriť
-    * Zlyhalo čítanie zo súboru
-    * Nie je dosť pamäte
-    * ...
-* Historicky sa používali `int`, alebo `ssize_t`
-* Dnes hlavne `enum class`
-
-
-## Príklad enum
-
-```cpp [1-5|7-18]
-enum class error {
+```cpp
+enum class read_error {
     success,
-    memory_error,
-    cannot_open_file,
+    cannot_open,
+    cannot_read,
 };
 
-error read_from_file(std::string_view path, char** data) {
-    std::ifstream f(path.data(), std::ios::binary);
-    if (!f.is_open())
-        return error::cannot_open_file;
+[[nodiscard]]
+read_error read_first_line(std::string_view path, std::string& line) {
+    std::ifstream file{std::string(path)};
+    if (!file)
+        return read_error::cannot_open;
 
-    *data = static_cast<char*>(malloc(1024));
-    if (!*data)
-        return error::memory_error;
+    if (!std::getline(file, line))
+        return read_error::cannot_read;
 
-    // ...
-    return error::success;
+    return read_error::success;
 }
 ```
 
----
-
-## Problémy s chybovými kódmi
-
-* Predvolene ich ignorujeme, dá sa k nim pridať `[[nodiscard]]`, ale aj tak
-* Aj keď sa neignorujú, tak často programátori používajú iba error/success
-    * Efektívne používajú ako `bool`
-* Jeden nedôsledný programátor môže pokaziť dômyselný systém, lebo nepropaguje chyby ďalej
+* `enum class` pomenuje viacero možných chýb
+* Volajúci však stále musí výsledok skontrolovať a propagovať
+* `std::expected<T, E>` spojí chybový stav priamo s výslednou hodnotou
 
 ---
 
 ## `errno`
 
-* Každé vlákno má vlastnú hodnotu
-    * Volaný ju nastaví
-    * Volajúci si ju potom vie prečítať
-* Netreba mať výstupné parametre
-* Ešte menej viditeľné, takže sa dá ľahko ignorovať
-* *WinApi `GetLastError`*
+* Niektoré funkcie C knižnice ním oznamujú podrobnosti o chybe
+* Každé vlákno má vlastnú hodnotu `errno`
+* Úspešné volanie ho nemusí nastaviť späť na nulu
+* Čítame ho iba vtedy, keď dokumentácia danej funkcie určuje jeho význam
+* Ak potrebujeme odlíšiť starú hodnotu, nastavíme `errno = 0` tesne pred volaním
 
 
-## Konvertovanie reťazca na číslo
+## Konverzia cez `strtoll`
 
-* Máme const char* a chceme funkciu, ktorá sa ho pokúsi konvertovať na `int64_t` v desiatkovej sústave
-* Reťazec je od užívateľa, takže musíme kontrolovať všetko
-* Štandard poskytuje `strtoll` s troma parametrami
-    * smerník na reťazec
-    * smerník na znak, kde sa skončila konverzia
-    * radix
+`strtoll` dostane vstup, výstupný smerník na koniec konverzie a číselnú sústavu.
 
 ```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    output = strtoll(input, nullptr, 0);
-    return true;
+bool try_to_int64(const char* input, std::int64_t& output) {
+    if (input == nullptr)
+        return false;
+
+    char* end = nullptr;
+    output = std::strtoll(input, &end, 10);
+
+    return end != input && *end == '\0';
 }
 ```
 
+* `end == input` znamená, že sa neskonvertoval ani jeden znak
+* `*end != '\0'` znamená, že za číslom zostali ďalšie znaky
+* Funkcia akceptuje úvodné biele znaky aj znamienka `+` a `-`
 
-## Radix a neplatný reťazec
 
-* Najprv chceme zadať pevný radix, aby si program neodmýšľal 
-    * default 0 znamená zisti podľa prefixu
-* Vstup ako `"123abc"` chceme odignorovať
-    * hodí sa nám druhý parameter `strtoll`
+## Rozsah výsledku cez `errno`
 
 ```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    char* endptr = nullptr;
-    output = strtoll(input, &endptr, 10);
-    if (*endptr != '\0')
+bool try_to_int64(const char* input, std::int64_t& output) {
+    if (input == nullptr)
         return false;
 
-    return true;
+    errno = 0;
+    char* end = nullptr;
+    output = std::strtoll(input, &end, 10);
+
+    return end != input && *end == '\0' && errno != ERANGE;
 }
 ```
 
+* Pri príliš veľkej alebo malej hodnote nastaví `strtoll` `errno` na `ERANGE`
+* Pred volaním ho nulujeme, aby sme nečítali chybu po staršej operácii
+* Výstupný parameter môže byť zmenený aj pri neúspechu
 
-## Začiatok whitespace-om
 
-* Teraz skonvertujeme aj reťazec ako `"  123"`
+## `std::from_chars` od C++17
 
 ```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    if (!isdigit(input[0]))
-        return false;
+std::int64_t value;
+auto begin = input.data();
+auto end = begin + input.size();
+auto [ptr, ec] = std::from_chars(begin, end, value);
+```
 
-    char* endptr = nullptr;
-    output = strtoll(input, &endptr, 10);
-    if (*endptr != '\0')
-        return false;
+* Neignoruje úvodné biele znaky a nepovoľuje úvodné `+`
+* `std::errc::invalid_argument`: nezačalo sa platné číslo
+* `std::errc::result_out_of_range`: výsledok sa nezmestí
+* `ptr != end`: za číslom zostali ďalšie znaky
+* Nepoužíva `errno`, nealokuje a nevyhadzuje výnimky
 
-    return true;
+
+## Moderné rozhranie konverzie
+
+```cpp
+enum class parse_error { invalid, out_of_range, trailing };
+
+std::expected<std::int64_t, parse_error>
+parse_int64(std::string_view input) {
+    std::int64_t value;
+    auto end = input.data() + input.size();
+    auto [ptr, ec] = std::from_chars(input.data(), end, value);
+
+    if (ec == std::errc::invalid_argument)
+        return std::unexpected(parse_error::invalid);
+    if (ec == std::errc::result_out_of_range)
+        return std::unexpected(parse_error::out_of_range);
+    if (ptr != end)
+        return std::unexpected(parse_error::trailing);
+
+    return value;
 }
 ```
 
-
-## Overflow
-
-* Reťazec `"111111111111111111111111111"` vyrobí výsledok `"9223372036854775807"`
-* Musíme skontrolovať `errno`
-
-```cpp
-bool TryConvertToInt64(const char* input, *int64_t*& output) {
-    if (!isdigit(input[0]))
-        return false;
-
-    char* endptr = nullptr;
-    output = strtoll(input, &endptr, 10);
-    if (*endptr != '\0' || errno == ERANGE)
-        return false;
-
-    return true;
-}
-```
-
-Ak nastane pretečenie, tak funkcia nastavý `errno` na `ERANGE`.
-
-
-## Ešte sme neskončili
-
-* Ak prvé volanie tento funkcie vyrobí pretečenie, tak druhé skončí s takou istou chybou
-* Žiadna štandardná funkcia nenastavuje `errno` na nulu
-
-```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    if (!isdigit(input[0]))
-        return false;
-
-    errno = 0; // reset errno
-    char* endptr = nullptr;
-
-    output = strtoll(input, &endptr, 10);
-
-    if (*endptr != '\0' || errno == ERANGE)
-        return false;
-    
-    return true;
-}
-```
-
-
-## Ešte jeden problém...
-
-* Funkcie môžu modifikovať errno aj keď skončia bez chyby, mali by sme to skontrolovať
-
-```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    if (!isdigit(input[0])) // check if it is a number
-        return false;
-
-    errno = 0; // reset errno
-
-    char* endptr = nullptr;
-
-    output = strtoll(input, &endptr, 10);
-    if (*endptr != '\0')
-        return false; // whole string is not a number
-
-    if ((output == LLONG_MAX || output == LLONG_MIN) && errno == ERANGE)
-        return false; // underflow or overflow
-
-    return true;
-}
-```
-<!-- .element: class="showall" -->
-
-* v tomto prípade je to trochu overkill, ale bežne je to dobrá prax
-
-
-## Problémy s errno
-
-* Ťažká propagácia chýb
-* Nesmieme zabudnúť nastaviť errno na 0 pre volaním
-* Ak chceme vlastnú implementáciu takéhoto systému, tak je to celkom ťažké (C++11 `thread_local` vie pomôcť)
-
-
-## Konverzia v C++17
-
-```cpp
-bool TryConvertToInt64(const char* input, int64_t& output) {
-    auto end = input + strlen(input);
-    auto result = std::from_chars(input, end, output);
-    if (result.ec != std::errc() || result.ptr != end)
-        return false;
-
-    return true;
-}
-```
-
-* Rozdiely
-    * from_chars neignoruje biele znaky na začiatku
-    * \+ na začiatku nie je povolené
-    * Nerobí rozhodovanie o číselnej sústave
+* `from_chars` vykoná konverziu, `expected` pomenuje výsledok rozhrania
+* Volajúci dostane buď číslo, alebo konkrétny dôvod neúspechu
 
 ---
 
@@ -1198,314 +1152,370 @@ bool TryConvertToInt64(const char* input, int64_t& output) {
 
 ## Ako oznámiť chybu z konštruktora
 
-* Môžeme mať výstupný parameter
-* Metódu `Init`
-* Metódu `IsOK`
-* Pomocou `errno`
-* Všetky predchádzajúce ale **skonštruujú** objekt, teda sa na ňom **zavolá** deštruktor
-* Preto si objekty často musia niesť, či sú skonštruované dobre
+* Konštruktor nemá návratovú hodnotu pre chybový stav
+* Objekt môže mať metódu `IsOK()`, ale potom existuje aj v nepoužiteľnom stave
+* Dvojfázová inicializácia cez `Init()` má rovnaký problém
+* Factory funkcia môže vrátiť `std::expected`
+* Konštruktor môže vyhodiť výnimku
 
 
-## Príklad
+## Objekt, ktorý nemusí byť platný
 
-* V konštruktore musíme držať informáciu, či bolo všetko OK
-* Niektorí toto považujú za idiomatické, väčšina za škaredé
-
-```cpp [|15|13|4|7-11|20]
+```cpp
 class File {
 public:
-    File(const char* path) {
-        m_file = fopen(path, "r");
-    }
+    explicit File(const char* path)
+        : stream_(path) {}
 
-    ~File() {
-        if (IsOK()) {
-            fclose(m_file);
-        }
-    }
+    bool is_open() const { return stream_.is_open(); }
 
-    bool IsOK() const { return m_file != nullptr; }
-
-    FILE* m_file = nullptr;
+private:
+    std::ifstream stream_;
 };
-
-int main(int argc, const char** argv) {
-    File f(argv[0]);
-    if (f.IsOK()) {
-        // .. use
-    }
-}
-``` 
-
----
-
-## Chyby pri konštrukcii
-
-* Hlavný cieľ výnimiek je poskytnúť spôsob akým reportovať chyby z konštruktora
-* Ak konštruktor skončí s výnimkou, deštruktor sa nevolá
-* Výnimky môžu preskákať cez viacero  =scope-ov a štandard garantuje, že sa všetky uprace
-
----
-
-## Throw
-
-* Výnimky vznikajú (vyhadzujú) sa kľúčovým slovom throw
-* Všetko sa dá vyhodiť
-
-```cpp
-File(const char* path) {
-    m_file = fopen(path, "r");
-    if (m_file == nullptr)
-        throw 0;
-}
-
-~File() {
-    fclose(m_file);
-}
 ```
 
-* V deštruktore netreba kontrolovať platnosť premenných.
+* Každé použitie musí najprv skontrolovať `is_open()`
+* Trieda si musí pamätať neplatný stav a deštruktor s ním musí počítať
+
+
+## Konštruktor, ktorý zlyhá výnimkou
+
+```cpp
+class File {
+public:
+    explicit File(const char* path)
+        : stream_(path) {
+        if (!stream_)
+            throw std::runtime_error("Cannot open file");
+    }
+
+private:
+    std::ifstream stream_;
+};
+```
+
+* Ak vznikne objekt `File`, je vždy otvorený a použiteľný
+* Ak konštruktor vyhodí výnimku, objekt typu `File` nevznikne
+* Jeho deštruktor sa nezavolá, ale už skonštruované členy a bázy sa upracú
 
 ---
 
-## Catch
-
-* Výnimky sa zachytávajú kľúčovým slovom `catch`
-* Môžeme zachytiť konkrétny typ, alebo všetko
+## `throw`, `try` a `catch`
 
 ```cpp
-int main(int argc, const char** argv) {
+void load_configuration() {
+    throw std::runtime_error("Invalid configuration");
+}
+
+int main() {
     try {
-        File f(argv[0]);
-        
-        // ...
-    } catch (int i) {
-        std::cout << "Unable to open file " << i;
+        load_configuration();
+        return EXIT_SUCCESS;
+    } catch (const std::runtime_error& error) {
+        std::println("Configuration error: {}", error.what());
+        return EXIT_FAILURE;
+    } catch (const std::exception& error) {
+        std::println("Error: {}", error.what());
+        return EXIT_FAILURE;
     } catch (...) {
-        std::cout << "WTF!?";
+        std::println("Unknown error");
+        return EXIT_FAILURE;
     }
 }
 ```
 
-* V prípade výnimky sa pohľadá konkrétny handler, ktorý ju vie spracovať.
+* Handlery sa skúšajú zhora nadol, preto dávame konkrétnejšie typy prvé
+* Výnimky spravidla chytáme ako `const&`; súvisí to s tým aby sme náhodou nekopírovali výnimku
+
+
+## Výnimka sa propaguje
+
+```cpp
+void read_configuration() {
+    throw std::runtime_error("Cannot read configuration");
+}
+
+void start_application() {
+    read_configuration();
+}
+
+int main() {
+    try {
+        start_application();
+    } catch (const std::exception& error) {
+        std::println("Startup failed: {}", error.what());
+        return EXIT_FAILURE;
+    }
+}
+```
+
+* Hľadanie vhodného `catch` pokračuje cez volajúce funkcie
+* Medziľahlé funkcie nemusia chybu manuálne preposielať
+
+
+## Ak výnimka opustí `main`
+
+```cpp
+int main() {
+    load_configuration(); // vyhodí výnimku
+}
+```
+
+* Ak sa nenájde vhodný handler, zavolá sa `std::terminate`
+* Predvolený terminate handler zavolá `std::abort`
+* Nie je zaručené, že sa pred `terminate` vykoná stack unwinding
+* Na upratanie lokálnych objektov sa preto pri neodchytenej výnimke nespoliehame
 
 ---
 
 ## Stack unwinding
 
-* Ak sa urobí `throw`, nájde sa príslušný `catch`, ktorý ho vie zachytiť
-* Všetky scope, ktoré sa počas toho preskočia zavolajú deštruktory na objekty (a tie na svoje členy...)
-
-*TODO: stack unwinding image*
-
----
-
-## Best practice
-
-* Vyhadzovať hocičo je hlúpe
-* Mali by sa vyhadzovať iba typy dediace od `std::exception`
-* Chytanie všetkého všade je tiež hlúpe
-* Výnimky chytáme iba ak vieme niečo urobiť
-* V `main`-e *(alebo v entry pointe threadu)* zachytíme všetko a urobíme z toho log, reštart, ...
-
----
-
-## ConvertToInt64 s výnimkami
-
 ```cpp
-int64_t ConvertToInt64(const char* input) {
-    if (!isdigit(input[0]))
-        throw std::invalid_argument("Input must be number!");
+struct ScopeLog {
+    std::string_view name;
+    ~ScopeLog() { std::println("Leaving {}", name); }
+};
 
-    errno = 0;
+void read_data() {
+    ScopeLog log{"read_data"};
+    throw std::runtime_error("Read failed");
+}
 
-    char* endptr = nullptr;
-    int64_t result = strtoll(input, &endptr, 10);
-    if (*endptr != '\0')
-        throw std::invalid_argument("Input must be number!");
-
-    if ((result == LLONG_MAX || result == LLONG_MIN) && errno == ERANGE)
-        throw std::overflow_error("Input number too big!");
-
-    return result;
+void load_data() {
+    ScopeLog log{"load_data"};
+    read_data();
 }
 ```
-<!-- .element: class="showall" -->
 
-* Alebo použijeme rovno `std::stoll`, čo je `strtoll` s výnimkami
+* Pri propagácii sa opúšťajú scope až po nájdený `catch`
+* Deštruktory lokálnych objektov sa volajú v opačnom poradí
 
----
 
-## Vnorené `try` ... `catch`
+## Surový zdroj sa neuprace sám
 
 ```cpp
-std::vector<int> AllocateAndFillCache(size_t max) {
-    while (max > 0) {
-        try {
-            std::vector<int> ret_val(max);
+void process() {
+    auto* data = new int[1000];
 
-            // fill up cache
+    validate_input(); // môže vyhodiť výnimku
+    use(data);
 
-            return ret_val;
-        } catch (const std::bad_alloc&) {
-            max /= 2;
-            // log it and continue
-        }
+    delete[] data;
+}
+```
+
+* Ak `validate_input()` vyhodí výnimku, k `delete[]` sa nedostaneme
+* Stack unwinding pozná objekty, nie význam surového smerníka
+
+
+## RAII pripraví kód na výnimky
+
+```cpp
+void process() {
+    std::vector<int> data(1000);
+
+    validate_input(); // môže vyhodiť výnimku
+    use(data);
+}
+```
+
+* `std::vector` vlastní pamäť a jeho deštruktor ju uvoľní
+* Rovnaký princíp používajú `std::string`, smart pointery, streamy a zámky
+* Každý zdroj má vlastniť objekt, ktorého deštruktor ho uvoľní
+
+
+## `noexcept`
+
+```cpp
+void close_connection() noexcept {
+    // výnimka nesmie opustiť funkciu
+}
+```
+
+* `noexcept` je záväzok rozhrania, že výnimka funkciu neopustí
+* Ak výnimka napriek tomu unikne, zavolá sa `std::terminate`
+* Operácie `move` a `swap` označujeme `noexcept`, keď to naozaj garantujú
+
+
+## Deštruktory a výnimky
+
+* Deštruktory sú spravidla `noexcept`
+* Výnimka unikajúca z deštruktora môže zavolať `std::terminate`
+* Obzvlášť nebezpečné je to počas spracovania inej výnimky
+* Cleanup preto používame v nevyhadzujúcej forme, ak ju API ponúka
+
+```cpp
+TemporaryFile::~TemporaryFile() noexcept {
+    std::error_code error;
+    std::filesystem::remove(path_, error);
+}
+```
+
+
+## Garancie pri výnimkách
+
+Garancia odpovedá na otázku: **Čo ostane po operácii, ktorá vyhodila výnimku?**
+
+| Garancia | Stav po výnimke |
+| --- | --- |
+| bez výnimiek (*no-throw*) | Operácia výnimku nevyhodí |
+| silná (*strong*) | Stav je rovnaký ako pred volaním |
+| základná (*basic*) | Objekty sú platné a zdroje neunikli |
+| žiadna (*no guarantee*) | Môžu byť porušené invarianty objektu |
+
+Samotná možnosť vyhodiť výnimku teda ešte neurčuje garanciu.
+
+
+## Silná garancia: buď všetko, alebo nič
+
+```cpp
+void Playlist::load(std::span<const std::string> lines) {
+    std::vector<Song> new_songs;
+
+    for (const auto& line : lines)
+        new_songs.push_back(parse_song(line)); // môže vyhodiť
+
+    songs_.swap(new_songs);                    // noexcept: commit
+}
+```
+
+```plain
+pred:       songs_ = [A, B]
+po úspechu: songs_ = [C, D, E]
+po výnimke: songs_ = [A, B]
+```
+
+Jednotlivé `push_back` môžu uspieť, kým neskorší krok zlyhá. Nový playlist preto
+pripravíme bokom a pôvodný stav zmeníme až operáciou, ktorá nevyhodí.
+
+
+## Základná garancia: platný, ale zmenený stav
+
+```cpp
+void Song::set_title(std::string title) noexcept {
+    title_.swap(title);
+}
+
+void Playlist::normalize_titles() {
+    for (auto& song : songs_) {
+        auto title = normalize(song.title()); // môže vyhodiť
+        song.set_title(std::move(title));      // noexcept: commit
     }
-
-    return { };
 }
 ```
 
-* Chytíme to čo vieme spracovať, inak to pustíme ďalej
-* Výnimky spravidla chytáme ako `const&`
+```plain
+pred:       songs_ = [" hello ", " WORLD ", " cpp "]
+po výnimke: songs_ = ["Hello", "World", " cpp "]
+```
 
+* Časť práce už prebehla a nevráti sa späť
+* `Playlist` je naďalej platný a môžeme ho bezpečne používať
+* Žiadne zdroje neunikli
+
+
+## Žiadna garancia: porušený invariant
 
 ```cpp
-int main() {
-    try {
-        std::vector<int> cache = AllocateAndFillCache(stoul(argv[1]));
-    } catch (const std::exception & e) {
-        std::cout << e.what();
-    } catch (...) {
-        std::cout << "Something strange.";
-    }
+void Playlist::add(Song song) {
+    ++song_count_;
+    songs_.push_back(std::move(song)); // môže vyhodiť
 }
 ```
+
+```plain
+pred:       song_count_ == songs_.size() == 2
+po výnimke: song_count_ == 3, songs_.size() == 2
+```
+
+Objekt síce existuje, ale jeho údaje si odporujú. Ďalšie operácie sa naň nemôžu spoľahnúť.
+
+
+## Porovnanie garancií
+
+Ak `Playlist` pred operáciou obsahuje `[A, B]` a operácia zlyhá:
+
+| Garancia | Možný stav po výnimke |
+| --- | --- |
+| bez výnimiek | výnimka nenastane |
+| silná | presne `[A, B]` |
+| základná | napríklad `[A]`, ale stále platný objekt |
+| žiadna | napríklad počet `3`, ale iba dve skladby |
+
+Garancia opisuje **následky zlyhania**, nie pravdepodobnosť zlyhania.
 
 ---
 
 ## Štandardné výnimky
 
-* Všetky sú zdedené zo `std::exception`
-* `std::runtime_error`
-    * Chyba, ktorá sa môže objaviť iba počas behu programu
-    * range_error, underflow_error, ...
-* `std::logic_error`
-    * Porušenie logických predpokladov alebo invariantov
-    * invalid_argument, out_of_range, domain_error
-* `std::system_error`
-    * Systémovo závislé
+| Typ | Typické použitie |
+| --- | --- |
+| `std::logic_error` | porušený predpoklad rozhrania alebo logiky |
+| `std::invalid_argument` | neplatná hodnota argumentu |
+| `std::out_of_range` | index alebo hodnota mimo rozsahu |
+| `std::runtime_error` | zlyhanie zistené počas behu |
+| `std::system_error` | systémová chyba spolu s `std::error_code` |
+| `std::bad_alloc` | zlyhanie alokácie pamäte |
 
----
+* Tieto typy dedia zo `std::exception` a poskytujú `what()`
+* Vlastné výnimky zvyčajne odvodíme od vhodnej štandardnej bázy
 
-## Rethrow
 
-* Niekedy chceme iba zistiť, že výnimka nastala, zalogovať chybu a nestarať sa
+## Kde výnimku chytiť?
+
+* Tam, kde sa vieme zotaviť alebo zvoliť náhradný postup
+* Tam, kde chceme pridať užitočný kontext a výnimku poslať ďalej
+* Na hranici `main`, kde chybu oznámime a zvolíme návratový kód
+* Nechytáme ju iba preto, aby sme ju potichu ignorovali
+* `catch (...)` používame na hranici, kde musíme zachytiť aj neznáme typy
+
+
+## Opätovné vyhodenie
 
 ```cpp
-void f() {
+void load_user_data() {
     try {
-        // do stuff
-    } catch (const std::exception& e) {
-        // log some error
-        // this will rethrow exception
+        read_database();
+    } catch (const std::exception& error) {
+        std::println("Loading user data failed: {}", error.what());
         throw;
     }
 }
 ```
 
----
-
-## Kód pripravený na výnimky
-
-* Exception safe code
-* Nie každý kód je na to pripravený
-
-```cpp
-int main() {
-    try {
-        int *a = new int[1000];
-        
-        int *b = new int[100000];
-    } catch (const std::exception& e) {
-        std::cout << e.what();
-    }
-}
-```
-
-* Ak nastane výnimka po alokácií `a`, tak `a` sa neuvoľní a teda máme stratenú pamäť.
+* Samotné `throw;` pokračuje s pôvodnou výnimkou
+* `throw error;` vytvorí nový objekt a môže orezať jeho dynamický typ
+* Logovanie na každej vrstve môže tú istú chybu zaznamenať viackrát
 
 ---
 
-## Ako to dosiahnuť?
+## Výnimka alebo `std::expected`?
 
-* Každý zdroj (resource) je manažovaný nejakou triedou
-* Žiaden explicitný `free`/`delete`/release
-* Musíme sa zmieriť s tým, že všetko môže vyhodiť výnimku
-    * Znie to strašne, ale je to oslobodzujúce
-    * C++ sa bez toho ani nedá robiť 🚀
+| `std::expected` | Výnimka |
+| --- | --- |
+| neúspech je bežná súčasť rozhrania | chyba preskočí vrstvy, ktoré ju nevedia riešiť |
+| volajúci výsledok explicitne kontroluje | úspešná cesta ostáva oddelená od chyby |
+| vhodné pre lokálne očakávané chyby | prirodzené pre zlyhanie konštruktora |
+
+* Factory funkcia môže namiesto vyhadzujúceho konštruktora vrátiť `expected`
+* V jednom rozhraní používame konzistentnú politiku oznamovania chýb
 
 
-## Garancie
+## Cena a použitie výnimiek
 
-* No throw
-    * Funkcia za žiadnych okolností nevyhodí výnimku
-    * `strtoll`, `empty` vo vectore
-* Silná garancia (strong)
-    * Ak funkcia vyhodí výnimku, tak všetko ostane v stave akoby sa ani nezavolala
-    * `push_back` vo vectore
-* Základná garancia (basic)
-    * Ak funkcia vyhodí výnimku, tak stav je nešpecifikovaný ale stále platný
-    * Bez tohto sa nedá programovať, lebo inak sa nedá na nič spoľahnúť
+* Bežná cesta bez vyhodenej výnimky býva navrhnutá ako lacná
+* Vyhodenie, hľadanie handlera a stack unwinding sú podstatne drahšie
+* Trvanie spracovania chyby závisí od počtu opustených scope a deštruktorov
+* Výnimky preto nepoužívame ako bežné vetvenie alebo ukončenie slučky
 
----
-
-## noexcept
-
-* Kľúčové slovo, ktoré špecifikuje, že funkcia nehodí výnimku (neodchytenú)
-* Ak by ju hodila, tak sa zavolá `std::terminate` (už sa nesmie pokračovať v programe)
-
-```cpp
-void f() noexcept {
-
-}
-```
-
-* Nasledujúci kód zavolá `std::terminate` 
-
-```cpp
-void g() noexcept {
-    throw std::runtime_error("");
-}
-```
-
-<small>
-
-  V starom C++ sa používalo `throw()`
-
-</small>
-
----
-
-## Deštruktory
-
-* Deštruktory sú predvolene `noexcept`
-    * Hádzať výnimku z deštruktura je nebezpečné
-    * Ak by sa akurát spracovávala výnimka a znovu sa nejaká udiala, tak sa zavolá `std::terminate`
-
-* Funkcie ako `move` a `swap` by mali byť `noexcept`
-    * Inak sa nevyrobí taký rýchly kód ako by sa mohol
-
----
-
-## Plusy a mínusy
-
-|    ➕  |  ➖   |
-| ---   | ---  |
-| Nemôžu byť ignorované | C API na nich nie je pripravené |
-| Minimálna cena ak nenastanú | Cena ak nastanú sa nedá dopredu vyčísliť, lebo nevieme koľko sa bude upratovať |
-| Ľahko sa propagujú ďalej | |
- 
-
----
 
 ## Rady
 
-* V konštruktoroch inicializujme a v deštruktoroch cleanup-ujme
-* Nebojme sa výnimiek
-* Nepoužívajme `new`/`malloc`
-* Výnimky treba používať iba vo výnimočných prípadoch (teda nie na riadenie programu)
+* Vyhadzujeme objekty odvodené od `std::exception`
+* Chytáme ako `const&` a iba tam, kde vieme reagovať
+* Zdroje spravujeme cez RAII, nie cez ručné `new`, `delete`, `malloc` a `free`
+* Na hranici `main` prevedieme výnimku na diagnostiku a návratový kód (môžeme použíť `catch (...)` na zachytenie všetkých typov výnimiek)
+* Výnimky nepúšťame z deštruktorov ani z funkcií označených `noexcept`
 
 ---
 
@@ -1521,33 +1531,40 @@ void g() noexcept {
 
 * `__FILE__` - názov súboru
 * `__LINE__` - číslo riadku
+* `__func__` - názov aktuálnej funkcie
 
 ```cpp
-#define LOG_ERROR(msg) log_error(__FILE__, __LINE__, msg)
+#define LOG_ERROR(msg) log_error(__FILE__, __LINE__, __func__, msg)
 
-void log_error(const char* file, int line, const char* msg) {
-    std::cout << "Error in file " << file << " at line " << line << ": " << msg << '\n';
+void log_error(const char* file, int line,
+               const char* function, const char* message) {
+    std::cout << file << ':' << line << " in " << function
+              << ": " << message << '\n';
 }
 ```
 
 ```plain
-Error in file /home/user/project/main.cpp at line 10: Something bad happened
+/home/user/project/main.cpp:10 in main: Something bad happened
 ```
+
+Makro vloží informácie o mieste, na ktorom použijeme `LOG_ERROR`.
 
 
 ## `std::source_location`
 
-* Pridané v C++20
-* Umožňuje získať informácie o aktuálnom mieste v kóde
-
 ```cpp
 #include <iostream>
 #include <source_location>
+#include <string_view>
 
-void log_error(const char* msg, const std::source_location& location = std::source_location::current()) {
-    std::cout << "Error in file " << location.file_name() 
-        << " in function " << location.function_name() 
-        << " at line " << location.line() << ": " << msg << '\n';
+void log_error(
+    std::string_view message,
+    std::source_location location = std::source_location::current()) {
+    std::cout << location.file_name()
+              << ':' << location.line()
+              << ':' << location.column()
+              << " in " << location.function_name()
+              << ": " << message << '\n';
 }
 
 int main() {
@@ -1555,32 +1572,32 @@ int main() {
 }
 ```
 
+* Od C++20; poskytuje súbor, funkciu, riadok a stĺpec
+* Predvolený argument zachytí miesto volania `log_error`, nie riadok v jej tele
+* Volajúci nemusí použiť makro ani informácie odovzdávať ručne
+
 
 ## Stacktrace
-
-* Získať stacktrace je od C++23 štandardizované
-* `std::stacktrace::current()` na získanie aktuálneho stacktrace
-* `std::to_string()` na konverziu na reťazec
 
 ```cpp
 #include <iostream>
 #include <stacktrace>
 
 void log_stacktrace() {
-    auto stacktrace = std::stacktrace::current();
-
-    std::cout << "Stacktrace: \n" << std::to_string(stacktrace) << '\n'; // auto conversion
-
-    std::cout << "Current stacktrace:\n";
-    for (const auto& frame : stacktrace) { // manual iteration through frames
-        std::cout << "  " << std::to_string(frame) << '\n';
-    }
+    std::cout << "Current stack trace:\n"
+              << std::stacktrace::current() << '\n';
 }
 
 int main() {
     log_stacktrace();
 }
 ```
+
+* `std::stacktrace::current()` je štandardizované od C++23
+* Zachytí postupnosť aktívnych volaní; jednotlivé rámce možno aj iterovať
+* Dostupnosť závisí od podpory štandardnej knižnice a niekedy aj od nastavení linkera
+* Názvy funkcií a riadky závisia od debug symbolov
+* Optimalizácia a inlining môžu výsledný stack trace zmeniť
 
 ---
 
