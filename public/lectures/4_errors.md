@@ -94,15 +94,14 @@ auto whole = static_cast<int>(price);
 
 ```cpp
 std::int8_t small = 127;
-auto wide = static_cast<std::int16_t>(small);
+auto wide = static_cast<std::int16_t>(small); // 127
 
 std::int16_t large = 30'000;
-auto narrow = static_cast<std::int8_t>(large);
+auto narrow = static_cast<std::int8_t>(large); // 48
 ```
 
 * Prvá konverzia zachová hodnotu: cieľový typ pokrýva celý rozsah zdrojového typu
-* Druhá v C++23 dá `48`, nie `30'000`
-* Od C++20 je výsledok celočíselnej konverzie jednoznačná hodnota cieľového typu kongruentná modulo $2^n$, kde $n$ je počet bitov cieľového typu
+* Od C++20 je výsledok celočíselnej konverzie (či už signed, alebo unsigned) jednoznačná hodnota cieľového typu kongruentná modulo $2^n$, kde $n$ je počet bitov cieľového typu
 * Definované správanie ešte neznamená správny výsledok pre našu aplikáciu
 
 
@@ -116,7 +115,7 @@ bool ordinary = negative < 1u;
 bool mathematical = std::cmp_less(negative, 1u);
 ```
 
-* `positive` je `4'294'967'295`
+* `positive` je `4'294'967'295` (číslo kongruentné $2^{32}$ s −1)
 * `ordinary` je `false`: pri porovnaní sa `negative` konvertuje na `unsigned int`
 * `mathematical` je `true`: `std::cmp_less` porovná celé čísla bez tejto pasce
 * Väčší počet bitov sám osebe nezaručuje zachovanie zápornej hodnoty
@@ -148,7 +147,7 @@ auto negative = static_cast<int>(-12.75);
 * Výsledky sú `12` a `-12`: orezávame smerom k nule
 * Nie je to `std::floor`, ktorý by pre `-12.75` vrátil `-13.0`
 * Ak sa orezaná hodnota nezmestí do cieľového typu, správanie je nedefinované
-* Rovnako nemôžeme takto konvertovať NaN ani nekonečno na celé číslo
+* Rovnako nemôžeme takto konvertovať *NaN* ani *nekonečno* na celé číslo
 * `std::in_range` nie je určené pre floating-point vstup
 
 
@@ -211,6 +210,7 @@ float value = 2.5f;
 auto* wrong_type = reinterpret_cast<int*>(&value);
 ```
 
+* Konverzie typov smerníkov
 * V pamäti je stále objekt typu `float`, nevznikol tam `int`
 * Čítanie cez `*wrong_type` by porušilo pravidlá prístupu, takže je nedefinované
 * Reprezentáciu objektu možno prezerať cez `char`, `unsigned char` alebo `std::byte`
@@ -778,9 +778,9 @@ std::pair<bool, std::string> read_first_line(std::string_view path) {
     std::string line;
 
     if (!file || !std::getline(file, line))
-        return {false, {}};
+        return { false, {} };
 
-    return {true, std::move(line)};
+    return { true, line };
 }
 ```
 
@@ -900,7 +900,7 @@ if (result) {
 
 ---
 
-# Chyby počas behu programu
+# Reportovanie chýb
 
 ---
 
@@ -1019,6 +1019,7 @@ bool read_first_line(std::string_view path, std::string& line) {
 * `bool` jednoducho odlíši úspech od neúspechu
 * Nevie však oznámiť, prečo operácia zlyhala
 * Výsledok musíme vrátiť cez výstupný parameter
+* V modernom C++ toto robíme cez `std::optional`
 
 
 ## Chybové kódy `enum`
@@ -1045,7 +1046,7 @@ read_error read_first_line(std::string_view path, std::string& line) {
 
 * `enum class` pomenuje viacero možných chýb
 * Volajúci však stále musí výsledok skontrolovať a propagovať
-* `std::expected<T, E>` spojí chybový stav priamo s výslednou hodnotou
+* V modernom C++ toto robíme cez `std::expected`
 
 ---
 
@@ -1105,7 +1106,9 @@ bool try_to_int64(const char* input, std::int64_t& output) {
 std::int64_t value;
 auto begin = input.data();
 auto end = begin + input.size();
-auto [ptr, ec] = std::from_chars(begin, end, value);
+std::from_char_result res = std::from_chars(begin, end, value);
+std::errc ec = res.ec; // error code
+const char* ptr = res.ptr;
 ```
 
 * Neignoruje úvodné biele znaky a nepovoľuje úvodné `+`
@@ -1124,13 +1127,13 @@ std::expected<std::int64_t, parse_error>
 parse_int64(std::string_view input) {
     std::int64_t value;
     auto end = input.data() + input.size();
-    auto [ptr, ec] = std::from_chars(input.data(), end, value);
+    auto res = std::from_chars(input.data(), end, value);
 
-    if (ec == std::errc::invalid_argument)
+    if (res.ec == std::errc::invalid_argument)
         return std::unexpected(parse_error::invalid);
-    if (ec == std::errc::result_out_of_range)
+    if (res.ec == std::errc::result_out_of_range)
         return std::unexpected(parse_error::out_of_range);
-    if (ptr != end)
+    if (res.ptr != end)
         return std::unexpected(parse_error::trailing);
 
     return value;
@@ -1373,7 +1376,7 @@ void Playlist::load(std::span<const std::string> lines) {
     std::vector<Song> new_songs;
 
     for (const auto& line : lines)
-        new_songs.push_back(parse_song(line)); // môže vyhodiť
+        new_songs.push_back(parse_song(line)); // can throw
 
     songs_.swap(new_songs);                    // noexcept: commit
 }
@@ -1393,13 +1396,13 @@ pripravíme bokom a pôvodný stav zmeníme až operáciou, ktorá nevyhodí.
 
 ```cpp
 void Song::set_title(std::string title) noexcept {
-    title_.swap(title);
+    title_.swap(title);             // noexcept: commit
 }
 
 void Playlist::normalize_titles() {
     for (auto& song : songs_) {
-        auto title = normalize(song.title()); // môže vyhodiť
-        song.set_title(std::move(title));      // noexcept: commit
+        auto title = normalize(song.title()); // can throw
+        song.set_title(title);      // can throw, when title is copied
     }
 }
 ```
@@ -1419,7 +1422,7 @@ po výnimke: songs_ = ["Hello", "World", " cpp "]
 ```cpp
 void Playlist::add(Song song) {
     ++song_count_;
-    songs_.push_back(std::move(song)); // môže vyhodiť
+    songs_.push_back(song); // can throw
 }
 ```
 
@@ -1428,7 +1431,8 @@ pred:       song_count_ == songs_.size() == 2
 po výnimke: song_count_ == 3, songs_.size() == 2
 ```
 
-Objekt síce existuje, ale jeho údaje si odporujú. Ďalšie operácie sa naň nemôžu spoľahnúť.
+* Objekt síce existuje, ale jeho údaje si odporujú. Ďalšie operácie sa naň nemôžu spoľahnúť.
+* Zdroje, ale musia ostať platné, teda volanie deštruktorov nespôsobí nedefinované správanie
 
 
 ## Porovnanie garancií
@@ -1506,7 +1510,7 @@ void load_user_data() {
 * Bežná cesta bez vyhodenej výnimky býva navrhnutá ako lacná
 * Vyhodenie, hľadanie handlera a stack unwinding sú podstatne drahšie
 * Trvanie spracovania chyby závisí od počtu opustených scope a deštruktorov
-* Výnimky preto nepoužívame ako bežné vetvenie alebo ukončenie slučky
+* Výnimky preto nepoužívame ako bežné vetvenie alebo ukončenie cyklu
 
 
 ## Rady
