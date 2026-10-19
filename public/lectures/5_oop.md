@@ -58,41 +58,6 @@
     * pozorovanie stavu (napr. obvod, obsah, ...)
     * menenie stavu (presun, otočenie, preklopenie, ...)
 
-
-## C++ trieda
-
-<table style="width: 80%">
-<tr>
-<td>
-
-```cpp
-class Rectangle {
-public:
-  Rectangle(Point a, Point b);
-  void Rotate(double deg);
-  void Move(double x, double y);
-  double Perimeter() const;
-private:
-  Point a;
-  Point b;
-  double deg;
-};
-```
-</td>
-<td>
-
-```cpp
-struct Point {
-    double x;
-    double y;
-};
-```
-</td>
-</tr>
-</table>
-
-Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `public` by default. 
-
 ---
 
 ## Programovanie s objektmi
@@ -133,72 +98,31 @@ Struct a class sú v C++ v podstate to isté, iba jedno je `private` a druhé `p
 
 ---
 
-## Konštruktory a deštruktory
+## Konštruktory, deštruktory a inicializácia
 
-* Objekty začínajú svoj život volaním konštruktora
-* Skonštruované objekty sú automaticky deštruované, keď idú von zo scope-u
+* Objekty začínajú svoj život volaním konštruktora a sú automaticky deštruované pri opustení scope-u
+* Trieda môže mať viacero konštruktorov, ale iba jeden deštruktor
+* Inicializačný list určuje, aké konštruktory členov sa zavolajú, ale **poradie inicializácie je vždy dané poradím deklarácie v triede** (deštrukcia prebieha v opačnom poradí)
 
-```cpp
-class Object {
-public:
-  Object() { }
-  Object(int i) { /* ... */ }
-  ~Object() { }
-};
-```
-
-Konštruktorov môže byť viacero, deštruktor iba jeden. 
-
----
-
-## Inicializácia členov
-
-```cpp [|4-6|8-10]
+```cpp [|3-6|8-10]
 class Strings {
 public:
   Strings()
     : second(first + "2")
     , first("1")
     , third(second + "3")
-  {  }
-  std::string first;
-  std::string second;
-  std::string third;
+  { }
+  std::string first;  // "1"
+  std::string second; // "12"
+  std::string third;  // "123"
 };
 ```
 
-<div class="fragment">
 
-Inicializačný list iba definuje, aké konštruktory sa majú zavolať, a nie ich poradie.
+## Členské premenné a metódy
 
-Poradie, v akom sa konštruuje, je poradie v súbore.
-
-First = `"1"` Second = `"12"` Third = `"123"`
-</div>
-
----
-
-## Členské premenné
-
-* Dáta v objektoch
-* Pri jednoduchých typoch (*standard-layout*) sú uložené v pamäti rovnako ako štruktúry v C
-* Každý objekt má vlastné inštancie (nezdieľajú sa s triedou)
-
-```cpp
-class File {
-private:
-  std::string path;
-  size_t size; /* i want it always*/
-  bool temporary;
-};
-```
-
----
-
-## Metódy objektov
-
-* Definujú, čo vieme s objektmi robiť
-* Z hľadiska C++ sú to len funkcie, ktoré implicitne dostanú `this` smerník
+* Každý objekt má vlastné inštancie členských premenných
+* Metódy definujú, čo vieme s objektmi robiť – z hľadiska C++ sú to funkcie s implicitným parametrom `this` (`const` metódy nemôžu meniť stav objektu)
 
 ```cpp
 class File {
@@ -210,31 +134,22 @@ public:
   void Move(std::string dest) {
     std::filesystem::rename(path, dest); /* ... */
   }
+private:
+  std::string path;
+  size_t size = 0;
+  bool temporary = false;
 };
 ```
 
----
 
 ## Modifikátory prístupu
 
-* Používaním kľúčových slov môžeme zamedziť nechcenému prístupu k objektom
+* Používaním kľúčových slov môžeme zamedziť nechcenému prístupu k vnútornostiam triedy
+* `struct` a `class` sa líšia iba predvolenou viditeľnosťou (`public` vs. `private`)
 
 | `public` | `protected` | `private` |
 | -------- | ----------- | --------- |
 | všetci | trieda sama, potomkovia + `friend` | iba trieda sama + `friend` |
-
-```cpp
-class File {
-public:
-  size_t GetSize();
-  void SetSize(size_t n);
-  void Move(std::string dest);
-private:
-  std::string path;
-  size_t size;
-  bool temporary;
-};
-```
 
 ---
 
@@ -251,7 +166,7 @@ private:
 ```cpp
 int main() {
   int *i = new int(43);
-  std::cout << i << " " << *i; // 0032D340 43
+  std::println("{} {}", static_cast<void*>(i), *i); // 0x0032d340 43
 
   // return; // bad idea
   delete i; // we must clean the memory manually
@@ -271,14 +186,13 @@ int main() {
   std::string *s = new std::string[4];
   std::fill_n(s, 4, "Hello World");
 
-  std::cout << s << " " << s[3].c_str(); // 0049D344 Hello World
+  std::println("{} {}", static_cast<void*>(s), s[3]); // 0x0049d344 Hello World
 
   // delete s; // never
   delete[] s; // we must clean the memory manually
 }
 ```
 
----
 
 ## Prečo `delete[]`?
 
@@ -311,7 +225,6 @@ if (person == nullptr /*or NULL*/) {
 Test na `nullptr` je zbytočný, `new` nikdy nevracia `NULL`, ale vyhadzuje výnimku.
 <!-- .element: class="fragment" -->
 
----
 
 ## `std::nothrow`
 
@@ -321,7 +234,7 @@ Test na `nullptr` je zbytočný, `new` nikdy nevracia `NULL`, ale vyhadzuje výn
 ```cpp
 int* i = new (std::nothrow) int[0x7fffffff / 4];
 
-std::cout << i << '\n'; // probably 0
+std::println("{}", static_cast<void*>(i)); // probably 0x0
 
 delete[] i;
 ```
@@ -335,42 +248,13 @@ delete[] i;
 
 ---
 
-## Init metódy
-
-```cpp
-class Object {
-public:
-  Object() { Init(); }
-  Object(int i) {
-    Init();
-    // do more stuff
-    str += std::to_string(i);
-  }
-private:
-  void Init() {
-    // initialize object
-    str = "Object";
-  }
-  std::string str;
-};
-```
-
-* Jedna `Init` metóda, ktorá vie inicializovať objekt.
-* Volá sa zo všetkých konštruktorov
-* Problémy
-    * Nedajú sa volať konštruktory členov
-    * `str` je default skonštruovaný a potom zmenený
-
----
-
 ## Delegované konštruktory
 
-```cpp [|7]
+```cpp [|6]
 class Object {
 public:
-  Object() { 
-    // initialize object
-    str = "Object";
+  Object()
+    : str("Object") { 
   }
   Object(int i) : Object() {
     // do more stuff
@@ -382,7 +266,8 @@ private:
 
 ```
 
-* V rámci konštruktora môžeme buď použiť inicializačný list, alebo zavolať iný konštruktor (nikdy nie oba súčasne)
+* Nahrádzajú pomocné súkromné `Init()` metódy volané z viacerých konštruktorov
+* V rámci konštruktora môžeme buď použiť inicializačný list členov, alebo zavolať iný konštruktor tej istej triedy (nikdy nie oba súčasne)
 * Pozor na nekonečnú rekurziu 
 
 ---
@@ -403,10 +288,12 @@ struct B {
 };
 
 int main() {
-A a;
-//B b;  // will not compile, no default constructor available
+  A a;
+  // B b; // will not compile, no default constructor available
 }
 ```
+
+* Ak v triede zadefinujeme akýkoľvek vlastný konštruktor, kompilátor už predvolený (bezparametrický) konštruktor automaticky nevygeneruje
 
 
 ## Radšej `= default`
@@ -414,12 +301,13 @@ A a;
 ```cpp
 struct A {
   A() { }
-  int i;
+  int i = 0;
 };
 
 struct B {
   B() = default;
-  int i;
+  B(int i) : i(i) { }
+  int i = 0;
 };
 
 int main() {
@@ -428,63 +316,28 @@ int main() {
 }
 ```
 
+* Pomocou `= default` explicitne požiadame kompilátor, aby vygeneroval predvolený konštruktor
+* Je to čitateľnejšie ako prázdne `{}` a pre jednoduché štruktúry to navyše zachováva *triviálnosť* typu (kompilátor môže niektoré operácie lepšie optimalizovať)
 
-## `= default` vs `{}`
 
-* `= default` zachová triviálnosť typu, `{}` nie
-* Pri inicializácii pomocou `{}` (*value-initialization*) sa pri `= default` členy najprv vynulujú (*zero-initialization*), pri vlastnom `{}` konštruktore nie
+## Zakázanie volania cez `= delete`
 
 ```cpp
-struct A {
-  A() { }
-  int i;
-};
-
-struct B {
-  B() = default;
-  int i;
+class DatabaseConnection {
+public:
+  explicit DatabaseConnection(int port) { }
+  DatabaseConnection(double) = delete;
 };
 
 int main() {
-  A a{};
-  B b{};
-
-  std::cout << a.i << "\n"; // undefined (indeterminate value)
-  std::cout << b.i << "\n"; // 0
+  DatabaseConnection db1(5432);   // OK
+  // DatabaseConnection db2(3.14); // compiler error: deleted function
 }
 ```
 
-* `A a{}` zavolá používateľom definovaný konštruktor `A()`, ktorý `i` neinicializuje (pri `B b;` bez `{}` by však aj `b.i` ostalo neinicializované)
-* `B b{}` vynuluje `i` na `0`, pretože `B` nemá používateľom poskytnutý (*user-provided*) defaultný konštruktor
-
-
-## Triviálne typy
-
-```cpp
-struct A {
-  A() { }
-  int i;
-};
-
-struct B {
-  B() = default;
-  int i;
-};
-```
-
-```cpp
-int main() {
-  std::vector<A> va(100);
-  auto cva = va; // will copy construct
-  std::vector<B> vb(100);
-  auto cvb = vb; // will memmove
-}
-```
-
-* Použitie slova `default` zachová triviálnosť typu, teda niektoré operácie sa dajú lepšie optimalizovať
-* Triviálne typy sú také, ktoré nemajú žiadne vlastné konštruktory, deštruktory...
-* Môžeme si ich predstaviť ako obyčajný C `struct`
-* POD (Plain Old Data)
+* Kľúčové slovo `= delete` (od C++11) zakáže volanie daného konštruktora alebo funkcie
+* Na rozdiel od starého triku s `private` metódou bez tela dostaneme jasnú chybu kompilácie na mieste volania
+* Často sa používa aj na zakázanie kopírovania objektov (uvidíme neskôr)
 
 ---
 
@@ -606,15 +459,15 @@ int main() {
 
 ```cpp
 class Cache {
-  static const size_t DEFAULT_CACHE_SIZE = 100;
+  static constexpr size_t DEFAULT_CACHE_SIZE = 100;
   
-  Cache(size_t size = DEFAULT_CACHE_SIZE) { };
+  explicit Cache(size_t size = DEFAULT_CACHE_SIZE) { }
 };
 ```
 
 * Pekné je, ak sú nejako oddelené od ostatných premenných (`ALL_CAPS`, alebo `kPascalCase`, ...)
 * Používame iba vtedy, ak konštanty naozaj patria do triedy
-* Nemusia byť `static`, potom je ich nutné inicializovať v konštruktore
+* Pre konštanty známe počas prekladu používame `static constexpr`
 
 ---
 
@@ -630,6 +483,7 @@ class Cache {
 
 * Triedy majú definovať interface a všetko ostatné je implementačný detail neviditeľný pre používateľa
 * Takto sa implementácia môže voľne meniť, ak interface ostane nedotknutý (alebo aspoň spätne kompatibilný)
+* Hlavnou úlohou zapuzdrenia je udržiavanie **invariantov** (konštruktor ich nastaví alebo pri neplatných dátach vyhodí výnimku, metódy ich zachovávajú)
 
 Verejné členské premenné. <!-- .element: class="fragment strike" -->
 
@@ -641,68 +495,6 @@ Verejné členské premenné. <!-- .element: class="fragment strike" -->
 * Lepšie definované invarianty
 * Prenositeľný kód
 * Vo všeobecnosti uľahčuje život
-
----
-
-## Invarianty
-
-* Triedy sú nástroje na udržiavanie invariantov
-    * Konštruktor by mal nastaviť invarianty
-    * Metódy by mali zachovávať invarianty
-* V priebehu metód ale môže byť invariant rozbitý
-* Musia ho potom nastaviť späť
-* Nedosiahnuteľné, ak dovolíme priamy zápis do členských premenných
-
-
-## Konštruktory a invarianty
-
-* Ideálne by konštruktory mali harmonizovať dáta a zaručiť, aby invarianty sedeli
-
-<table style="width: 100%;">
-<tr>
-<td style="width: 40%">
-
-```cpp
-class Number {
-public: 
-  Number(const char* str);
-private:
-  std::string data;
-  bool negative = false;
-};
-```
-</td>
-<td rowspan=2>
-
-```cpp
-Number::Number(const char* str) {
-  if (!str)
-    throw std::invalid_argument("Null string");
-  size_t len = strlen(str);
-  if (len > 0 && str[0] == '-') {
-    negative = true;
-    ++str;
-    --len;
-  }
-  if (len == 0)
-    throw std::runtime_error("Empty string");
-  for (size_t i = 0; i < len; ++i) {
-    if (!std::isdigit(static_cast<unsigned char>(str[i])))
-      throw std::runtime_error("Not a number");
-  }
-  data = str;
-}
-```
-<!-- .element: class="showall" -->
-</td>
-</tr>
-<tr>
-<td>
-
-Konštruktor by mal hneď, ako zistí, že je niečo zle, vyhodiť výnimku. **Fail faster.**
-</td>
-</tr>
-</table>
 
 ---
 
@@ -769,6 +561,90 @@ public:
 
 * Z konštruktora môžeme volať konštruktor rodiča (do inicializačného listu nevieme zahrnúť členy predka)
 
+
+## Dedenie konštruktorov (`using`)
+
+```cpp
+class NamedRGB : public RGB {
+public:
+  using RGB::RGB; // inherit all constructors from RGB
+
+  void Print() const {
+    std::println("{}, {}, {}", r, g, b);
+  }
+};
+
+int main() {
+  NamedRGB color(255, 128, 0); // calls inherited RGB(uint8_t, uint8_t, uint8_t)
+}
+```
+
+* Konštruktory sa automaticky nededia
+* Ak potomok nepridáva členské premenné vyžadujúce špeciálnu inicializáciu, môžeme konštruktory predka zdediť pomocou `using Base::Base;` (od C++11)
+
+---
+
+## Skrývanie mien pri dedení (*name hiding*)
+
+```cpp
+class Base {
+public:
+  void Write(int x) { std::println("int: {}", x); }
+  void Write(double x) { std::println("double: {}", x); }
+};
+
+class Derived : public Base {
+public:
+  void Write(int x) { std::println("Derived int: {}", x); }
+};
+
+int main() {
+  Derived d;
+  d.Write(3.14); // prints "Derived int: 3"!
+}
+```
+
+* Ak potomok zadefinuje metódu s rovnakým menom ako predok, **skryje všetky preťaženia** tohto mena z predka (bez ohľadu na parametre)
+
+
+## Sprístupnenie preťažení cez `using`
+
+```cpp
+class Derived : public Base {
+public:
+  using Base::Write; // bring Base::Write overloads into Derived scope
+
+  void Write(int x) { std::println("Derived int: {}", x); }
+};
+
+int main() {
+  Derived d;
+  d.Write(42);   // prints "Derived int: 42"
+  d.Write(3.14); // prints "double: 3.14"
+}
+```
+
+* Pomocou `using Base::Write;` sprístupníme preťažené metódy predka aj v potomkovi
+
+---
+
+## Modifikátor dedenia
+
+```cpp
+class PublicDerived : public Base { };       // is-a relationship
+class ProtectedDerived : protected Base { }; // rarely used
+class PrivateDerived : private Base { };     // implemented-in-terms-of
+```
+
+| Člen v `Base` | `public` dedenie | `protected` dedenie | `private` dedenie |
+| --- | --- | --- | --- |
+| `public` | `public` | `protected` | `private` |
+| `protected` | `protected` | `protected` | `private` |
+| `private` | neprístupný | neprístupný | neprístupný |
+
+* Pri `class` je predvolené dedenie `private`, pri `struct` je predvolené `public`
+* V praxi takmer vždy používame `public` dedenie; namiesto `private` dedenia uprednostňujeme kompozíciu
+
 ---
 
 ## Usporiadanie v pamäti
@@ -830,8 +706,8 @@ class Y : public X {
 ```cpp
 class A {
 public:
-  A() { std::cout << "A\n"; }
-  ~A() { std::cout << "~A\n"; }
+  A() { std::println("A"); }
+  ~A() { std::println("~A"); }
 };
 
 // same for other classes
@@ -906,51 +782,33 @@ private:
 
 ---
 
-## Empty base optimization
+## Viacnásobná dedičnosť a „Diamond problem“
 
-* Aká je hodnota nasledujúceho výrazu? 
-
-```cpp
-class A {};
-
-sizeof(A);
-```
-<!-- .element: class="fragment" -->
-
-1, v C++ musí mať každý samostatný objekt unikátnu adresu, a preto veľkosť nemôže byť 0.
-<!-- .element: class="fragment" -->
-
-* Aká je hodnota nasledujúceho výrazu?
-<!-- .element: class="fragment" -->
+<div style="display: flex; align-items: center;">
+<div style="flex: 6;">
 
 ```cpp
-class A {};
-class B {
-  A a_;
-  int i_;
-};
-sizeof(B);
+struct Device { int id; };
+struct Scanner : public Device { };
+struct Printer : public Device { };
+
+struct Copier : public Scanner, public Printer { };
+
+int main() {
+  Copier c;
+  // c.id = 1; // error: 'id' is ambiguous
+  c.Scanner::id = 1;
+  c.Printer::id = 2;
+}
 ```
-<!-- .element: class="fragment" -->
+</div>
+<div style="flex: 4;">
 
-Veľkosť `B` je aspoň súčet veľkosti `A` a `int` (plus zarovnanie), pretože člen `a_` musí mať vlastnú adresu (pokiaľ nepoužijeme `[[no_unique_address]]` z C++20), preto je výsledok väčší ako `sizeof(int)`.
-<!-- .element: class="fragment" -->
-
-
-## Empty base optimization
-
-* Ak použijeme dedičnosť, kompilátor môže aplikovať *Empty Base Optimization (EBO)* a prázdna bázová trieda `A` nezaberie žiadne miesto navyše
-
-```cpp
-class A {};
-class B : public A {
-  int i_;
-};
-
-sizeof(B) == sizeof(int);
-```
-
-*Poznámka: prázdna trieda je trieda, ktorá nemá žiadne nestatické členské premenné.*
+* `Copier` obsahuje **dve** nezávislé inštancie `Device`
+* Riešením v C++ je virtuálne dedenie (`virtual public Device`), ktoré má však výkonnostnú aj mentálnu réžiu
+* Viacnásobnej dedičnosti tried s dátami sa preto radšej vyhýbame
+</div>
+</div>
 
 ---
 
@@ -973,7 +831,7 @@ public:
 
 void PrintSeq(Sequence& seq, size_t n) {
   for (size_t i = 0; i < n; ++i) {
-    std::cout << seq.Next() << '\n';
+    std::println("{}", seq.Next());
   }
 }
 ```
@@ -1034,7 +892,7 @@ private:
 ```cpp [|3]
 void PrintSeq(Sequence &seq, size_t n) {
   for (size_t i = 0; i < n; ++i) {
-    std::cout << seq.Next() << std::endl;
+    std::println("{}", seq.Next());
   }
 }
 
@@ -1066,7 +924,7 @@ public:
 
 void PrintSeq(Sequence& seq, size_t n) {
   for (size_t i = 0; i < n; ++i) {
-    std::cout << seq.Next() << '\n';
+    std::println("{}", seq.Next());
   }
 }
 
@@ -1119,151 +977,32 @@ int main() {
 
 ---
 
-# RAII
-
----
-
-## Najčastejšia chyba začiatočníkov
-
-* Všetky alokované zdroje musia byť uvoľnené
-* Pamäť je iba jedným zo zdrojov
-    * Každý `malloc` musí mať svoj `free`
-    * Každý `new` musí mať svoj `delete`
-* Inak máme na krku resource leak (memory leak)
-
-![Pacman memory](./lectures/5_oop/pacman-memory.png)
-
----
-
-## C++ má riešenie
-
-* RAII – **R**esource **a**cquisition **i**s **i**nitialization
-* Konštruktory sú zodpovedné za alokáciu zdrojov
-* Deštruktory sú zodpovedné za uvoľnenie 
-* Všetko je automaticky generované kompilátorom
-* **Bezpečné a efektívne bez námahy!**
-* Netreba žiaden garbage collector!
-
-
-```cpp
-class FileReader {
-public:
-  FileReader(const char* path)
-    : m_file(fopen(path, "r")) {
-  }
-  ~FileReader() {
-    if (m_file != nullptr)
-      fclose(m_file);
-  }
-  bool IsOK() const { return m_file != nullptr; }
-  bool Read(std::vector<char>& v) {
-    if (!IsOK())
-      return false;
-    size_t n = fread(v.data(), 1, v.size(), m_file);
-    v.resize(n);
-    return n > 0;
-  }
-private:
-  FILE* m_file;
-};
-
-int main() {
-  FileReader f("text.txt");
-  std::vector<char> v(1024);
-  f.Read(v);
-  v.push_back(0); // null
-  std::cout << v.data() << '\n';
-}
-```
-
-Explicitná kontrola, či sa všetko podarilo, nie je veľmi dobrá – ľahko sa na ňu zabudne, ako ostatne aj tu... 
-<!-- .element: class="fragment" -->
-
-Bolo by treba použiť výnimky.
-<!-- .element: class="fragment" -->
-
----
-
-## Objektovo orientované ≠ `new`
-
-V jazykoch ako Java máme k dispozícii garbage collector, preto sú objekty automaticky zdeštruované v istom okamihu po tom, ako sa prestanú používať.
-
-```cpp [|3-10]
-int main() {
-  FileReader *file = new FileReader(R"(C:\...\file.txt)");
-  if (file->IsOK())     {
-    std::vector<char> buffer(1024);
-    if (file->Read(buffer))
-    {
-      buffer.push_back('\0');
-      std::cout << buffer.data();
-    }
-  }
-
-  delete file;
-}
-```
-
-Ak niekde vo vyznačenom bloku nastane výnimka, alebo niekto v ňom zavolá return, tak máme memory leak a aj súbor ostane otvorený. 
-<!-- .element: class="fragment" -->
-
----
-
-## V C++ existuje `"}"`
-
-```cpp
-int main() {
-  FileReader file(R"(C:\Users\koscelansky\Desktop\ppp.txt)");
-  if (file.IsOK()) {
-    std::vector<char> buffer(1024);
-    if (file.Read(buffer)) {
-      buffer.push_back('\0');
-      std::cout << buffer.data();
-    }
-  }
-}
-```
-
-* Kratšie, krajšie, rýchlejšie a bez jednej alokácie
-* Navyše je to exception safe 
+# `std::unique_ptr`
 
 ---
 
 ## `std::unique_ptr`
 
-* Ak naozaj potrebujeme alokáciu pamäte, tak máme k dispozícii chytré smerníky (smart pointers)
-* V hlavičke `#include <memory>`
+* Ak naozaj potrebujeme dynamickú alokáciu pamäte (napríklad pre polymorfné objekty), použijeme chytré smerníky (*smart pointers*) z hlavičky `<memory>`
+* `std::unique_ptr<T>` je RAII obal nad surovým smerníkom s výlučným vlastníctvom
 
 ```cpp
-std::unique_ptr<FileReader> file(new FileReader(R"(C:\...\file.txt)"));
-if (file->IsOK()) {
-  std::vector<char> buffer(1024);
-  if (file->Read(buffer))     {
-    buffer.push_back('\0');
-    std::cout << buffer.data();
-  }
-}
+std::unique_ptr<Sequence> seq(new ArithmeticSeq(1, 10));
+std::println("{}", seq->Next());
 ```
 
-* Operátory sú preťažené, takže `->` sa správa ako `->` nad surovými smerníkmi
-* `unique_ptr` automaticky zavolá `delete` nad hodnotou, ktorú drží, keď ide mimo scope
+* Operátory `*` a `->` sú preťažené, takže sa používa rovnako ako surový smerník
+* `unique_ptr` automaticky zavolá `delete` nad spravovaným objektom, keď opustí scope (aj pri výnimke)
 * **Moderné C++ programy by nikdy nemali volať `delete` priamo**
 
 
 ## Lepšie použiť `std::make_unique`
 
-* Menej písania
-* Nikde nie je spomenuté `new` v kóde
+* Menej písania a žiadne priame použitie `new` v kóde
 
 ```cpp
-auto file = std::make_unique<FileReader>(R"(C:\...\file.txt)");
-if (file->IsOK()) {
-  std::vector<char> buffer(1024);
-  if (file->Read(buffer)) {
-    buffer.push_back('\0');
-    std::cout << buffer.data();
-  }
-}
+auto seq = std::make_unique<ArithmeticSeq>(1, 10);
+std::println("{}", seq->Next());
 ```
 
 ---
@@ -1300,10 +1039,15 @@ int main(int argc, const char* argv[]) {
 Smart pointer sa správa ako obyčajný pointer, teda volania metód používajú virtuálny dispatch.
 
 ```cpp
-void PrintSeq(std::unique_ptr<Sequence>& seq, size_t n) {
+void PrintSeq(Sequence& seq, size_t n) {
   for (size_t i = 0; i < n; ++i) {
-    std::cout << seq->Next() << '\n'; // virtual dispatch
+    std::println("{}", seq.Next()); // virtual dispatch
   }
+}
+
+int main() {
+  auto seq = std::make_unique<ArithmeticSeq>(1, 10);
+  PrintSeq(*seq, 5);
 }
 ```
 
@@ -1326,7 +1070,80 @@ assert(*p2 == "Unique"); // true
 
 ---
 
-## `make_unique` a `move`
+## Funkcia objekt iba používa
+
+* Ak funkcia nerieši životnosť objektu, **neodovzdávame `std::unique_ptr`**
+* Použijeme referenciu (`*ptr`), ak objekt musí existovať, alebo surový smerník (`ptr.get()`), ak môže byť `nullptr`
+
+```cpp
+void UseRequired(Sequence& seq) {
+  std::println("{}", seq.Next());
+}
+
+void UseOptional(Sequence* seq) {
+  if (seq != nullptr)
+    std::println("{}", seq->Next());
+}
+
+int main() {
+  auto ptr = std::make_unique<ArithmeticSeq>(1, 10);
+  UseRequired(*ptr);
+  UseOptional(ptr.get());
+
+  ConstSeq stack_seq(42);
+  UseRequired(stack_seq); // works with stack objects too!
+}
+```
+
+
+## Funkcia mení samotný `unique_ptr`
+
+* Referenciu `std::unique_ptr<T>&` použijeme iba vtedy, keď má funkcia zmeniť, na čo `unique_ptr` ukazuje (napr. zavolať `reset` alebo priradiť nový objekt)
+
+```cpp
+void ReplaceWithZero(std::unique_ptr<Sequence>& seq) {
+  seq = std::make_unique<ConstSeq>(0);
+}
+
+int main() {
+  auto ptr = std::make_unique<ArithmeticSeq>(1, 10);
+  ReplaceWithZero(ptr); // old object is deleted, ptr now owns ConstSeq(0)
+}
+```
+
+
+## Vytváranie objektov cez factory funkciu
+
+```cpp
+std::unique_ptr<Sequence> CreateSequence(std::string_view type) {
+  if (type == "arith")
+    return std::make_unique<ArithmeticSeq>(0, 10);
+  return std::make_unique<ConstSeq>(1);
+}
+
+int main() {
+  auto seq = CreateSequence("arith");
+  PrintSeq(*seq, 5);
+}
+```
+
+* Volajúci dostane jasné výlučné vlastníctvo vytvoreného objektu
+* Konkrétne podtriedy môžu zostať skryté v implementačnom súbore
+
+
+## Zhrnutie: `unique_ptr` a funkcie
+
+| Zámer | Typ parametra / návratu |
+| --- | --- |
+| Iba použiť objekt (musí existovať) | `Sequence&` / `const Sequence&` |
+| Iba použiť objekt (môže chýbať) | `Sequence*` / `const Sequence*` |
+| Prebrať vlastníctvo objektu | `std::unique_ptr<Sequence>` |
+| Presmerovať alebo uvoľniť `unique_ptr` | `std::unique_ptr<Sequence>&` |
+| Vytvoriť a vrátiť nový objekt | návrat `std::unique_ptr<Sequence>` |
+
+---
+
+## `make_unique` a `move` (presun vlastníctva)
 
 ```cpp
 void f(std::unique_ptr<Sequence> p) 
@@ -1421,6 +1238,47 @@ public:
 
 ---
 
+## Čisto abstraktné rozhrania (*Interfaces*)
+
+* V C++ neexistuje kľúčové slovo `interface` (ako v Jave alebo C#)
+* Rozhranie vytvoríme ako triedu, ktorá:
+    * nemá žiadne nestatické členské premenné,
+    * má všetky metódy čisto virtuálne (`= 0`),
+    * má verejný virtuálny deštruktor (`virtual ~Interface() = default;`)
+
+```cpp
+class Serializable {
+public:
+  virtual ~Serializable() = default;
+  virtual std::string Serialize() const = 0;
+};
+
+class Printable {
+public:
+  virtual ~Printable() = default;
+  virtual void Print() const = 0;
+};
+```
+
+
+## Implementácia viacerých rozhraní
+
+```cpp
+class Document : public Serializable, public Printable {
+public:
+  std::string Serialize() const override { return content_; }
+  void Print() const override { std::println("{}", content_); }
+
+private:
+  std::string content_ = "Hello C++";
+};
+```
+
+* Viacnásobná dedičnosť čisto abstraktných rozhraní je v C++ bezpečná a bežne používaná
+* Keďže rozhrania neobsahujú dáta, nevzniká problém duplicitných členských premenných (*diamond problem*)
+
+---
+
 ## __vfptr
 
 * Tabuľka virtuálnych funkcií (zvyčajná implementácia, štandard ju priamo nepredpisuje)
@@ -1445,13 +1303,13 @@ public:
   Base() { print(); }
 
   virtual void print() {
-    std::cout << "Base";
+    std::println("Base");
   }
 };
  
 class Derived : public Base {
   virtual void print() override {
-    std::cout << "Derived";
+    std::println("Derived");
   }
 };
 
@@ -1491,6 +1349,9 @@ Smerník na tabuľku virtuálnych funkcií sa nastavuje priebežne na začiatku 
 class File { /* ... */ };
  
 class TemporaryFile : public File { /* ... */ };
+ 
+void ReadInput(File& file);
+ 
 int main() {
   TemporaryFile tempFile;
   ReadInput(tempFile);
@@ -1513,16 +1374,12 @@ int main() {
   TemporaryFile temp_file;
   ReadInput(&temp_file);
 }
-
 ```
 
 ```cpp
 void ReadInput(File file);
  
-intpp
-void ReadInput(File file);
- 
-void main() {
+int main() {
   TemporaryFile temp_file;
   ReadInput(temp_file);
 }
@@ -1546,6 +1403,49 @@ class B : public A {};
 
 Kód vyššie sa neskompiluje.
 
+
+## `final` na metódach a devirtualizácia
+
+```cpp
+class Sequence {
+public:
+  virtual ~Sequence() = default;
+  virtual int64_t Next() = 0;
+};
+
+class ConstSeq : public Sequence {
+public:
+  explicit ConstSeq(int64_t c) : c_(c) {}
+  int64_t Next() override final { return c_; }
+private:
+  int64_t c_;
+};
+```
+
+* `final` môžeme použiť aj na konkrétnu virtuálnu metódu – žiadny ďalší potomok ju už nemôže prekonať
+* Ak pracujeme s typom `ConstSeq&` (alebo je celá trieda `final`), kompilátor s istotou pozná cieľovú metódu a môže volanie **devirtualizovať** (zavolať priamo alebo inlinovať bez čítania `__vfptr`)
+
+---
+
+## Kedy sa virtuálna funkcia nevolá virtuálne?
+
+```cpp
+class Derived : public Base {
+public:
+  void Process() override {
+    Base::Process(); // explicit call to base implementation, not virtual!
+    // do additional work in Derived
+  }
+};
+
+void Run(Derived& d) {
+  d.Base::Process(); // also calls Base::Process() directly
+}
+```
+
+* Ak pri volaní explicitne uvedieme názov triedy (`Base::Process()`), virtuálny mechanizmus sa nepoužije
+* Bežne sa to využíva v prekonanej metóde potomka, keď chceme najprv vykonať pôvodnú logiku predka a potom pridať vlastnú
+
 ---
 
 ## `private` vs `virtual`
@@ -1557,7 +1457,7 @@ class A {
 private:
   virtual int f() const = 0;
 public:
-  void print() const { std::cout << f() << std::endl; }
+  void print() const { std::println("{}", f()); }
 };
  
 class B : public A {
@@ -1661,43 +1561,122 @@ void f(A& a) {
 }
 ```
 
-**`dynamic_cast`** kontroluje typ počas behu a vráti `nullptr`, ak pretypujeme na smerník (`B*`), alebo vyhodí výnimku, ak chceme referenciu (`B&`).
+**`dynamic_cast`** kontroluje typ počas behu (využíva `__vfptr`) a vráti `nullptr`, ak pretypujeme na smerník (`B*`), alebo vyhodí výnimku `std::bad_cast`, ak chceme referenciu (`B&`). Časté používanie `dynamic_cast` však zvyčajne svedčí o zlom dizajne.
 
 ---
 
-## Dynamické `typeid`
+## Alternatíva k OOP polymorfizmu: `std::variant`
 
-```cpp [|1-3|5-7,15|9-11,16]
-class A { };
-class B : public A { public: virtual ~B() { } };
-class C : public B { };
+* Ak dopredu poznáme konečnú množinu typov, nemusíme vždy vytvárať hierarchiu tried, virtuálne metódy a alokovať objekty cez `std::unique_ptr`
+* Od C++17 môžeme použiť `std::variant<Ts...>` (typovo bezpečnú alternatívu k `union`), ktorá drží hodnotu práve jedného z uvedených typov priamo na mieste (bez alokácie na halde)
 
-void f(const A& a) {
-  std::cout << typeid(a).name() << "\n";
-}
+```cpp
+struct ConstSeq {
+  int64_t c;
+  int64_t Next() { return c; }
+};
 
-void g(const B& b) {
-  std::cout << typeid(b).name() << "\n";
-}
+struct ArithmeticSeq {
+  int64_t state;
+  int64_t inc;
+  int64_t Next() {
+    int64_t ret = state;
+    state += inc;
+    return ret;
+  }
+};
 
+using AnySequence = std::variant<ConstSeq, ArithmeticSeq>;
+```
+
+
+## Kolekcia s `std::variant`
+
+```cpp
 int main() {
-  C c;
-  f(c); // prints A
-  g(c); // prints C
+  std::vector<AnySequence> seqs;
+  seqs.push_back(ArithmeticSeq{1, 10});
+  seqs.push_back(ConstSeq{0});
+
+  for (auto& seq : seqs) {
+    if (auto* arith = std::get_if<ArithmeticSeq>(&seq)) {
+      std::println("{}", arith->Next());
+    } else if (auto* c = std::get_if<ConstSeq>(&seq)) {
+      std::println("{}", c->Next());
+    }
+  }
 }
 ```
-<!-- .element: class="showall" -->
 
-Ak sa použije operátor `typeid` na polymorfný typ, tak sa zistenie typu odloží až na beh programu.
-<!-- .element: class="fragment" -->
+* Všetky prvky sú uložené súvislo priamo v pamäti `std::vector` (žiadne smerníky na haldu ani `__vfptr`)
+* Ešte elegantnejšie spracovanie pomocou `std::visit` a lambda funkcií si ukážeme na nasledujúcej prednáške
+
+
+## Dedičnosť vs. `std::variant`
+
+| Vlastnosť | Dedičnosť + `unique_ptr` | `std::variant` |
+| --- | --- | --- |
+| Množina typov | Otvorená (ľubovoľný počet potomkov) | Uzavretá (pevne vymenované typy) |
+| Pridanie nového typu | Jednoduché (nová podtrieda) | Zmena definície `variant` |
+| Pridanie novej operácie | Zmena rozhrania a všetkých potomkov | Jednoduché (nová funkcia) |
+| Uloženie v `std::vector` | Smerníky na haldu (`unique_ptr`) | Priamo hodnoty v súvislej pamäti |
 
 ---
 
-## `typeid` a `dynamic_cast`
+# `std::any`
 
-* Obe používajú `__vfptr` na implementáciu zistenia typu
-* Podľa toho, aký je smerník na tabuľku virtuálnych funkcií, vieme zistiť, o aký typ ide
-* Časté používanie týchto funkcionalít svedčí o zlom dizajne, niekedy sa aj napriek tomu môžu hodiť
+---
+
+## `std::any`
+
+* Od C++17 (v hlavičke `<any>`) umožňuje uložiť ľubovoľnú kopírovateľnú hodnotu akéhokoľvek typu
+* Je to typovo bezpečná náhrada za `void*`, ktorá si navyše sama spravuje životnosť uloženého objektu (RAII)
+* Malé objekty sa zvyčajne uložia priamo vnútri `std::any` (*Small Buffer Optimization*), väčšie sa alokujú na halde
+
+```cpp
+std::any value = 42;            // holds int
+value = 3.14;                   // holds double
+value = std::string("Hello!");  // holds std::string
+
+assert(value.has_value());
+value.reset();                  // destroys the contained object
+assert(!value.has_value());
+```
+
+
+## Prístup k hodnote v `std::any`
+
+* Na získanie hodnoty musíme poznať jej presný typ a použiť `std::any_cast<T>`
+* Rovnako ako pri `dynamic_cast`:
+    * `std::any_cast<T>(value)` pri nesprávnom type vyhodí výnimku `std::bad_any_cast`
+    * `std::any_cast<T>(&value)` so smerníkom vráti pri nesprávnom type `nullptr`
+
+```cpp
+std::any item = std::string("C++23");
+
+// 1. Pointer version: returns nullptr on type mismatch
+if (auto* str = std::any_cast<std::string>(&item)) {
+  std::println("String: {}", *str);
+}
+
+// 2. Value/reference version: throws std::bad_any_cast on mismatch
+try {
+  int number = std::any_cast<int>(item);
+  std::println("{}", number);
+} catch (const std::bad_any_cast& e) {
+  std::println("Wrong type: {}", e.what());
+}
+```
+
+
+## Kedy použiť `std::any`?
+
+* `std::any` nepoužívame namiesto šablón ani namiesto `std::variant`
+* Ak vopred poznáme možné typy, **vždy uprednostníme `std::variant`** (je rýchlejší, nealokuje na halde a kompilátor skontroluje všetky typy)
+* `std::any` sa hodí iba tam, kde množina typov nie je vopred známa:
+    * užívateľský kontext (*user data*) v callbackoch a udalostiach,
+    * heterogénne mapy vlastností (napr. `std::map<std::string, std::any>`),
+    * prenášanie dát cez vrstvy, ktoré nemusia poznať konkrétny typ.
 
 ---
 
