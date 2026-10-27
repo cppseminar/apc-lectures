@@ -216,6 +216,30 @@ int main() {
 }
 ```
 
+
+## Preťaženie viacerých `operator()`
+
+* Na rozdiel od obyčajného smerníka na funkciu môže mať funktor **viacero preťažených `operator()`** pre rôzne typy alebo počty parametrov
+* Kompilátor pri volaní vyberie správne preťaženie podľa argumentov (využijeme to neskôr aj pri `std::visit`)
+
+```cpp
+struct Printer {
+    void operator()(int i) const {
+        std::println("int: {}", i);
+    }
+
+    void operator()(const std::string& s) const {
+        std::println("string: {}", s);
+    }
+};
+
+int main() {
+    Printer print;
+    print(42);      // calls operator()(int)
+    print("Hello"); // calls operator()(const std::string&)
+}
+```
+
 ---
 
 ## Funktory v štandardnej knižnici
@@ -389,7 +413,8 @@ auto factory = [](int x) -> std::unique_ptr<A> {
 
 ## Generické lambdy
 
-* Od C++14 môžeme v zozname parametrov lambdy použiť `auto` (vygeneruje sa šablónový `operator()`)
+* Od C++14 môžeme v zozname parametrov lambdy použiť `auto`, pripadne `auto&` alebo `const auto&` (vygeneruje sa šablónový `operator()`)
+* Výsledok bude podobný ako funktor s preťaženým `operator()`, ktorý dokáže pracovať s rôznymi typmi argumentov
 
 ```cpp
 auto add_to_string = [](auto x, auto y) -> std::string {
@@ -632,6 +657,7 @@ std::visit(overloaded {
 }, v);
 ```
 
+* Výsledok `overloaded` je funktor, ktorý kombinuje všetky zadané lambdy do jedného objektu s preťaženým `operator()`.
 * Ak do `std::variant` pridáme nový typ a zabudneme preň dopísať vetvu, program sa neskompiluje
 * Od C++26 pribudla aj členská metóda `v.visit(...)`, takže netreba písať `std::visit(..., v)`
 
@@ -888,6 +914,7 @@ private:
 * `operator+=` mení ľavý operand priamo na mieste a vracia `UInt128&` (`*this`)
 * `operator+` nemení pôvodné operandy (`z = x + y`), ale vracia novú hodnotu `UInt128`
 * Idiomaticky implementujeme `operator+` ako voľnú (často `friend`) funkciu pomocou `operator+=`, pričom prvý parameter `lhs` prijmeme hodnotou
+* V tomto prípade funkcia označená ako `friend` nedostane implicitný `this` ukazovateľ, ale má prístup k súkromným členom triedy `UInt128`.
 
 ---
 
@@ -963,45 +990,31 @@ private:
 ## Operátory porovnania
 
 * Užitočné pre vyhľadávanie, triedenie a ukladanie do usporiadaných kontajnerov (`std::map`, `std::set`)
-* Pred C++20 bolo pre plnú podporu porovnávania potrebné ručne napísať všetkých 6 operátorov (`==`, `!=`, `<`, `<=`, `>`, `>=`)
+* Pred C++20 bolo pre plnú podporu porovnávania potrebné ručne napísať všetkých 6 operátorov:
 
-
-## Spaceship operátor `<=>` (C++20)
-
-* *Three-way comparison* operátor `<=>` porovná dva objekty naraz a vráti výsledok porovnania (`< 0`, `== 0`, `> 0`)
-* Kompilátor z neho automaticky sprístupní `<`, `<=`, `>` a `>=`
-* Pri ručnej implementácii `<=>` však kompilátor automaticky **nevygeneruje** `operator==` (treba ho dopísať, z neho sa potom odvodí aj `!=`)
-
-```cpp [|4-9|15-17]
+```cpp
 class IntBox {
 public:
     explicit IntBox(int i) : data_(std::make_unique<int>(i)) { }
-    auto operator<=>(const IntBox& rhs) const { 
-        return *data_ <=> *rhs.data_;
-    }
-    bool operator==(const IntBox& rhs) const {
-        return *data_ == *rhs.data_;
-    }
+    bool operator==(const IntBox& rhs) const { return *data_ == *rhs.data_; }
+    bool operator!=(const IntBox& rhs) const { return *data_ != *rhs.data_; }
+    bool operator< (const IntBox& rhs) const { return *data_ <  *rhs.data_; }
+    bool operator<=(const IntBox& rhs) const { return *data_ <= *rhs.data_; }
+    bool operator> (const IntBox& rhs) const { return *data_ >  *rhs.data_; }
+    bool operator>=(const IntBox& rhs) const { return *data_ >= *rhs.data_; }
 private:
     std::unique_ptr<int> data_;
 };
-
-int main() {
-    assert(IntBox(3) < IntBox(5));
-    assert(IntBox(5) <= IntBox(5));
-    assert(IntBox(3) != IntBox(5));
-}
 ```
 
 
-## Kategórie usporiadania a `= default`
+## Spaceship operátor `<=>` a `= default` (C++20)
 
-* Návratovým typom `<=>` je jedna z kategórií v `<compare>`:
-    * `std::strong_ordering` (`less`, `equal`, `greater`) – rovnaké hodnoty sú nerozlíšiteľné (napr. `int`, `std::string`)
-    * `std::weak_ordering` (`less`, `equivalent`, `greater`) – ekvivalentné hodnoty sa môžu v niečom líšiť (napr. case-insensitive reťazce)
-    * `std::partial_ordering` (navyše `unordered`) – niektoré hodnoty sa nedajú porovnať (napr. `float` a `NaN`)
-* Ak nám vyhovuje lexikografické porovnanie všetkých členov v poradí deklarácie, stačí napísať `= default` (tým sa automaticky vygeneruje aj `operator==`!):
-
+* *Three-way comparison* operátor `a <=> b` (z `<compare>`) porovná dva objekty v jednom kroku (podobne ako `strcmp`):
+    * ak `a < b`, vráti hodnotu `< 0`
+    * ak `a == b`, vráti hodnotu `== 0`
+    * ak `a > b`, vráti hodnotu `> 0`
+* Ak nám vyhovuje postupné porovnanie všetkých členov v poradí deklarácie, stačí napísať `= default` – kompilátor tým automaticky sprístupní **všetkých 6 operátorov** (`==`, `!=`, `<`, `<=`, `>`, `>=`):
 
 ```cpp
 struct Person {
@@ -1016,6 +1029,53 @@ int main() {
     assert(Person{"Bjarne", 70} != Person{"Richard", 68});
 }
 ```
+
+
+## Kategórie usporiadania (`<compare>`)
+
+* Výsledkom `operator<=>` nie je `int`, ale jeden z troch typov usporiadania v `<compare>`:
+    * `std::strong_ordering` (`less`, `equal`, `greater`) – rovnaké hodnoty sú úplne zameniteľné (napr. `int`, `std::string`)
+    * `std::weak_ordering` (`less`, `equivalent`, `greater`) – ekvivalentné hodnoty nemusia byť identické (napr. case-insensitive porovnanie `"abc"` a `"ABC"`)
+    * `std::partial_ordering` (`less`, `equivalent`, `greater`, `unordered`) – niektoré hodnoty sa nedajú porovnať (napr. `double` pri porovnaní s `NaN` vráti `unordered`)
+* Všetky tri typy sa dajú porovnávať s literálom `0` (napr. `(a <=> b) < 0` znamená `a < b`)
+
+
+## Vlastná implementácia `operator<=>`
+
+* Kedy nám `= default` nestačí?
+    * Trieda obsahuje smerník a chceme porovnávať pointované hodnoty, nie adresy
+    * Chceme vynechať niektoré atribúty (napr. interné `id` alebo cache), zmeniť prioritu členov alebo použiť vlastnú logiku
+* Pri ručne písanom `operator<=>` kompilátor automaticky **nevygeneruje** `operator==` (kvôli efektivite – napr. pri reťazcoch či vektoroch vie `==` okamžite vrátiť `false`, ak sa líši `size()`, kým `<=>` musí porovnávať prvky)
+* Preto pri vlastnom `operator<=>` vždy dopíšeme aj `operator==` (z neho sa už `!=` vygeneruje automaticky)
+
+
+## Príklad: vlastný komplexnejší `operator<=>`
+
+```cpp [|5-16|18-20]
+struct Task {
+    int priority;      // 1. higher number = higher priority (descending!)
+    std::string title; // 2. shorter title first, then alphabetically
+
+    std::strong_ordering operator<=>(const Task& rhs) const {
+        // 1. Higher priority comes first (reverse order: rhs <=> this):
+        if (auto cmp = rhs.priority <=> priority; cmp != 0) {
+            return cmp;
+        }
+        // 2. Explicit comparison returning strong_ordering constants:
+        if (title.size() < rhs.title.size()) return std::strong_ordering::less;
+        if (title.size() > rhs.title.size()) return std::strong_ordering::greater;
+
+        // 3. Fallback to lexicographical comparison of titles:
+        return title <=> rhs.title;
+    }
+
+    bool operator==(const Task& rhs) const {
+        return priority == rhs.priority && title == rhs.title;
+    }
+};
+```
+
+* Z týchto dvoch metód máme plne funkčné `==`, `!=`, `<`, `<=`, `>` aj `>=` podľa našej vlastnej logiky (ak by sme niektorý atribút pri porovnaní zámerne ignorovali, použili by sme návratový typ `std::weak_ordering`).
 
 ---
 
