@@ -21,6 +21,25 @@
 
 ---
 
+## Opakovanie: `auto`
+
+* Kľúčové slovo `auto` odvodí typ premennej z jej inicializačného výrazu počas prekladu (premenná musí byť pri deklarácii inicializovaná)
+* Samotné `auto` vždy vytvára **kópiu hodnoty** – zahadzuje referencie (`&`) a vrchný `const`
+* Referenciu, konštantu alebo smerník preto dopisujeme explicitne: `auto&`, `const auto&`, `const auto`, `auto*`
+
+```cpp
+int x = 42;
+const int& cref = x;
+
+auto a = cref;        // int (copy, drops const and &)
+const auto b = cref;  // const int (copy)
+auto& c = x;          // int&
+const auto& d = x;    // const int&
+auto* p = &x;         // int*
+```
+
+---
+
 ## `decltype` a `std::is_same_v`
 
 * `decltype(expr)` vráti presný typ premennej alebo výrazu počas prekladu (bez vyhodnotenia výrazu)
@@ -234,7 +253,7 @@ auto lambda2 = [] {}; // simplest lambda (empty parameter list can be omitted)
 
 ## Použitie lambdy na zjednodušenie kódu
 
-```cpp [4,13|6|7-10]
+```cpp [|4,13|6|7-10]
 class Joiner {
 public:
     explicit Joiner(char delim)
@@ -900,7 +919,7 @@ int main() {
 
 * Pre moderný výpis cez `std::format` a `std::println` sa nepreťažuje operátor, ale špecializuje sa šablóna `std::formatter<T>`:
 
-```cpp [|2-4|6-8|13]
+```cpp [|3-5|7-9|13]
 template <>
 struct std::formatter<Time> {
     constexpr auto parse(std::format_parse_context& ctx) {
@@ -1449,6 +1468,28 @@ auto even_squares = v
     | std::views::filter([](int x) { return x % 2 == 0; })
     | std::views::transform([](int x) { return x * x; })
     | std::ranges::to<std::vector>(); // returns std::vector<int>{ 4, 16, 36 }
+```
+
+
+## Range factories
+
+* Okrem adaptácie existujúceho kontajnera vieme pohľad vygenerovať aj priamo „z ničoho“ pomocou **range factories**:
+    * `std::views::iota(start, end)` – generuje postupnosť hodnôt $[start, end)$ (bez druhého argumentu nekonečnú)
+    * `std::views::repeat(val, count)` (C++23) – opakuje hodnotu `val` zadaný počet krát (alebo nekonečne)
+    * `std::views::single(val)` – pohľad obsahujúci práve jeden prvok
+    * `std::views::empty<T>` – prázdny pohľad daného typu
+
+```cpp
+for (int i : std::views::iota(1, 6)) {
+    std::print("{} ", i); // 1 2 3 4 5
+}
+
+// Infinite generator combined with views:
+auto first_five_squares = std::views::iota(1)
+    | std::views::transform([](int x) { return x * x; })
+    | std::views::take(5); // 1, 4, 9, 16, 25
+
+auto zeros = std::views::repeat(0, 4); // 0, 0, 0, 0
 ```
 
 ---
