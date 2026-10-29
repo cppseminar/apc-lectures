@@ -14,7 +14,6 @@
 * Xvalues
 * `std::move`
 * RVO a NRVO
-* `std::shared_ptr`
 
 ---
 
@@ -24,27 +23,11 @@
 
 ## `auto`
 
-* Kľúčové slovo `auto` sa už v C++ nepoužíva na označenie *automatic storage duration*
-* Bez označenia premennej pomocou storage specifier-u sa použije *auto* (teda automatická pamäť)
+* Kľúčové slovo `auto` sa už v C++ nepoužíva na označenie *automatic storage duration* (podobne staré kľúčové slovo `register` bolo v C++17 úplne odstránené)
+* Bez označenia premennej pomocou storage specifier-u sa použije automatická doba uloženia
 * Miesto pre premennú je alokované na začiatku scope a dealokované na konci
 * Konštruktory a deštruktory sa volajú *auto*maticky
 * Miesto sa spravidla alokuje na stacku
-
----
-
-## `register`
-
-* Kľúčové slovo `register` sa používalo na označenie premennej, ktorá sa bude veľa používať, a teda kompilátor by ju mal dať prednostne do CPU registrov
-* V C sa nedá takejto premennej zobrať adresa, v C++ to išlo
-* Kompilátory ho ignorovali
-* Od C++17 je odstránené (zostáva len ako rezervované kľúčové slovo, kód nižšie sa už v C++17 neskompiluje)
-
-```cpp
-register int n = 0;
-for (register int i = 0; i < 1'000'000; ++i) {
-  n += i;
-}
-```
 
 ---
 
@@ -87,12 +70,7 @@ int main() {
 
 ## dynamic memory
 
-* Dynamická pamäť znamená, že miesto si musíme alokovať ručne
-* V C++ sa robí pomocou `new` a `delete`
-* My ideálne nepoužívame priamo alokácie pamäte, ale
-    * `std::unique_ptr`
-    * `std::vector`
-    * `std::string`
+* Okrem automatickej, statickej a thread-local doby uloženia existuje ešte dynamická pamäť na halde cez `new`/`delete`, ktorú sme už videli a spravujeme ju cez `std::unique_ptr`, `std::vector` či `std::string`
 
 ```cpp
 int* i = new int(0);
@@ -175,12 +153,13 @@ static int static_global_variable = 43; // different variable
 ```
 
 ```cpp
-// file1.cpp
-int global_variable = 67;
-
-// file2.cpp
-static int global_variable = 43; // different variable
+// file2.cpp (modern C++ alternative: anonymous namespace)
+namespace {
+    int local_to_translation_unit = 43; // also internal linkage
+}
 ```
+
+* V modernom C++ namiesto `static` na globálnej úrovni často používame anonymný `namespace { ... }`, ktorý zaručí *internal linkage* aj pre typy a triedy, nielen pre premenné a funkcie.
 
 
 ### Bez všetkých týchto špecifikátorov
@@ -366,8 +345,6 @@ std::string s = "lvalue";
  
 &std::string(); // error
 ```
-
-<small>V starších MSVC (kompilátor vo Visual Studio) toto išlo skompilovať. Od VS2019 to už nejde.</small>
 
 ---
 
@@ -754,7 +731,7 @@ int main() {
 }
 ```
 
-* Nový string sa vytvorí pred volaním funkcie `func` a hneď potom sa zavolá deštruktor
+* Nový string sa vytvorí pred volaním funkcie `func` a hneď potom sa zavolá deštruktor (preto pre čisto čítané reťazce preferujeme `std::string_view`, ktorý takúto dočasnú alokáciu nerobí)
 
 
 ## Explicitné konštruktory
@@ -906,115 +883,96 @@ int main() {
 * Realisticky nám stačí iba konštantná lvalue referencia a modifikovateľná rvalue referencia
 * Ostatné je skôr ezoterika 😉
 
+
+## Sink parametre (pass-by-value + `std::move`)
+
+* Ak funkcia alebo konštruktor potrebuje **vlastnú kópiu** parametra (napr. uloží si ho do členskej premennej), nemusíme písať dve preťaženia (`const std::string&` a `std::string&&`)
+* Stačí prijať parameter **hodnotou** a následne ho presunúť cez `std::move`:
+
+```cpp
+class Person {
+public:
+    explicit Person(std::string name)
+        : name_(std::move(name)) { } // 1 copy + 1 move for lvalue, 1–2 moves for rvalue
+private:
+    std::string name_;
+};
+```
+
+* Ak zavoláme `Person(s)` s lvalue, urobí sa jedna kópia do parametra `name` a lacný move do `name_`
+* Ak zavoláme `Person("Bjarne")` s rvalue, neurobí sa žiadna kópia – iba move!
+
 ---
 
 # Implementácia rvalue referencií
 
 ---
 
-## Príklad buffer
+## Príklad `Socket`
 
 ```cpp
-class buffer {
+class Socket {
 public:
-  buffer(size_t n)
-    : size(n)
-    , ptr(n > 0 ? malloc(n) : nullptr) {
-    if (size > 0 && !ptr) {
-      throw std::bad_alloc();
+    explicit Socket(int port) : fd_(open_socket(port)) { }
+
+    ~Socket() {
+        if (fd_ >= 0) {
+            close_socket(fd_);
+        }
     }
-  }
- 
-  ~buffer() { free(ptr); }
- 
-  void *get() const { return ptr; }
- 
+
+    int fd() const { return fd_; }
+
 private:
-  size_t size = 0;
-  void *ptr = nullptr;
+    int fd_ = -1; // OS file descriptor / handle (-1 means invalid/closed)
 };
 ```
 
-* Jednoduchá trieda na reprezentáciu bufferu
-* Nevie meniť veľkosť, iba alokovať a dealokovať
+* Trieda obaľujúca systémový zdroj (napr. sieťový socket alebo otvorený súbor)
+* Konštruktor otvorí spojenie a deštruktor ho automaticky zavrie, ak je `fd_ >= 0` (RAII)
 
 
-## copy
+## Kopírovanie pre `Socket` nedáva zmysel
 
-* Kopírovací konštruktor a operátor priradenia by mali skopírovať objekt
-
-### Kopírovací konštruktor
-
-```cpp
-buffer(const buffer &other)
-    : size(other.size)
-    , ptr(other.size > 0 ? malloc(other.size) : nullptr) {
-    if (size > 0 && !ptr) {
-        // malloc failed
-        throw std::bad_alloc();
-    }
-    // copy buffer
-    if (size > 0) {
-        memcpy(ptr, other.ptr, size);
-    }
-}
-``` 
-
-
-### Kopírovací operátor priradenia
+* Čo by malo znamenať skopírovanie otvoreného sieťového spojenia?
+* Ak by dva objekty `Socket` mali rovnaké `fd_`, oba deštruktory by zavolali `close_socket(fd_)` nad tým istým deskriptorom!
+* Preto kopírovací konštruktor a kopírovací `operator=` explicitne **zakážeme**:
 
 ```cpp
-buffer& operator=(const buffer& rhs) {
-    // self-assignment check
-    if (this == &rhs)
-        return *this;
+class Socket {
+public:
+    explicit Socket(int port) : fd_(open_socket(port)) { }
+    ~Socket() { if (fd_ >= 0) close_socket(fd_); }
 
-    void* new_ptr = nullptr;
-
-    if (rhs.size > 0) {
-        new_ptr = malloc(rhs.size);
-        if (!new_ptr) {
-            // malloc failed
-            throw std::bad_alloc();
-        }
-        memcpy(new_ptr, rhs.ptr, rhs.size);
-    }
-
-    // Free old data only after new allocation succeeds
-    free(ptr);
-
-    ptr = new_ptr;
-    size = rhs.size;
-
-    return *this;
-}
+    Socket(const Socket&) = delete;
+    Socket& operator=(const Socket&) = delete;
+    // ...
+};
 ```
 
 ---
 
 ## `move` (prvý, naivný pokus)
 
-* Move konštruktor a operátor priradenia by mali použiť zo "starého" objektu najviac, ako sa dá
-* Nestačí však len skopírovať smerník (pozri ďalší slide!)
+* Presunúť otvorený `Socket` (napr. vrátiť ho z funkcie alebo uložiť do `std::vector<Socket>`) však dáva zmysel!
+* Nestačí však len skopírovať `fd_` (pozri ďalší slide!):
 
 ### Move konštruktor
 
 ```cpp
-buffer(buffer&& other)
-    : size(other.size) 
-    , ptr(other.ptr) { // BUG: other still points to the same memory!
+Socket(Socket&& other) noexcept
+    : fd_(other.fd_) { // BUG: other still has the same fd_!
 }
 ```
 
 ### Move operátor priradenia
 
 ```cpp
-buffer& operator=(buffer&& rhs) {
+Socket& operator=(Socket&& rhs) noexcept {
     if (&rhs == this)
         return *this;
 
-    size = rhs.size;
-    ptr = rhs.ptr; // BUG: old ptr leaked and rhs still owns the pointer!
+    fd_ = rhs.fd_; // BUG: old fd_ was not closed and rhs still has fd_!
     return *this;
 }
 ```
@@ -1023,80 +981,74 @@ buffer& operator=(buffer&& rhs) {
 ## Move musí nechať objekt vo validnom stave
 
 * Deštruktor presunutého objektu (`other`) sa na konci jeho životnosti stále zavolá!
-* Ak by sme v `other.ptr` nechali pôvodnú adresu, deštruktor by uvoľnil pamäť, ktorú sme práve presunuli (nastane *double free*)
-* Preto **musíme** nastaviť `other.ptr = nullptr` (keďže `free(nullptr)` neurobí nič), a pre konzistentný stav vynulujeme aj `other.size = 0`
+* Ak by sme v `other.fd_` nechali pôvodný deskriptor, deštruktor `~Socket()` by nám živé spojenie okamžite zavrel!
+* Preto **musíme** nastaviť `other.fd_ = -1` (stav „neplatný/zavretý socket“, pri ktorom `~Socket()` neurobí nič)
 
 ```cpp
-buffer(buffer&& other) noexcept
-    : size(other.size) 
-    , ptr(other.ptr) {
-    other.ptr = nullptr; // required so ~buffer() is safe
-}
-```
-
-```cpp
-buffer(buffer&& other) noexcept
-    : size(other.size) 
-    , ptr(other.ptr) {
-    other.size = 0;      // also keep size consistent
-    other.ptr = nullptr;
+Socket(Socket&& other) noexcept
+    : fd_(other.fd_) {
+    other.fd_ = -1; // required so ~Socket() does not close our moved socket!
 }
 ```
 
 
-## move operator=
+## move `operator=`
+
+* Pri priradení do existujúceho objektu musíme navyše najprv zavrieť náš starý socket (ak bol otvorený):
 
 ```cpp
-buffer &operator=(buffer &&rhs) noexcept {
+Socket& operator=(Socket&& rhs) noexcept {
     if (&rhs == this)
         return *this;
 
-    free(ptr);
-    size = rhs.size;
-    rhs.size = 0;
-    ptr = rhs.ptr;
-    rhs.ptr = nullptr;
+    if (fd_ >= 0) {
+        close_socket(fd_); // close our previous socket first
+    }
+    fd_ = rhs.fd_;
+    rhs.fd_ = -1;
     return *this;
 }
-
 ```
 
 
 ## `std::exchange`
 
-* Môžeme použiť `std::exchange` na zjednodušenie implementácie
-* `c = std::exchange(a, b)` urobí `c = a` a `a = b`
-* Nie atomic exchange
+* Môžeme použiť `std::exchange` (z `<utility>`) na zjednodušenie implementácie
+* `c = std::exchange(a, b)` vráti starú hodnotu `a` a zároveň priradí `a = b`
+* Nie je to atomická operácia (`std::atomic::exchange`)
 
 ```cpp
-buffer &operator=(buffer &&rhs) noexcept {
+Socket(Socket&& other) noexcept
+    : fd_(std::exchange(other.fd_, -1)) {
+}
+
+Socket& operator=(Socket&& rhs) noexcept {
     if (&rhs == this)
         return *this;
 
-    free(ptr);
-
-    size = std::exchange(rhs.size, 0);
-    ptr = std::exchange(rhs.ptr, nullptr);
+    if (fd_ >= 0) {
+        close_socket(fd_);
+    }
+    fd_ = std::exchange(rhs.fd_, -1);
     return *this;
 }
-
 ```
 
 ---
 
 ## Ako použiť move?
 
-* Temporaries si vyberú rvalue referenciu, keďže sú rvalue
-* Ak náhodou rvalue referencia neexistuje, tak sa uspokoja aj s konštantnou lvalue referenciou
-* Temporaries sú hneď zdeštruované, tak ich môžeme rozobrať a použiť ďalej
+* Dočasné objekty (*temporaries*) si vyberú rvalue referenciu, keďže sú rvalue
+* Keďže temporaries hneď zaniknú, môžeme z nich bezpečne prevziať otvorený socket
 
 ```cpp
 int main() {
-    buffer a(500);
-    buffer b(40);
+    Socket a(8080);
+    Socket b(9000);
 
-    b = a;          // copy
-    b = buffer(60); // move
+    // b = a;             // compiler error: copy is deleted!
+    b = Socket(443);      // OK: closes port 9000 and moves port 443 into b
+    b = std::move(a);     // OK: moves port 8080 from a into b (a.fd() is now -1)
 }
 ```
 
@@ -1105,20 +1057,20 @@ int main() {
 ## Návratová hodnota z funkcie
 
 ```cpp
-buffer function() {
-    buffer a(500);
+Socket connect_to_server() {
+    Socket s(8080);
 
-    memset(a.get(), '0', 500);
+    send_handshake(s.fd());
 
-    return a;
+    return s;
 }
  
 int main() { 
-    buffer b = function(); 
+    Socket client = connect_to_server(); 
 }
 ```
 
-* Ak sa z funkcie vracia lokálna premenná rovnakého typu, ako je návratový typ, tak sa urobí automatický *move*
+* Ak sa z funkcie vracia lokálna premenná rovnakého typu, ako je návratový typ, tak sa urobí automatický *move* (prípadne NRVO)
 * Táto premenná prestáva existovať (je lokálna), takže dáva zmysel ju *move*-nuť
 * Toto je definované v štandarde a môžeme sa na to spoľahnúť
 
@@ -1163,41 +1115,17 @@ std::string s = std::get<std::string>(a); // OK
 ```
 
 
-## `std::tie`
+## `std::tie` a `std::ignore`
 
-* Používa sa na automatické naviazanie premenných z n-tice
-* Urobí vlastne n-ticu lvalue referencií
-* Ak je na pravej strane rvalue (napr. výsledok volania funkcie), prvky sa do premenných presunú (*move*)
-
-```cpp
-std::tuple<int, int, std::string> more() { 
-    return {1, 2, "string"}; 
-}
-
-int main() {
-    int i, j;
-    std::string s;
-
-    std::tie(i, j, s) = more();
-}
-```
-
-
-## `std::ignore`
-
-* Ak nás niektorá hodnota z n-tice nezaujíma, môžeme použiť `std::ignore`
-* Niekedy sa používa aj na potlačenie upozornení, ktoré vyskočia z atribútu `[[nodiscard]]`, ale to nie je úplne špecifikované
+* Na priradenie n-tice do **už existujúcich** premenných môžeme použiť `std::tie` (vytvorí n-ticu lvalue referencií; pre nové premenné dnes preferujeme *structured bindings* na ďalšom slide)
+* Ak je na pravej strane rvalue, prvky sa do premenných presunú (*move*)
+* Ak nás niektorá hodnota nezaujíma, použijeme `std::ignore`
 
 ```cpp
+int i;
 std::string s;
 
-std::tie(std::ignore, std::ignore, s) = more();
-```
-
-```cpp
-[[nodiscard]] bool important();
-
-std::ignore = important();
+std::tie(i, std::ignore, s) = more();
 ```
 
 ---
@@ -1299,15 +1227,15 @@ int main() {
 
 ```cpp
 int main() {
-    buffer a(100);
-    buffer b(20);
+    Socket a(8080);
+    Socket b(9000);
 
-    b = static_cast<buffer&&>(a);
-    b = std::move(a);
+    b = static_cast<Socket&&>(a);
+    b = std::move(a); // same thing: casts lvalue 'a' to Socket&&
 }
 ```
 
-* Ak zavoláme explicitne move a žiadna funkcia s rvalue referenciou neexistuje, tak sa zavolá preťaženie s konštantnou referenciou
+* Ak zavoláme explicitne `std::move` na typ, ktorý nemá žiadnu funkciu s rvalue referenciou, tak sa bezpečne zavolá preťaženie s konštantnou referenciou (urobí sa kópia, ak nie je zakázaná)
 * <http://en.cppreference.com/w/cpp/language/overload_resolution>
 
 
@@ -1349,12 +1277,11 @@ struct S {
 
 ---
 
-## Automatické generovanie
+## Automatické generovanie špeciálnych operácií
 
-* Kompilátor vygeneruje *move konštruktor* a *move operátor priradenia*, iba ak je to bezpečné
-    * Ak neexistuje `user defined` kopírovací konštruktor alebo operátor priradenia
-    * Ak neexistuje `user defined` deštruktor
-* Ak chceme vynútiť generovanie, použijeme `= default`
+* **Move konštruktor a move `operator=`** kompilátor vygeneruje automaticky, iba ak trieda nemá vlastný (*user-declared*) kopírovací konštruktor, kopírovací `operator=` ani deštruktor
+* **Kopírovací konštruktor a kopírovací `operator=`** sa zase nevygenerujú (sú implicitne `= delete`), ak má trieda vlastný move konštruktor alebo move `operator=`
+* Ak chceme generovanie explicitne povoliť alebo zakázať, použijeme `= default` alebo `= delete`:
 
 ```cpp
 class my_class {
@@ -1367,14 +1294,6 @@ private:
     std::vector<int> v;
 };
 ```
-
-
-## Ako je to s kopírovacími operáciami?
-
-* Ako sme hovorili, kompilátor vygeneruje kopírovací konštruktor a operátor priradenia vždy automaticky
-* Existuje ale výnimka
-   * Ak je definovaný `user defined` move konštruktor alebo operátor priradenia, tak sa kopírovacie operácie nevygenerujú
-   * Taký fix štandardu, kde sa snažili zabrániť automatickému kopírovaniu, ak je definovaný *move*
 
 
 ## Rule of five
@@ -1673,17 +1592,18 @@ std::string f(int i) {
 ## Čo je zle s nasledujúcim kódom?
 
 ```cpp
-class buffer {
+class Buffer {
 public:
-    buffer(buffer &&other);
+    Buffer(const Buffer& other);
+    Buffer(Buffer&& other);
     /*...*/
 };
  
 int main() {
-    std::vector<buffer> v;
+    std::vector<Buffer> v;
 
     for (int i = 0; i < 100; ++i) {
-        v.push_back(buffer(i));
+        v.push_back(Buffer(i));
     }
 }
 ```
@@ -1693,345 +1613,11 @@ int main() {
 * `push_back` môže realokovať pamäť
 * Rovnako ak nastane výnimka počas `push_back`, mal by sa vector vrátiť do stavu ako pred volaním
 * S move, ktorý môže vyhodiť výnimku, je toto nemožné
-* Preto vector použije v tomto prípade radšej kópiu
-* Preto move operácie musia byť `noexcept`, inak nemajú až taký zmysel
+* Preto vector použije pri realokácii radšej kópiu (`std::move_if_noexcept`)
+* Preto move operácie označujeme `noexcept`, inak ich kontajnery pri realokácii nemusia použiť
 </div>
 
 Notes: Ak vector nemá kópiu, ale iba noexcept(false) move, tak bohužiaľ push_back nevie toto úplne splniť a môže sa stať, že po zlyhanom push_back ostane vector v nešpecifikovanom stave.
-
----
-
-# `std::shared_ptr`
-
----
-
-## Čo je `std::shared_ptr`?
-
-* Smart pointer s automatickým počítaním referencií (*reference counting*)
-* Viacero `shared_ptr` môže vlastniť ten istý objekt súčasne
-* Objekt sa zmaže automaticky, keď posledný `shared_ptr` zanikne
-* Thread-safe počítanie referencií (ale nie thread-safe prístup k objektu)
-* Definovaný v `<memory>`
-
-```cpp
-#include <memory>
-
-std::shared_ptr<int> ptr(new int(10));
-
-std::shared_ptr<int> ptr1 = std::make_shared<int>(42);
-std::shared_ptr<int> ptr2 = ptr1; // copy, reference count = 2
-
-std::println("{}", ptr1.use_count()); // prints 2
-std::println("{}", *ptr1);            // prints 42
-
-// ptr1 and ptr2 are destroyed -> object is automatically deleted
-```
-
----
-
-## Ako funguje reference counting?
-
-* Každý `shared_ptr` si drží pointer na objekt + pointer na *control block*
-* Control block obsahuje najmä:
-  * Počet `shared_ptr` (strong references)
-  * Počet `weak_ptr` (weak references) 
-
-```cpp
-std::shared_ptr<std::string> ptr1 = std::make_shared<std::string>("Hello");
-// use_count() == 1
-
-{
-    std::shared_ptr<std::string> ptr2 = ptr1; // copy constructor
-    // use_count() == 2
-    
-    std::shared_ptr<std::string> ptr3;
-    ptr3 = ptr1; // copy assignment operator  
-    // use_count() == 3
-} // ptr2 and ptr3 are destroyed, use_count() == 1
-
-// ptr1 is destroyed, use_count() == 0 -> object is deleted
-```
-
----
-
-## Vytváranie `shared_ptr`
-
-### `std::make_shared` (preferované)
-
-```cpp
-auto ptr = std::make_shared<std::string>("Hello World");
-auto ptr2 = std::make_shared<std::vector<int>>(10); // 10 elements with value 0
-```
-
-### Konštruktor
-
-```cpp
-std::shared_ptr<std::string> ptr(new std::string("Hello"));
-```
-
-### Prečo preferovať `make_shared`?
-
-* **Výkon**: Jedna alokácia namiesto dvoch (objekt + control block)
-* **Exception safety**: Atomické vytvorenie objektu a control blocku
-* **Pamäťová efektivita**: Lepšia lokalita pamäte
-* Nevýhoda: Tým, že objekt a control block sú v jednej alokácii, môže pamäť ostať dlhšie alokovaná, ak existujú `weak_ptr` na ten istý objekt
-
----
-
-## Bezpečnosť výnimiek
-
-### Problém s konštruktorom
-
-```cpp
-void dangerous_function(std::shared_ptr<A> a, std::shared_ptr<B> b);
-
-// possible memory leak in C++14, fixed in C++17
-dangerous_function(
-    std::shared_ptr<A>(new A()),  // may throw exception
-    std::shared_ptr<B>(new B())   // if this throws, A might not be deleted
-);
-```
-
-### Bezpečné riešenie
-
-```cpp
-dangerous_function(
-    std::make_shared<A>(),
-    std::make_shared<B>()
-);
-```
-
----
-
-## Základné operácie
-
-```cpp
-std::shared_ptr<std::string> ptr = std::make_shared<std::string>("Test");
-
-// Access to the object
-std::println("{}", *ptr);           // dereferencing
-std::println("{}", ptr->length());  // member access
-
-// State information
-std::println("{}", ptr.use_count());              // reference count
-std::println("{}", static_cast<void*>(ptr.get())); // raw pointer (be careful!)
-if (ptr) { /* not nullptr */ }
-
-// Reset and swap
-ptr.reset();                       // releases reference, may delete object
-ptr.reset(new std::string("New")); // releases old, sets new
-
-std::shared_ptr<std::string> other;
-ptr.swap(other);                   // swaps contents
-```
-
----
-
-## Move sémantika s `shared_ptr`
-
-```cpp
-std::shared_ptr<std::string> create_string() {
-    return std::make_shared<std::string>("Hello");
-}
-
-int main() {
-    // RVO/move - no control block copying
-    auto ptr1 = create_string();
-    
-    // Move - control block is moved, no increment/decrement
-    auto ptr2 = std::move(ptr1); // ptr1 is now nullptr
-    
-    // Copy - reference counter is incremented  
-    auto ptr3 = ptr2;  // use_count() == 2
-}
-```
-
-* Move je rýchlejší ako copy (žiadne atomické operácie s počítadlom)
-* Používajte move, keď už `shared_ptr` nepotrebujete
-
----
-
-## `std::enable_shared_from_this`
-
-### Ako získať `shared_ptr` zvnútra objektu
-
-```cpp
-class Widget {
-public:
-    void do_something() {
-        // how to get shared_ptr<Widget> pointing to *this?
-    
-        std::shared_ptr<Widget> bad_ptr(this); // wrong, double delete!
-        
-        process(bad_ptr);
-    }
-    
-private:
-    void process(std::shared_ptr<Widget> widget);
-};
-
-int main() {
-    auto widget = std::make_shared<Widget>();
-    widget->do_something();
-}
-```
-
-
-### Použitím `std::enable_shared_from_this`
-
-```cpp
-class Widget : public std::enable_shared_from_this<Widget> {
-public:
-    void do_something() {
-        // Correct - uses existing control block
-        auto self = shared_from_this();
-        process(self);
-    }
-    
-    // Factory pattern
-    static std::shared_ptr<Widget> create() {
-        return std::shared_ptr<Widget>(new Widget());
-    }
-    
-private:
-    void process(std::shared_ptr<Widget> widget);
-    
-    // Private constructor forces usage of factory
-    Widget() = default;  
-};
-
-int main() {
-    auto widget = Widget::create();
-    widget->do_something(); // OK
-}
-```
-
----
-
-## Obmedzenia
-
-### `shared_from_this()` vyžaduje existenciu `shared_ptr`
-
-* Inak skončí výnimkou `std::bad_weak_ptr` a nepodarí sa získať `shared_ptr`
-
-```cpp
-class Widget : public std::enable_shared_from_this<Widget> {
-public:
-    void problematic() {
-        auto self = shared_from_this(); // EXCEPTION if no shared_ptr exists
-    }
-};
-
-Widget w;           // object on stack
-w.problematic();    // std::bad_weak_ptr exception
-
-Widget* w2 = new Widget(); // object on heap
-w2->problematic();  // std::bad_weak_ptr exception
-delete w2;
-
-auto w3 = std::make_shared<Widget>();
-w3->problematic();  // OK
-```
-
-
-### Nemožno volať v konštruktore
-
-```cpp
-class Widget : public std::enable_shared_from_this<Widget> {
-public:
-    Widget() {
-        // ERROR - shared_ptr does not exist yet!
-        auto self = shared_from_this(); // std::bad_weak_ptr
-    }
-};
-```
-
-
-### Implementácia `std::enable_shared_from_this`
-
-* Keď sa na toto pozriete, vyzerá to trochu čudne, lebo parent musí už byť skonštruovaný (teda `std::enable_shared_from_this` časť), ale ako môže byť skonštruovaný, keď ešte neexistuje `std::shared_ptr`, ktorý vlastní tento objekt?
-* V skutočnosti je to riešené tak, že funkcionalitu `enable_shared_from_this` inicializuje konštruktor `std::shared_ptr`, keď je objekt prvýkrát zabalený do `std::shared_ptr`
-* Preto je dôležité, aby bol objekt pred zavolaním `shared_from_this()` už spravovaný cez `std::shared_ptr` (napr. vytvorený pomocou `std::make_shared`), a nie umiestnený na stacku alebo len za obyčajným surovým smerníkom.
-
----
-
-## Asymetrický ownership
-
-* Ak potrebujeme smerník child -> parent a zároveň parent -> child
-* Pri využití `shared_ptr` vzniká cyklus vlastníctva (loop)
-* Objekty sa nikdy nezničia, pretože každý vlastní druhého
-
-```cpp
-class Child;
-
-struct Parent {
-    std::vector<std::shared_ptr<Child>> children;
-    ~Parent() { std::println("Parent destroyed"); }
-};
-
-struct Child {
-    std::shared_ptr<Parent> parent; // loop in ownership
-};
-
-auto parent = std::make_shared<Parent>();
-auto child = std::make_shared<Child>();
-parent->children.push_back(child);
-child->parent = parent; // now this will never be deleted
-```
-
-
-### Riešenie s `std::weak_ptr`
-
-```cpp
-class Child;
-
-struct Parent {
-    std::vector<std::shared_ptr<Child>> children;
-    ~Parent() { std::println("Parent destroyed"); }
-};
-
-struct Child {
-    std::weak_ptr<Parent> parent; // weak reference is fine
-};
-
-auto parent = std::make_shared<Parent>();
-auto child = std::make_shared<Child>();
-parent->children.push_back(child);
-child->parent = parent; // everything is fine
-
-std::shared_ptr<Parent> p = child->parent.lock(); // get shared from weak
-```
-
----
-
-## `weak_ptr` operácie
-
-```cpp
-std::shared_ptr<int> shared = std::make_shared<int>(42);
-std::weak_ptr<int> weak = shared;
-
-// test if object still exists
-if (!weak.expired()) {
-    std::println("Object still exists");
-}
-
-// Safe access
-if (auto locked = weak.lock()) {
-    std::println("{}", *locked);  
-} // locked is destroyed here
-
-shared.reset(); // object is destroyed
-std::println("{}", weak.expired()); // true
-auto locked2 = weak.lock();         // returns nullptr
-```
-
----
-
-## Performance
-
-* `std::unique_ptr` je v podstate taký rýchly ako raw pointer
-* `std::shared_ptr` je pomalší kvôli atomickým operáciám na počítadle referencií pri kopírovaní a ničení, dá sa zlepšiť použitím `std::move`
-* `std::shared_ptr` používa viac pamäte (objekt plus control block) a niekedy môže spôsobiť horšiu lokalitu pamäte (ak control block a objekt nie sú v jednej alokácii)
 
 ---
 

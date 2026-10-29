@@ -8,6 +8,7 @@
 
 ## Obsah
 
+* `std::shared_ptr`
 * Kontajnery
     * Lineárne kontajnery
     * Asociatívne kontajnery
@@ -15,6 +16,315 @@
 * Štandardné algoritmy
     * Adaptéry
     * Množinové operácie
+
+---
+
+# `std::shared_ptr`
+
+---
+
+## Čo je `std::shared_ptr`?
+
+* Smart pointer s automatickým počítaním referencií (*reference counting*)
+* Viacero `shared_ptr` môže vlastniť ten istý objekt súčasne
+* Objekt sa zmaže automaticky, keď posledný `shared_ptr` zanikne
+* Thread-safe počítanie referencií (ale nie thread-safe prístup k objektu)
+* Definovaný v `<memory>`
+
+```cpp
+#include <memory>
+
+std::shared_ptr<int> ptr(new int(10));
+
+std::shared_ptr<int> ptr1 = std::make_shared<int>(42);
+std::shared_ptr<int> ptr2 = ptr1; // copy, reference count = 2
+
+std::println("{}", ptr1.use_count()); // prints 2
+std::println("{}", *ptr1);            // prints 42
+
+// ptr1 and ptr2 are destroyed -> object is automatically deleted
+```
+
+---
+
+## Ako funguje reference counting?
+
+* Každý `shared_ptr` si drží pointer na objekt + pointer na *control block*
+* Control block obsahuje najmä:
+  * Počet `shared_ptr` (strong references)
+  * Počet `weak_ptr` (weak references) 
+
+```cpp
+std::shared_ptr<std::string> ptr1 = std::make_shared<std::string>("Hello");
+// use_count() == 1
+
+{
+    std::shared_ptr<std::string> ptr2 = ptr1; // copy constructor
+    // use_count() == 2
+    
+    std::shared_ptr<std::string> ptr3;
+    ptr3 = ptr1; // copy assignment operator  
+    // use_count() == 3
+} // ptr2 and ptr3 are destroyed, use_count() == 1
+
+// ptr1 is destroyed, use_count() == 0 -> object is deleted
+```
+
+---
+
+## Vytváranie `shared_ptr`
+
+### `std::make_shared` (preferované)
+
+```cpp
+auto ptr = std::make_shared<std::string>("Hello World");
+auto ptr2 = std::make_shared<std::vector<int>>(10); // 10 elements with value 0
+```
+
+### Konštruktor
+
+```cpp
+std::shared_ptr<std::string> ptr(new std::string("Hello"));
+```
+
+### Prečo preferovať `make_shared`?
+
+* **Výkon**: Jedna alokácia namiesto dvoch (objekt + control block spolu)
+* **Pamäťová efektivita**: Lepšia lokalita pamäte
+* **Čistý kód bez `new`**: Dodržiavame pravidlo nepoužívať ručné `new` (v staršom C++ pred C++17 navyše hrozil memory leak pri viacerých `shared_ptr(new ...)` v argumentoch jednej funkcie)
+* Nevýhoda: Tým, že objekt a control block sú v jednej alokácii, môže pamäť ostať dlhšie alokovaná, ak existujú `weak_ptr` na ten istý objekt
+
+---
+
+## Základné operácie
+
+```cpp
+std::shared_ptr<std::string> ptr = std::make_shared<std::string>("Test");
+
+// Access to the object
+std::println("{}", *ptr);           // dereferencing
+std::println("{}", ptr->length());  // member access
+
+// State information
+std::println("{}", ptr.use_count());              // reference count
+std::println("{}", static_cast<void*>(ptr.get())); // raw pointer (be careful!)
+if (ptr) { /* not nullptr */ }
+
+// Reset and swap
+ptr.reset();                       // releases reference, may delete object
+ptr.reset(new std::string("New")); // releases old, sets new
+
+std::shared_ptr<std::string> other;
+ptr.swap(other);                   // swaps contents
+```
+
+---
+
+## Move sémantika s `shared_ptr`
+
+```cpp
+std::shared_ptr<std::string> create_string() {
+    return std::make_shared<std::string>("Hello");
+}
+
+int main() {
+    // RVO/move - no control block copying
+    auto ptr1 = create_string();
+    
+    // Move - control block is moved, no increment/decrement
+    auto ptr2 = std::move(ptr1); // ptr1 is now nullptr
+    
+    // Copy - reference counter is incremented  
+    auto ptr3 = ptr2;  // use_count() == 2
+}
+```
+
+* Move je rýchlejší ako copy (žiadne atomické operácie s počítadlom)
+* Používajte move, keď už `shared_ptr` nepotrebujete
+
+---
+
+## `std::enable_shared_from_this`
+
+### Ako získať `shared_ptr` zvnútra objektu
+
+```cpp
+class Widget {
+public:
+    void do_something() {
+        // how to get shared_ptr<Widget> pointing to *this?
+    
+        std::shared_ptr<Widget> bad_ptr(this); // wrong, double delete!
+        
+        process(bad_ptr);
+    }
+    
+private:
+    void process(std::shared_ptr<Widget> widget);
+};
+
+int main() {
+    auto widget = std::make_shared<Widget>();
+    widget->do_something();
+}
+```
+
+
+### Použitím `std::enable_shared_from_this`
+
+```cpp
+class Widget : public std::enable_shared_from_this<Widget> {
+public:
+    void do_something() {
+        // Correct - uses existing control block
+        auto self = shared_from_this();
+        process(self);
+    }
+    
+    // Factory pattern
+    static std::shared_ptr<Widget> create() {
+        return std::shared_ptr<Widget>(new Widget());
+    }
+    
+private:
+    void process(std::shared_ptr<Widget> widget);
+    
+    // Private constructor forces usage of factory
+    Widget() = default;  
+};
+
+int main() {
+    auto widget = Widget::create();
+    widget->do_something(); // OK
+}
+```
+
+---
+
+## Obmedzenia
+
+### `shared_from_this()` vyžaduje existenciu `shared_ptr`
+
+* Inak skončí výnimkou `std::bad_weak_ptr` a nepodarí sa získať `shared_ptr`
+
+```cpp
+class Widget : public std::enable_shared_from_this<Widget> {
+public:
+    void problematic() {
+        auto self = shared_from_this(); // EXCEPTION if no shared_ptr exists
+    }
+};
+
+Widget w;           // object on stack
+w.problematic();    // std::bad_weak_ptr exception
+
+Widget* w2 = new Widget(); // object on heap
+w2->problematic();  // std::bad_weak_ptr exception
+delete w2;
+
+auto w3 = std::make_shared<Widget>();
+w3->problematic();  // OK
+```
+
+
+### Nemožno volať v konštruktore
+
+```cpp
+class Widget : public std::enable_shared_from_this<Widget> {
+public:
+    Widget() {
+        // ERROR - shared_ptr does not exist yet!
+        auto self = shared_from_this(); // std::bad_weak_ptr
+    }
+};
+```
+
+
+### Implementácia `std::enable_shared_from_this`
+
+* Keď sa na toto pozriete, vyzerá to trochu čudne, lebo parent musí už byť skonštruovaný (teda `std::enable_shared_from_this` časť), ale ako môže byť skonštruovaný, keď ešte neexistuje `std::shared_ptr`, ktorý vlastní tento objekt?
+* V skutočnosti je to riešené tak, že funkcionalitu `enable_shared_from_this` inicializuje konštruktor `std::shared_ptr`, keď je objekt prvýkrát zabalený do `std::shared_ptr`
+* Preto je dôležité, aby bol objekt pred zavolaním `shared_from_this()` už spravovaný cez `std::shared_ptr` (napr. vytvorený pomocou `std::make_shared`), a nie umiestnený na stacku alebo len za obyčajným surovým smerníkom.
+
+---
+
+## Asymetrický ownership
+
+* Ak potrebujeme smerník child -> parent a zároveň parent -> child
+* Pri využití `shared_ptr` vzniká cyklus vlastníctva (loop)
+* Objekty sa nikdy nezničia, pretože každý vlastní druhého
+
+```cpp
+class Child;
+
+struct Parent {
+    std::vector<std::shared_ptr<Child>> children;
+    ~Parent() { std::println("Parent destroyed"); }
+};
+
+struct Child {
+    std::shared_ptr<Parent> parent; // loop in ownership
+};
+
+auto parent = std::make_shared<Parent>();
+auto child = std::make_shared<Child>();
+parent->children.push_back(child);
+child->parent = parent; // now this will never be deleted
+```
+
+
+### Riešenie s `std::weak_ptr`
+
+```cpp
+class Child;
+
+struct Parent {
+    std::vector<std::shared_ptr<Child>> children;
+    ~Parent() { std::println("Parent destroyed"); }
+};
+
+struct Child {
+    std::weak_ptr<Parent> parent; // weak reference is fine
+};
+
+auto parent = std::make_shared<Parent>();
+auto child = std::make_shared<Child>();
+parent->children.push_back(child);
+child->parent = parent; // everything is fine
+
+std::shared_ptr<Parent> p = child->parent.lock(); // get shared from weak
+```
+
+---
+
+## `weak_ptr` operácie
+
+```cpp
+std::shared_ptr<int> shared = std::make_shared<int>(42);
+std::weak_ptr<int> weak = shared;
+
+// test if object still exists
+if (!weak.expired()) {
+    std::println("Object still exists");
+}
+
+// Safe access
+if (auto locked = weak.lock()) {
+    std::println("{}", *locked);  
+} // locked is destroyed here
+
+shared.reset(); // object is destroyed
+std::println("{}", weak.expired()); // true
+auto locked2 = weak.lock();         // returns nullptr
+```
+
+---
+
+## Performance
+
+* `std::unique_ptr` je v podstate taký rýchly ako raw pointer
+* `std::shared_ptr` je pomalší kvôli atomickým operáciám na počítadle referencií pri kopírovaní a ničení, dá sa zlepšiť použitím `std::move`
+* `std::shared_ptr` používa viac pamäte (objekt plus control block) a niekedy môže spôsobiť horšiu lokalitu pamäte (ak control block a objekt nie sú v jednej alokácii)
 
 ---
 
