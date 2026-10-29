@@ -237,7 +237,7 @@ i = 3;
 std::string s;
 s = "Lvalue"; 
 
-std::vector<int> v;
+std::vector<int> v(1);
 v[0] = 0; 
 ```
 </td>
@@ -357,7 +357,7 @@ std::string s = "lvalue";
 <td style="width: 50%">
 
 ```cpp
-int i, j;
+int i = 0, j = 0;
 i + 4;
 j = i + 1;
 ```
@@ -541,7 +541,7 @@ void func(std::string s) {
 }
 ```
 
-* Vždy urobí kópiu (pomalé, ak sa musí kopírovať veľa pamäte)
+* Vždy urobí kópiu parametra *(nie je 100% presné, o chvíľu sa pozrieme na príklady, kde môže tento spôsob využiť aj pokročilejšie optimalizácie)*
 * Užitočné pre malé typy (niekedy môžu byť referencie pomalšie ako kópie, keďže kompilátor môže lepšie optimalizovať)
 * Mal by to byť default pre primitívne typy (`int`, `char`, `double`, ...)
 
@@ -787,13 +787,13 @@ int main() {
   std::string s = "My lo ... ong string";
   std::string new_s = std::move(s);
  
-  // s is now empty
+  // s remains valid, but its value is unspecified
 }
 ```
 
-* `std::move` použije move sémantiku namiesto kópie
-* Vnútorné časti stringu sa "vytrhajú" a použijú sa v novom stringu 
-* Pointer na vnútorný buffer sa iba presunie
+* `std::move` samo nič nepresúva; umožní vybrať move operáciu namiesto kópie
+* Tu sa zavolá move konštruktor `std::string`; pôvodný string zostane validný, ale nemusí byť prázdny
+* Pri stringu s bufferom na halde sa môže prevziať jeho buffer; pri krátkom stringu uloženom priamo v objekte (*small string optimization*) sa prenesú samotné znaky
 <!-- .element: class="fragment" -->
 
 ---
@@ -1239,7 +1239,7 @@ int main() {
     Socket a(SOCK_STREAM);
     Socket b(SOCK_DGRAM);
 
-    b = static_cast<Socket&&>(a);
+    // b = static_cast<Socket&&>(a); // equivalent alternative to the next line
     b = std::move(a); // same thing: casts lvalue 'a' to Socket&&
 }
 ```
