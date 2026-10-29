@@ -908,41 +908,49 @@ private:
 
 ---
 
-## Príklad `Socket`
+## Príklad `Socket` (POSIX)
 
 ```cpp
+#include <sys/socket.h>
+#include <unistd.h>
+
 class Socket {
 public:
-    explicit Socket(int port) : fd_(open_socket(port)) { }
+    explicit Socket(int type = SOCK_STREAM)
+        : fd_(::socket(AF_INET, type, 0)) {
+        if (fd_ < 0) {
+            throw std::runtime_error("cannot create socket");
+        }
+    }
 
     ~Socket() {
         if (fd_ >= 0) {
-            close_socket(fd_);
+            ::close(fd_);
         }
     }
 
     int fd() const { return fd_; }
 
 private:
-    int fd_ = -1; // OS file descriptor / handle (-1 means invalid/closed)
+    int fd_ = -1; // POSIX file descriptor (-1 means invalid/closed)
 };
 ```
 
-* Trieda obaľujúca systémový zdroj (napr. sieťový socket alebo otvorený súbor)
-* Konštruktor otvorí spojenie a deštruktor ho automaticky zavrie, ak je `fd_ >= 0` (RAII)
+* Trieda obaľujúca POSIX sieťový socket (`::socket` a `::close`)
+* Konštruktor vytvorí socket a deštruktor ho automaticky zavrie, ak je `fd_ >= 0` (RAII)
 
 
 ## Kopírovanie pre `Socket` nedáva zmysel
 
-* Čo by malo znamenať skopírovanie otvoreného sieťového spojenia?
-* Ak by dva objekty `Socket` mali rovnaké `fd_`, oba deštruktory by zavolali `close_socket(fd_)` nad tým istým deskriptorom!
+* Čo by malo znamenať skopírovanie otvoreného socketu?
+* Ak by dva objekty `Socket` mali rovnaké `fd_`, oba deštruktory by zavolali `::close(fd_)` nad tým istým file descriptorom!
 * Preto kopírovací konštruktor a kopírovací `operator=` explicitne **zakážeme**:
 
 ```cpp
 class Socket {
 public:
-    explicit Socket(int port) : fd_(open_socket(port)) { }
-    ~Socket() { if (fd_ >= 0) close_socket(fd_); }
+    explicit Socket(int type = SOCK_STREAM);
+    ~Socket() { if (fd_ >= 0) ::close(fd_); }
 
     Socket(const Socket&) = delete;
     Socket& operator=(const Socket&) = delete;
@@ -981,7 +989,7 @@ Socket& operator=(Socket&& rhs) noexcept {
 ## Move musí nechať objekt vo validnom stave
 
 * Deštruktor presunutého objektu (`other`) sa na konci jeho životnosti stále zavolá!
-* Ak by sme v `other.fd_` nechali pôvodný deskriptor, deštruktor `~Socket()` by nám živé spojenie okamžite zavrel!
+* Ak by sme v `other.fd_` nechali pôvodný deskriptor, deštruktor `~Socket()` by nám živý socket cez `::close(fd_)` okamžite zavrel!
 * Preto **musíme** nastaviť `other.fd_ = -1` (stav „neplatný/zavretý socket“, pri ktorom `~Socket()` neurobí nič)
 
 ```cpp
@@ -1002,7 +1010,7 @@ Socket& operator=(Socket&& rhs) noexcept {
         return *this;
 
     if (fd_ >= 0) {
-        close_socket(fd_); // close our previous socket first
+        ::close(fd_); // close our previous socket first
     }
     fd_ = rhs.fd_;
     rhs.fd_ = -1;
@@ -1027,7 +1035,7 @@ Socket& operator=(Socket&& rhs) noexcept {
         return *this;
 
     if (fd_ >= 0) {
-        close_socket(fd_);
+        ::close(fd_);
     }
     fd_ = std::exchange(rhs.fd_, -1);
     return *this;
@@ -1043,12 +1051,12 @@ Socket& operator=(Socket&& rhs) noexcept {
 
 ```cpp
 int main() {
-    Socket a(8080);
-    Socket b(9000);
+    Socket tcp(SOCK_STREAM);
+    Socket s(SOCK_DGRAM);
 
-    // b = a;             // compiler error: copy is deleted!
-    b = Socket(443);      // OK: closes port 9000 and moves port 443 into b
-    b = std::move(a);     // OK: moves port 8080 from a into b (a.fd() is now -1)
+    // s = tcp;                  // compiler error: copy is deleted!
+    s = Socket(SOCK_STREAM);     // OK: closes old UDP socket and moves new TCP socket into s
+    s = std::move(tcp);          // OK: moves socket from tcp into s (tcp.fd() is now -1)
 }
 ```
 
@@ -1057,16 +1065,17 @@ int main() {
 ## Návratová hodnota z funkcie
 
 ```cpp
-Socket connect_to_server() {
-    Socket s(8080);
-
-    send_handshake(s.fd());
-
+Socket connect_to(const sockaddr* addr, socklen_t len) {
+    Socket s(SOCK_STREAM);
+    if (::connect(s.fd(), addr, len) < 0) {
+        throw std::runtime_error("connect failed");
+    }
     return s;
 }
  
 int main() { 
-    Socket client = connect_to_server(); 
+    Socket client = connect_to(server_addr, addr_len);
+    ::send(client.fd(), "HELLO", 5, 0);
 }
 ```
 
@@ -1227,8 +1236,8 @@ int main() {
 
 ```cpp
 int main() {
-    Socket a(8080);
-    Socket b(9000);
+    Socket a(SOCK_STREAM);
+    Socket b(SOCK_DGRAM);
 
     b = static_cast<Socket&&>(a);
     b = std::move(a); // same thing: casts lvalue 'a' to Socket&&
