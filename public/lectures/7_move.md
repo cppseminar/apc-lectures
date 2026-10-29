@@ -670,7 +670,7 @@ int main() {
 ## Nepovinné parametre
 
 * Niekedy môže funkcia chcieť parameter, ktorý je nepovinný
-* Aktuálne na to je najlepšie použiť smerník
+* Aktuálne je na to jedna z najlepších možností použiť smerník
 
 ```cpp
 void func(const std::string* s) { }
