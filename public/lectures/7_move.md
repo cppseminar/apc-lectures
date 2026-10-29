@@ -34,10 +34,10 @@
 
 ## `register`
 
-* Kľúčové slovo `register` sa používa na označenie premennej, ktorá sa bude veľa používať, a teda kompilátor by ju mal dať prednostne do CPU registrov
-* V C sa nedá takejto premennej zobrať adresa, v C++ to ide
-* Kompilátory ignorujú
-* Od C++17 je to reserved keyword, bez významu
+* Kľúčové slovo `register` sa používalo na označenie premennej, ktorá sa bude veľa používať, a teda kompilátor by ju mal dať prednostne do CPU registrov
+* V C sa nedá takejto premennej zobrať adresa, v C++ to išlo
+* Kompilátory ho ignorovali
+* Od C++17 je odstránené (zostáva len ako rezervované kľúčové slovo, kód nižšie sa už v C++17 neskompiluje)
 
 ```cpp
 register int n = 0;
@@ -102,7 +102,7 @@ delete i;
 
 ---
 
-# Value categories
+# Globálne premenné a linkage
 
 ---
 
@@ -112,7 +112,7 @@ delete i;
 * V jednom translation unit je poradie inicializácie rovnaké, ako sú napísané v súbore, a deštrukcia potom v opačnom poradí
 
 
-## Nedefinované poradie
+## Nešpecifikované poradie
 
 ```cpp
 // main.cpp
@@ -139,7 +139,7 @@ std::string GetAppVersion() {
 
 ```
 
-* Všetky globálne premenné sú inicializované pred volaním `main`. Tu jedna závisí od druhej v inom súbore (*translation unit*) a to je nedefinované správanie.
+* Všetky globálne premenné sú inicializované pred volaním `main`. Tu však jedna závisí od druhej v inom súbore (*translation unit*) – poradie ich inicializácie nie je určené (*static initialization order fiasco*) a pri čítaní ešte neinicializovaného objektu vedie k chybám alebo nedefinovanému správaniu.
 
 
 ## Globálne statické premenné
@@ -170,7 +170,7 @@ extern int global_variable; // will be the same variable
 static int static_global_variable = 67;
 
 // file2.cpp
-//extern int static_global_variable; // error
+//extern int static_global_variable; // linker error: not visible outside file1.cpp
 static int static_global_variable = 43; // different variable
 ```
 
@@ -288,8 +288,8 @@ void f(const std::string& s) {
 
 ## rvalue
 
-* V podstate všetko, čo môže byť na pravej strane priradenia (*r* v názve je *right*)
-* Väčšinou premenné bez mena alebo *temporaries*
+* V podstate všetko, čo môže byť iba na pravej strane priradenia (*r* v názve je *right*)
+* Väčšinou hodnoty bez mena alebo *temporaries*
 
 <table style="width: 80%">
 <tr>
@@ -307,12 +307,10 @@ int i;
 <td>
 
 ```cpp
-char *c;
-c = "String literal";
+int a = 1;
+int b = a + 2; // (a + 2) is rvalue
 
-char *c;
-"String literal" = c;
-
+a + 2 = b; // error: (a + 2) is rvalue
 ```
 </td>
 </tr>
@@ -325,7 +323,7 @@ char *c;
 * *Temporaries*
 * Všetky premenné na predchádzajúcich slidoch mali mená
 * Pomenované premenné zostávajú žiť až po koniec scope-u, v ktorom boli skonštruované
-* Nepomenované premenné (dočasné) sú zdeštruované hneď po tom, čo boli použité (na tom istom riadku)
+* Nepomenované premenné (dočasné) sú zdeštruované na konci celého výrazu, v ktorom vznikli (zvyčajne pri `;`)
 
 ```cpp
 int main() {
@@ -614,7 +612,7 @@ void func_const(const std::string& s);
 void func_ref(std::string& s);
 
 int main() {
-    func_value(std::string{}); // OK, copy
+    func_value(std::string{}); // OK
     func_const(std::string{}); // OK
     //func_ref(std::string{}); // cannot compile
 }
@@ -659,7 +657,7 @@ int main() {
 ## Smerníky?
 
 * Smerníky sú vlastne iba hodnoty, takže sa kopírujú
-* Niektorí programátori preferujú smerník ako výstupnú hodnotu aby to bolo explicitné
+* Niektorí programátori preferujú smerník ako výstupnú hodnotu, aby to bolo explicitné
 
 <table style="width: 100%">
 <tr>
@@ -719,7 +717,7 @@ int main() {
 ```
 
 * Kód vyššie nejde skompilovať
-* Po pridaní `const` pred `std::optional` to už skompilovať ide, ale robí sa kópia, keďže typ `std::string` a `std::optional<std::string>` nie sú rovnaké
+* Po pridaní `const` pred `std::optional` to už skompilovať ide, ale vytvorí sa dočasný `std::optional<std::string>`, do ktorého sa reťazec `s` skopíruje (keďže typy nie sú rovnaké)
 
 
 ## Preťaženie funkcie
@@ -919,15 +917,21 @@ int main() {
 ```cpp
 class buffer {
 public:
-  buffer(size_t n) : size(n) { ptr = malloc(size); }
+  buffer(size_t n)
+    : size(n)
+    , ptr(n > 0 ? malloc(n) : nullptr) {
+    if (size > 0 && !ptr) {
+      throw std::bad_alloc();
+    }
+  }
  
   ~buffer() { free(ptr); }
  
   void *get() const { return ptr; }
  
 private:
+  size_t size = 0;
   void *ptr = nullptr;
-  size_t size;
 };
 ```
 
@@ -944,13 +948,15 @@ private:
 ```cpp
 buffer(const buffer &other)
     : size(other.size)
-    , ptr(malloc(size)) {
-    if (!ptr) {
+    , ptr(other.size > 0 ? malloc(other.size) : nullptr) {
+    if (size > 0 && !ptr) {
         // malloc failed
         throw std::bad_alloc();
     }
     // copy buffer
-    memcpy(ptr, other.ptr, size);
+    if (size > 0) {
+        memcpy(ptr, other.ptr, size);
+    }
 }
 ``` 
 
@@ -986,16 +992,17 @@ buffer& operator=(const buffer& rhs) {
 
 ---
 
-## `move`
+## `move` (prvý, naivný pokus)
 
 * Move konštruktor a operátor priradenia by mali použiť zo "starého" objektu najviac, ako sa dá
+* Nestačí však len skopírovať smerník (pozri ďalší slide!)
 
 ### Move konštruktor
 
 ```cpp
 buffer(buffer&& other)
     : size(other.size) 
-    , ptr(other.ptr) {
+    , ptr(other.ptr) { // BUG: other still points to the same memory!
 }
 ```
 
@@ -1007,7 +1014,7 @@ buffer& operator=(buffer&& rhs) {
         return *this;
 
     size = rhs.size;
-    ptr = rhs.ptr;
+    ptr = rhs.ptr; // BUG: old ptr leaked and rhs still owns the pointer!
     return *this;
 }
 ```
@@ -1015,22 +1022,23 @@ buffer& operator=(buffer&& rhs) {
 
 ## Move musí nechať objekt vo validnom stave
 
-* Deštruktor sa stále zavolá, takže nemôžeme nechať objekt v nevalidnom stave
-* Teoreticky stačí, aby sme nechali objekt v stave, aby sa dal zdeštruovať, niektorí ale preferujú objekt naozaj vymazať
+* Deštruktor presunutého objektu (`other`) sa na konci jeho životnosti stále zavolá!
+* Ak by sme v `other.ptr` nechali pôvodnú adresu, deštruktor by uvoľnil pamäť, ktorú sme práve presunuli (nastane *double free*)
+* Preto **musíme** nastaviť `other.ptr = nullptr` (keďže `free(nullptr)` neurobí nič), a pre konzistentný stav vynulujeme aj `other.size = 0`
 
 ```cpp
-buffer(buffer&& other)
+buffer(buffer&& other) noexcept
     : size(other.size) 
     , ptr(other.ptr) {
-    other.ptr = nullptr;
+    other.ptr = nullptr; // required so ~buffer() is safe
 }
 ```
 
 ```cpp
-buffer(buffer&& other)
+buffer(buffer&& other) noexcept
     : size(other.size) 
     , ptr(other.ptr) {
-    other.size = 0;
+    other.size = 0;      // also keep size consistent
     other.ptr = nullptr;
 }
 ```
@@ -1039,7 +1047,7 @@ buffer(buffer&& other)
 ## move operator=
 
 ```cpp
-buffer &operator=(buffer &&rhs) {
+buffer &operator=(buffer &&rhs) noexcept {
     if (&rhs == this)
         return *this;
 
@@ -1061,7 +1069,7 @@ buffer &operator=(buffer &&rhs) {
 * Nie atomic exchange
 
 ```cpp
-buffer &operator=(buffer &&rhs) {
+buffer &operator=(buffer &&rhs) noexcept {
     if (&rhs == this)
         return *this;
 
@@ -1159,7 +1167,7 @@ std::string s = std::get<std::string>(a); // OK
 
 * Používa sa na automatické naviazanie premenných z n-tice
 * Urobí vlastne n-ticu lvalue referencií
-* Všetko sa move-ne, ak sa dá
+* Ak je na pravej strane rvalue (napr. výsledok volania funkcie), prvky sa do premenných presunú (*move*)
 
 ```cpp
 std::tuple<int, int, std::string> more() { 
@@ -1197,6 +1205,7 @@ std::ignore = important();
 ## Structured bindings
 
 * Pridané v C++17
+* Umožňujú rozbaliť `tuple`, `pair`, pole alebo `struct` do samostatných mien
 
 ```cpp
 #include <tuple>
@@ -1208,13 +1217,13 @@ std::tuple<int, std::string, float> f() {
 int main() {
     auto [a, b, c] = f();
 
-    std::println("{}", a); // print 10, a is int and copied
-    std::println("{}", b); // print String, b is std::string and moved
-    std::println("{}", c); // print 0.1, c is float and copied
+    std::println("{}", a); // prints 10 (int)
+    std::println("{}", b); // prints String (std::string)
+    std::println("{}", c); // prints 0.1 (float)
 }
 ```
 
-note: Technicky sú tie typy s &&, teda int&&, std::string&&, float&&.
+note: Pod kapotou sa vytvorí skrytá premenná pre celú n-ticu a mená `a`, `b`, `c` odkazujú na jej prvky.
 
 
 ## Funguje aj so `struct`
@@ -1305,15 +1314,15 @@ int main() {
 ## `std::unique_ptr`
 
 * `std::move` sa hodí na použitie s `std::unique_ptr`
-* Pomocou *move* sa odstránia dangling pointre, ktoré by mohli vzniknúť, ak použijeme copy
+* Keďže `unique_ptr` má zakázané kopírovanie, vlastníctvo vieme presunúť iba pomocou *move*
 
 ```cpp
 std::unique_ptr<std::string> ptr;
 
-ptr = std::make_unique<std::string>("HI."); // new string is moved
+ptr = std::make_unique<std::string>("HI."); // temporary unique_ptr is moved into ptr
 
 // auto p = ptr; // will not compile, unique_ptr has no copy
-auto p = std::move(ptr); // move, so ptr is empty
+auto p = std::move(ptr); // move ownership, so ptr is now nullptr
 ```
 
 ---
@@ -1326,17 +1335,17 @@ struct S {
     int i;
     void* p;
 
-    S(S&& other) {
-        s = std::move(other.s);
-        i = other.i;
-        p = std::exchange(other.p, nullptr);
+    S(S&& other) noexcept
+        : s(std::move(other.s))
+        , i(other.i)
+        , p(std::exchange(other.p, nullptr)) {
     }
 };
 ```
 
 * So stringom musíme použiť `std::move`, s ostatnými je to jedno (move a copy `int`u sú rovnaké)
 * V samotnej funkcii `S(S&& other)` je `other` premenná s menom, a preto sa k nej správame ako k lvalue
-* Aby sme zachovali `move`, musíme zavolať `std::move`
+* Aby sme pri inicializácii člena `s` zavolali move konštruktor (a nie copy), musíme zavolať `std::move(other.s)`
 
 ---
 
@@ -1539,17 +1548,16 @@ int main() {
 
 * Standard committee si uvedomovala, že C++ je o rýchlosti
 * Kopírovanie je ale veľmi drahé
-* Problém je, že funkcie môžu mať side effecty, a preto nemôžu volanie kopírovacieho konštruktora len tak vypustiť
-* Alebo môžu? Čo ak zakážeme copy konštruktoru side effects<!-- .element: class="fragment" -->
-* Potom by sme mohli objekt priamo skonštruovať tam, kde má byť, a kópiu vôbec nevolať<!-- .element: class="fragment" -->
+* Problém je, že konštruktory môžu mať vedľajšie účinky (*side effects*), a preto kompilátor bežne nemôže volanie funkcie len tak vynechať
+* Alebo môže? Čo ak v štandarde povolíme vynechať volanie copy/move konštruktora aj vtedy, ak má side effects?<!-- .element: class="fragment" -->
+* Potom môže kompilátor skonštruovať objekt priamo tam, kde má byť, a kópiu ani move vôbec nevolať (copy elision)<!-- .element: class="fragment" -->
 
 
 ## Return value optimization (RVO)
 
-* Kopírovací a move konštruktor podľa štandardu nemôžu mať side effects
-* Objekt sa vytvorí priamo v stacku volajúcej funkcie
-* Aplikuje sa, ak vraciame z funkcie vždy nový objekt
-* Povinné v C++17 (pod menom URVO - unnamed RVO)
+* Pri návrate z funkcie sa objekt vytvorí priamo v pamäti volajúcej funkcie (bez medzikópie a bez move)
+* Aplikuje sa, keď z funkcie vraciame priamo nový dočasný objekt (prvalue)
+* Od C++17 je táto optimalizácia **povinná** (*guaranteed copy elision*, niekedy označovaná aj ako URVO – *unnamed RVO*)
 
 ```cpp
 std::string f(int i) {
@@ -1562,7 +1570,7 @@ std::string f(int i) {
 ```
 
 
-## Príklad na zlé použitie
+## Príklad na zmiešané použitie
 
 ```cpp [3|5-6|8|11]
 std::string func(const std::string& s) {
@@ -1584,8 +1592,8 @@ std::string func(const std::string& s) {
 
 ## Named return value optimization (NRVO)
 
-* V každom bode, kde sa vracia z funkcie, vracajme tú istú premennú
-* Ideálne definujeme jednu návratovú premennú a vraciame len tú 
+* Ak v tele funkcie pracujeme s pomenovanou lokálnou premennou, snažíme sa v každom `return` vracať tú istú premennú
+* Ideálne definujeme jednu návratovú premennú a vraciame len tú (na rozdiel od RVO nie je NRVO štandardom garantované, ale kompilátory ho bežne robia)
 
 ```cpp
 std::string f(int i) {
@@ -1628,23 +1636,23 @@ int main() {
 ## RVO a NRVO manuál
 
 * Vždy používajte návratovú hodnotu, nie výstupné parametre
-* Copy alebo move nesmú mať side effecty
-* Nepoužíva sa v debug builde; to, že to nevidíte počas debugovania, neznamená, že to nebude v release kóde (závisí od kompilátora a verzie štandardu)
-* Preferujme kratšie funkcie (väčšia šanca, že nám to vyjde)
-* Ak sa dá, vracajme buď vždy nový objekt, alebo vždy tú istú lokálnu premennú
+* V copy ani move konštruktore sa nespoliehajte na vedľajšie účinky (kompilátor ich volanie môže vynechať)
+* NRVO sa nemusí použiť v debug builde; to, že ho nevidíte počas debugovania, neznamená, že nebude v release kóde (závisí od kompilátora a nastavení)
+* Preferujme kratšie funkcie (väčšia šanca, že NRVO vyjde)
+* Ak sa dá, vracajme buď vždy priamo nový objekt (RVO), alebo vždy tú istú lokálnu premennú (NRVO)
 * Nepreháňajme to, move je už aj tak dostatočne rýchly
 
 
 ## Side effects v copy/move
 
-* Side effecty v copy/move sú zakázané
-* Resp. nie zakázané, ale kompilátor môže predpokladať, že tam nie sú, a optimalizovať podľa toho (RVO/NRVO)
-* Toto je jedno z dvoch miest, kde je povolené vynechať side effects (druhé sú niektoré optimalizácie pri volaní `new`)
-* Najlepšie je robiť triedy tak, aby sme dodržali takzvanú "Rule of zero" stratégiu (nepísať vlastné copy/move/deštruktory)
-* Nezabúdať, že niekedy potrebujeme `virtual` deštruktor (toto ale nebýva problém)
+* Na vedľajšie účinky v copy/move konštruktoroch sa **nesmieme spoliehať**
+* Štandard dáva kompilátoru výnimku: môže vynechať volanie copy/move konštruktora aj vtedy, ak má vedľajšie účinky (napr. výpis na konzolu alebo počítadlo kópií)
+* Toto je jedno z mála miest v C++, kde môže optimalizácia zmeniť pozorovateľné správanie programu (ďalším je napr. spájanie alokácií pri volaní `new`)
+* Najlepšie je navrhovať triedy tak, aby sme dodržali *Rule of zero* (nepísať vlastné copy/move/deštruktory)
+* Nezabúdajme, že pri polymorfných bázových triedach potrebujeme `virtual` deštruktor
 
 
-## `std::move` môže pokaziť NRVO
+## `std::move` pri `return` pokazí NRVO
 
 ```cpp
 std::string f(int i) {
@@ -1652,14 +1660,13 @@ std::string f(int i) {
     std::getline(std::cin, result);
     result += "\n";
 
-    return std::move(result);
+    return std::move(result); // DO NOT DO THIS!
 }
 ```
 
-* `std::move` v tomto prípade pokazí NRVO
-* Štandard pri *copy elision* vyžaduje, aby boli typy úplne rovnaké, čo tu nie sú
-    * Návratová hodnota je `std::string`
-    * Výsledok `std::move` je `std::string&&`
+* `return std::move(result);` na lokálnej premennej **zabráni NRVO**!
+* NRVO vyžaduje, aby výraz v `return` bolo priamo meno lokálnej premennej (`return result;`), kým `std::move(result)` je volanie funkcie vracajúce `std::string&&`
+* Pri obyčajnom `return result;` kompilátor najprv skúsi NRVO (nulová réžia) a ak sa nedá použiť, automaticky urobí *move* – písať `std::move` pri `return` lokálnej premennej je teda vždy len na škodu
 
 ---
 
@@ -1883,13 +1890,13 @@ public:
     
     // Factory pattern
     static std::shared_ptr<Widget> create() {
-        return std::make_shared<Widget>();
+        return std::shared_ptr<Widget>(new Widget());
     }
     
 private:
     void process(std::shared_ptr<Widget> widget);
     
-    // If constructor is private, force usage of factory
+    // Private constructor forces usage of factory
     Widget() = default;  
 };
 
@@ -1944,7 +1951,7 @@ public:
 
 * Keď sa na toto pozriete, vyzerá to trochu čudne, lebo parent musí už byť skonštruovaný (teda `std::enable_shared_from_this` časť), ale ako môže byť skonštruovaný, keď ešte neexistuje `std::shared_ptr`, ktorý vlastní tento objekt?
 * V skutočnosti je to riešené tak, že funkcionalitu `enable_shared_from_this` inicializuje konštruktor `std::shared_ptr`, keď je objekt prvýkrát zabalený do `std::shared_ptr`
-* Preto je dôležité, aby `std::shared_ptr` bol vytvorený cez `std::make_shared` alebo priamo cez konštruktor `std::shared_ptr`, a nie aby sa objekt vytvoril samostatne a potom sa naň vytvoril `std::shared_ptr`.
+* Preto je dôležité, aby bol objekt pred zavolaním `shared_from_this()` už spravovaný cez `std::shared_ptr` (napr. vytvorený pomocou `std::make_shared`), a nie umiestnený na stacku alebo len za obyčajným surovým smerníkom.
 
 ---
 
