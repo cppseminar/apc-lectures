@@ -711,10 +711,11 @@ int main() {
 
 ## Prístup k pamäti
 
-* Súbeh (race condition)
-* Prístup k jednému zdroju z viacerých vlákien bez správneho zamykania
-* Vedie k nedefinovanému správaniu
-* Zvláštne problémy, ktoré sa ťažko ladia
+* V tejto časti pracujeme s bežnými neatomickými údajmi
+* Dátový súbeh (data race): konfliktné prístupy k rovnakému miestu v pamäti z rôznych vlákien nie sú usporiadané vzťahom happens-before
+* Aspoň jeden z prístupov mení údaje; samotné súbežné čítanie neprekáža
+* Data race znamená nedefinované správanie (UB)
+* Nasledujúce zvýšenie počítadla nie je atomické ani synchronizované
 
 ```cpp
 int counter = 0;
@@ -738,13 +739,12 @@ int main() {
 
 ## Z pohľadu hardvéru
 
-* Výsledok predchádzajúceho kódu je nedefinovaný, v praxi môže byť kdekoľvek medzi 100000 a 200000
-* Inštrukcia zápisu nemusí byť atomická
-    * Inštrukcie sa rozložia na mikrokód a až potom sa vykonajú
-    * Prelínajúce sa zápisy môžu meniť pamäť nekonzistentne
-* Každé jadro má vlastnú cache
-    * Výrazne zrýchľuje prácu
-    * Zmeny v jednom vlákne sa neprenášajú do ostatných jadier
+* Pri dátovom súbehu nemá výsledok počítadla zaručený rozsah, ani 100000 až 200000
+* `++counter` zahŕňa načítanie, zvýšenie a zápis; bez synchronizácie sa aktualizácie môžu strácať
+* Moderné viacjadrové CPU zabezpečujú koherenciu cache pre bežnú zdieľanú pamäť
+* Koherencia cache však nerobí z `++counter` atomickú operáciu ani neurčuje poradie prístupov k rôznym premenným
+* Kompilátor aj CPU môžu meniť poradie operácií v medziach pamäťového modelu C++
+* Potrebujeme synchronizáciu definovanú jazykom, nie predpoklady o konkrétnom CPU
 
 ---
 
@@ -789,14 +789,35 @@ int main() {
 
 ## Dohoda so štandardom C++
 
-* Štandard C++11 definuje pamäťový model viacvláknových programov
-* Určuje, čo je a čo nie je dovolené
-* Pravidlo je jednoduché:
+* Konfliktné prístupy k rovnakému miestu v pamäti musíme usporiadať synchronizáciou
+* Pri bežných neatomických údajoch platí:
 
 **K jednému adresovateľnému miestu v pamäti (nie k jednotlivým bitom bitového poľa) môžu súčasne pristupovať dve alebo viac vlákien iba vtedy, ak všetky prístupy iba čítajú.**
 
-* K danému miestu v pamäti teda môže pristupovať buď jeden zapisovateľ, alebo viacero čitateľov
-* Musíme to zabezpečiť, inak má program nedefinované správanie
+* Nestačí, že sa prístupy pri konkrétnom behu náhodou neprekrývajú v čase
+* Susedné neatomické bitové polia môžu patriť do jedného pamäťového miesta; pri `std::vector<bool>` tiež nemožno predpokladať nezávislosť jednotlivých bitov
+
+## Happens-before: poradie a viditeľnosť
+
+* Happens-before určuje poradie operácií v pamäťovom modeli, nie iba ich načasovanie
+* Odomknutie mutexu synchronizuje s jeho následným úspešným zamknutím: zmeny pred odomknutím sú viditeľné po zamknutí
+* Dokončenie vlákna synchronizuje s úspešným návratom z `join()` na tomto vlákne
+
+```cpp
+int result = 0;
+
+void compute() {
+    result = 42;
+}
+
+int main() {
+    std::thread worker(compute);
+    worker.join();
+    std::println("{}", result);
+}
+```
+
+* Zápis do `result` happens-before jeho čítaním po `join()`, preto tu nepotrebujeme mutex
 
 ---
 
@@ -919,6 +940,20 @@ void func1() {
 
 * `std::lock` predchádza uviaznutiu pri zamykaní oboch mutexov: pokúsi sa zamknúť oba, a ak sa to nepodarí, už zamknuté mutexy odomkne a skúsi to znova (s odstupom, tzv. backoff)
 * `std::adopt_lock` povie `std::lock_guard`, že mutex je už zamknutý, takže ho nemá znova zamykať, iba odomknúť pri opustení rozsahu platnosti
+
+## Jednoduchšie cez `std::scoped_lock` (C++17)
+
+* Pri zamykaní viacerých mutexov uprednostníme `std::scoped_lock` z `<mutex>`
+* Získa všetky zámky algoritmom predchádzajúcim uviaznutiu ako `std::lock`
+* Pri opustení rozsahu platnosti automaticky odomkne všetky mutexy, aj pri výnimke
+
+```cpp
+std::mutex mtx1, mtx2;
+
+void func() {
+    std::scoped_lock lock(mtx1, mtx2);
+}
+```
 
 ---
 
@@ -1288,6 +1323,12 @@ int main() {
 }
 ```
 
+
+* `request_stop()` vlákno násilne neukončí; funkcia vlákna musí požiadavku kontrolovať a sama skončiť
+* Požiadavka nepreruší `sleep_for()` ani obyčajné `std::condition_variable::wait()`
+* V príklade sa požiadavka skontroluje až po návrate zo `sleep_for()`
+* Deštruktor pripojiteľného `std::jthread` požiada o zastavenie a vlákno joinne; ak vlákno neskončí, môže čakať neobmedzene dlho
+
 ---
 
 ## `std::condition_variable`
@@ -1298,6 +1339,15 @@ int main() {
 * `notify_one()` prebudí jedno čakajúce vlákno
 * `notify_all()` prebudí všetky čakajúce vlákna
 * Typicky sa používa pri modeli producent-konzument
+
+
+## Upozornenie nie je stav
+
+* `notify_one()` ani `notify_all()` si neukladajú upozornenie pre budúceho čakajúceho
+* Stav uchovávame v zdieľaných údajoch chránených rovnakým mutexom, napríklad či je fronta neprázdna
+* `wait(lock, pred)` najprv skontroluje predikát; ak už platí, vôbec nečaká
+* Inak atomicky odomkne mutex a začne čakať; po prebudení mutex znova zamkne a podmienku opäť overí
+* Takto neprehliadneme zmenu stavu ani vtedy, keď upozornenie prišlo ešte pred čakaním
 
 
 ## Príklad producent-konzument
@@ -1685,6 +1735,15 @@ int result = fut.get(); // blocks until the result is available
 ```
 
 Note: Faktoriál je tu iba ilustračná funkcia. Pri bežnom 32-bitovom `int` sa už `13!` nezmestí do rozsahu, takže volania s argumentom 15 v tejto časti spôsobia pretečenie so znamienkom a nedefinované správanie. Pri spúšťaní príkladov použime menší argument (napr. 10) alebo vhodný číselný typ s kontrolou rozsahu; `try ... catch` toto pretečenie nezachytí.
+
+
+## `wait()` verzus `get()`
+
+* `wait()` čaká na dokončenie výpočtu, ale nevráti výsledok ani nevyhodí uloženú výnimku
+* `get()` tiež počká, ak treba, a potom vráti výsledok alebo vyhodí uloženú výnimku
+* `get()` spotrebuje stav `std::future`, aj keď vyhodí uloženú výnimku; potom je `valid() == false`
+* Na tom istom `std::future` preto voláme `get()` iba raz
+* Ak chceme spracovať chybu výpočtu, samotné `wait()` ani deštruktor nestačia
 
 
 ## Výnimky v `std::async`
