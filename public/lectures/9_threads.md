@@ -137,10 +137,10 @@ int main() {
         CloseHandle(pi.hProcess); // handle to process
         CloseHandle(pi.hThread);  // handle to primary thread
     } else {
-        std::cerr << "CreateProcess failed. Error: " << GetLastError() << std::endl;
+        std::println(stderr, "CreateProcess failed. Error: {}", GetLastError());
         return 1;
     }
-    std::cout << "Notepad launched successfully!" << std::endl;
+    std::println("Notepad launched successfully!");
 }
 ```
 
@@ -149,16 +149,15 @@ int main() {
 
 ```cpp
 #include <unistd.h>
-#include <iostream>
 
 int main() {
     pid_t pid = fork();
 
     if (pid < 0) {
-        std::cerr << "Fork failed!\n";
+        std::println(stderr, "Fork failed!");
         return 1;
     } else if (pid == 0) {
-        std::cout << "Child process.\n";
+        std::println("Child process.");
 
         // Arguments must include the command name first, and end with nullptr.
         char *const argv[] = {(char*)"/usr/bin/touch", (char*)"file.txt", nullptr};
@@ -168,7 +167,7 @@ int main() {
         
         _exit(1); // Exit if execve fails
     } else {
-        std::cout << "Parent process.\n";
+        std::println("Parent process.");
     }
     return 0;
 }
@@ -406,12 +405,12 @@ void* thread_func(void* arg) {
     data* data_ptr = static_cast<data*>(arg);
 
     if (data_ptr) {
-        std::cout << "Child Thread: Number: " << data_ptr->number << ", Text: " << data_ptr->text << std::endl;
+        std::println("Child Thread: Number: {}, Text: {}", data_ptr->number, data_ptr->text);
         
         // **CRITICAL STEP: CONSUMPTION / CLEANUP**, beware of exceptions
         delete data_ptr;
     } else {
-        std::cerr << "Child Thread: Error - Received null data pointer.\n";
+        std::println(stderr, "Child Thread: Error - Received null data pointer.");
     }
 
     return (void*)0;
@@ -426,17 +425,17 @@ int main() {
 
     pthread_t thread;
     if (pthread_create(&thread, nullptr, thread_func, data_ptr) != 0) {
-        std::cerr << "Error creating thread.\n";
+        std::println(stderr, "Error creating thread.");
         delete data_ptr; // do not leak
         return 1;
     }
 
     if (pthread_join(thread, nullptr) != 0) {
-        std::cerr << "Error joining thread.\n";
+        std::println(stderr, "Error joining thread.");
         return 1;
     }
 
-    std::cout << "Main Thread: Thread finished and object consumed.\n";
+    std::println("Main Thread: Thread finished and object consumed.");
     return 0; // no need to delete data_ptr here
 }
 ```
@@ -467,9 +466,9 @@ int main() {
 void thread_func(std::string message) {
     try {
         // Thread code here
-        std::cout << "Thread says: " << message << std::endl;
+        std::println("Thread says: {}", message);
     } catch (const std::exception& e) {
-        std::cerr << "Exception in thread: " << e.what() << std::endl;
+        std::println(stderr, "Exception in thread: {}", e.what());
     }
 }
 
@@ -481,7 +480,7 @@ int main() {
         // Wait for the thread to finish
         t.join();
     } catch (const std::system_error& e) {
-        std::cerr << "Error creating thread: " << e.what() << std::endl;
+        std::println(stderr, "Error creating thread: {}", e.what());
         return 1;
     }
 }
@@ -530,7 +529,7 @@ struct data {
 
 void thread_func(data* d) {
     std::unique_ptr<data> data_ptr(d); // take ownership (ensure cleanup)
-    std::cout << "Thread: Number: " << d->number << ", Text: " << d->text << std::endl;
+    std::println("Thread: Number: {}, Text: {}", d->number, d->text);
 }
 
 int main() {
@@ -548,7 +547,7 @@ int main() {
 
 ```cpp
 void thread_func(int number, const std::string& text) {
-    std::cout << "Thread: Number: " << number << ", Text: " << text << std::endl;
+    std::println("Thread: Number: {}, Text: {}", number, text);
 }
 
 int main() {
@@ -564,7 +563,7 @@ int main() {
 
 ```cpp
 void thread_func(std::string&& text) {
-    std::cout << "Thread: Text: " << text << std::endl;
+    std::println("Thread: Text: {}", text);
 }
 
 int main() {
@@ -581,7 +580,7 @@ int main() {
 
 ```cpp
 void thread_func(std::string&& text) {
-    std::cout << "Thread: Text: " << text << std::endl;
+    std::println("Thread: Text: {}", text);
 }
 
 int main() {
@@ -606,7 +605,7 @@ int main() {
 
 ```cpp
 void thread_func(std::string& text) {
-    std::cout << "Thread: Text: " << text << std::endl;
+    std::println("Thread: Text: {}", text);
 }
 
 int main() {
@@ -623,7 +622,7 @@ int main() {
 #include <functional> // for std::ref
 
 void thread_func(std::string& text) {
-    std::cout << "Thread: Text: " << text << std::endl;
+    std::println("Thread: Text: {}", text);
 }
 
 int main() {
@@ -701,7 +700,7 @@ int main() {
     t1.join();
     t2.join();
 
-    std::cout << "Final counter value: " << counter << std::endl;
+    std::println("Final counter value: {}", counter);
 }
 ```
 
@@ -724,7 +723,7 @@ int main() {
 int a, b; // global, so zero initialized
 
 void func() {
-    std::cout << a; // ok
+    std::println("{}", a); // ok
     b += 1; // not OK, must be synchronized
 }
 
@@ -936,7 +935,7 @@ thread_local std::string thread_id = "0";
 
 void func() {
     thread_id = std::to_string(std::hash<std::thread::id>{}(std::this_thread::get_id()));
-    std::cout << "Thread ID: " << pthread_self() << " hash " << thread_id << std::endl;
+    std::println("Thread ID: {} hash {}", pthread_self(), thread_id);
 }
 ```
 
@@ -1003,7 +1002,7 @@ void func2() {
 
 ```cpp
 unsigned int n = std::thread::hardware_concurrency();
-std::cout << "Number of hardware threads: " << n << std::endl;
+std::println("Number of hardware threads: {}", n);
 
 std::vector<std::thread> threads;
 for (unsigned int i = 0; i < n; ++i) {
@@ -1036,7 +1035,7 @@ int shared_data;
 
 void reader() {
     std::shared_lock<std::shared_mutex> lock(rw_mutex); // shared lock for reading
-    std::cout << "Read data: " << shared_data << std::endl;
+    std::println("Read data: {}", shared_data);
 }
 
 void writer() {
@@ -1144,7 +1143,7 @@ void worker_task(int id) {
     worker_latch.count_down();
     
     // The worker is now free to continue its independent work
-    std::cout << "Worker " << id << ": Resuming background job.\n";
+    std::println("Worker {}: Resuming background job.", id);
 }
 
 int main() {
@@ -1155,7 +1154,7 @@ int main() {
 
     worker_latch.wait(); // Blocks until the latch counter reaches zero.
     
-    std::cout << "Every worker finished setup and called count_down().\n";
+    std::println("Every worker finished setup and called count_down().");
     
     for (auto& t : workers) {
             t.join();
@@ -1183,13 +1182,13 @@ constexpr int WORKERS = 4; // 4 workers
 
 auto on_completion = [phase_count = 0]() mutable noexcept {
     phase_count++;
-    std::cout << "Starting Phase " << phase_count << "\n";
+    std::println("Starting Phase {}", phase_count);
 };
 
 std::barrier sync_point(WORKERS, on_completion);
 
 void worker(int id) {
-    std::cout << "Data Worker " << id << ": Performing initial setup.\n";
+    std::println("Data Worker {}: Performing initial setup.", id);
     if (id % 2 == 0) {
         sync_point.arrive_and_wait();
     } else {
@@ -1197,10 +1196,10 @@ void worker(int id) {
         return; // if we keep thread participate, strange things happen
     }
 
-    std::cout << "Data Worker " << id << ": Starting work.\n";
+    std::println("Data Worker {}: Starting work.", id);
     sync_point.arrive_and_wait(); 
 
-    std::cout << "Data Worker " << id << ": All work done.\n";
+    std::println("Data Worker {}: All work done.", id);
 }
 ```
 
@@ -1250,7 +1249,7 @@ int main() {
 int main() {
     std::jthread jt([i = 0](std::stop_token st) mutable {
         while (!st.stop_requested()) {
-           std::cout << i++ << "\n";
+           std::println("{}", i++);
 
            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -1294,7 +1293,7 @@ int main() {
     producer_thread.join();
     consumer_thread.join();
 
-    std::cout << "Main: All threads finished.\n";
+    std::println("Main: All threads finished.");
     return 0;
 }
 ```
@@ -1315,7 +1314,7 @@ void producer() {
 
             // Produce an item
             buffer.push(i);
-            std::cout << "P: Produced item " << i << ". Buffer size: " << buffer.size() << std::endl;
+            std::println("P: Produced item {}. Buffer size: {}", i, buffer.size());
         } // Lock is automatically released here
 
         // simulate work
@@ -1324,7 +1323,7 @@ void producer() {
         // Notify one waiting consumer that new data is available
         cv.notify_one(); 
     }
-    std::cout << "P: Finished producing all items.\n";
+    std::println("P: Finished producing all items.");
 }
 ```
 
@@ -1349,7 +1348,7 @@ void consumer() {
             buffer.pop();
             consumed_count++;
 
-            std::cout << "C: Consumed item " << data << ". Buffer size: " << buffer.size() << std::endl;
+            std::println("C: Consumed item {}. Buffer size: {}", data, buffer.size());
         } // Lock is automatically released here
 
         // Notify the producer that space is now available
@@ -1358,7 +1357,7 @@ void consumer() {
         // simulate work
         std::this_thread::sleep_for(std::chrono::milliseconds(100) * data % 2);
     }
-    std::cout << "C: Finished consuming all items.\n";
+    std::println("C: Finished consuming all items.");
 }
 ```
 
@@ -1795,7 +1794,7 @@ int main() {
             if (!msg.has_value()) {
                 break; // channel is closed and empty
             }
-            std::cout << "Received: " << *msg << std::endl;
+            std::println("Received: {}", *msg);
         }
     });
 
@@ -1842,7 +1841,7 @@ std::future<int> fut = std::async([]() {
 try {
     int result = fut.get(); // will rethrow the exception
 } catch (const std::exception& e) {
-    std::cout << "Caught exception: " << e.what() << std::endl;
+    std::println("Caught exception: {}", e.what());
 }
 ```
 
