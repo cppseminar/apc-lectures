@@ -216,6 +216,7 @@ do {
 } while (exitCode == STILL_ACTIVE);
 ```
 
+
 ### Linux
 
 ```cpp
@@ -336,23 +337,17 @@ int main() {
 ### Windows
 
 ```cpp
-#include <windows.h>
-
 DWORD WINAPI ThreadFunc(LPVOID lpParam) {
     return 0; // Thread exit code here
 }
 
 int main() {
-    HANDLE hThread;
     DWORD threadId;
-
-    hThread = CreateThread(
-        NULL,             // default security attributes
-        0,                // default stack size
-        ThreadFunc,       // thread function name
-        NULL,             // argument to thread function
-        0,                // default creation flags
-        &threadId);       // returns the thread identifier
+    HANDLE hThread = CreateThread(
+        NULL, 0,        // default security attributes, default stack size
+        ThreadFunc,     // thread function name
+        NULL, 0,        // argument to thread function, default creation flags
+        &threadId);     // returns the thread identifier
 
     if (hThread == nullptr) {
         std::println(stderr, "CreateThread failed. Error: {}", GetLastError());
@@ -366,8 +361,7 @@ int main() {
         return 1;
     }
 
-    // Close the thread handle
-    CloseHandle(hThread);
+    CloseHandle(hThread); // Close the thread handle
 
     return 0;
 }
@@ -636,6 +630,8 @@ int main() {
      * konštantné lvalue referencie a
      * parametre odovzdávané hodnotou
     sa naviažu správne
+
+
 * Nekonštantné lvalue referencie sa však nenaviažu!
 
 ```cpp
@@ -951,13 +947,6 @@ void func() {
 * Bráni optimalizáciám kompilátora, ktoré predpokladajú, že premenná sa neočakávane nemení
 * NEPOSKYTUJE synchronizáciu ani atomicitu
 * Pri viacvláknovom programovaní je užitočné len zriedka, uprednostňujeme `std::atomic`
-
-
-### Transakčná pamäť
-
-* C++ má technickú špecifikáciu podpory transakčnej pamäte (zatiaľ nie je široko podporovaná)
-* Umožňuje zoskupiť viacero pamäťových operácií do jednej atomickej transakcie
-* Ak sa transakcia nedá dokončiť (napr. pre konflikt s iným vláknom), možno ju zopakovať
 
 ---
 
@@ -1421,178 +1410,6 @@ while (buffer.size() >= MAX_BUFFER_SIZE) {
 ---
 
 # Návrhové vzory
-
----
-
-## Zamykanie s dvojitou kontrolou
-
-* Problém: Chceme inicializovať singleton bezpečne z viacerých vlákien
-* Niečo ako nasledujúci kód, ale s odloženou inicializáciou a bez chyby pri kompilácii
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        return instance;
-    }
-private:
-    Singleton() = default;
-    static Singleton instance;
-};
-```
-
-
-## Odložená inicializácia
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        if (instance == nullptr) // first check 
-            instance = new Singleton();
-
-        return *instance;
-    }
-private:
-    Singleton() = default;
-    static Singleton* instance;
-};
-```
-
-<ul>
-<li class="fragment"> Problém: viacero vlákien môže súčasne zavolať <code>get_instance</code>, čím vznikne viacero inštancií</li>
-<li class="fragment"> Problém: Kedy inštanciu zmazať?</li>
-</ul>
-
-
-### Mazanie
-
-* Pomocou `std::atexit` môžeme zaregistrovať upratovaciu funkciu, ktorá inštanciu zmaže pri ukončení programu
-* Na ďalších snímkach upratovanie pre prehľadnosť vynecháme
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        if (instance == nullptr) {
-            instance = new Singleton();
-            std::atexit(cleanup);
-        }
-        return *instance;
-    }
-private:
-    static void cleanup() {
-        delete instance;
-        instance = nullptr;
-    }
-    Singleton() = default;
-    static Singleton* instance;
-};
-```
-
-
-## Synchronizácia pomocou mutexu
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        std::lock_guard<std::mutex> lock(mtx); // lock mutex
-        if (instance == nullptr) {
-            instance = new Singleton();
-        }
-        return *instance;
-    }
-private:
-    Singleton() = default;
-    static Singleton* instance;
-    static std::mutex mtx;
-};
-```
-
-* Toto funguje, ale mutex sa zamyká pri každom volaní `get_instance`, aj keď už inštancia existuje
-
-<!-- .element: class="fragment" -->
-
-
-## Zamykanie s dvojitou kontrolou
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        if (instance == nullptr) { // first check (no lock)
-            std::lock_guard<std::mutex> lock(mtx); // lock mutex
-            if (instance == nullptr) { // second check (with lock)
-                instance = new Singleton();
-            }
-        }
-        return *instance;
-    }
-private:
-    Singleton() = default;
-    static Singleton* instance;
-    static std::mutex mtx;
-};
-```
-
-* Mutex sa zamkne iba vtedy, keď inštancia ešte neexistuje
-<!-- .element: class="fragment" -->
-* Je to takmer správne, ale stále tu sú problémy spôsobené optimalizáciami kompilátora a zmenou poradia operácií v CPU
-<!-- .element: class="fragment" -->
-* Smerník na inštanciu sa môže priradiť skôr, než sa dokončí konštruktor, takže iné vlákno môže vidieť nenulový smerník na ešte nedokončený objekt
-<!-- .element: class="fragment" -->
-
-
-## Použitie `std::atomic`
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        Singleton* temp = instance.load(std::memory_order_acquire); // atomic load
-        if (temp == nullptr) { // first check (no lock)
-            std::lock_guard<std::mutex> lock(mtx); // lock mutex
-            temp = instance.load(std::memory_order_relaxed);
-            if (temp == nullptr) { // second check (with lock)
-                temp = new Singleton();
-                instance.store(temp, std::memory_order_release); // atomic store
-            }
-        }
-        return *temp;
-    }
-private:
-    Singleton() = default;
-    static std::atomic<Singleton*> instance;
-    static std::mutex mtx;
-};
-```
-
-
-* Použitie `std::atomic` pre smerník na inštanciu zabezpečí správnu viditeľnosť pamäte medzi vláknami
-* `memory_order_acquire` zabezpečí, že nasledujúce čítania sa nepresunú pred načítanie
-* `memory_order_release` zabezpečí, že predchádzajúce zápisy sa nepresunú za uloženie
-* Toto je správna implementácia zamykania s dvojitou kontrolou v C++ (ak by sa skompilovala, keďže v zdrojových súboroch chýbajú definície statických členov)
-
-
-## Použitie lokálnej premennej `static`
-
-* Na všetko zabudnime a jednoducho použime lokálnu premennú `static`
-
-```cpp
-class Singleton {
-public:
-    static Singleton& get_instance() {
-        // initialized only once in a thread-safe manner
-        // it is up to compiler to synchronize it with different threads
-        // as a bonus, it is destroyed automatically at program exit
-        static Singleton instance;
-        return instance;
-    }
-private:
-    Singleton() = default;
-};
-```
 
 ---
 
