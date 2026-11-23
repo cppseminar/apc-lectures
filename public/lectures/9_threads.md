@@ -119,12 +119,12 @@
 #include <windows.h>
 
 int main() {
-    STARTUPINFO si{ sizeof(si) };
+    STARTUPINFOW si{ sizeof(si) };
     PROCESS_INFORMATION pi{};
 
     // Full path to Notepad (safer than relying on PATH)
     const wchar_t* appName = LR"(C:\Windows\System32\notepad.exe)";
-    if (CreateProcess(
+    if (CreateProcessW(
         appName, // executable to run
         NULL,    // command line arguments (NULL = none)
         NULL, NULL,    // security attributes for process and primary thread (NULL = default)
@@ -208,7 +208,10 @@ sleep(1); // Sleep for 1 second
 ```cpp
 DWORD exitCode;
 do {
-    GetExitCodeProcess(pi.hProcess, &exitCode);
+    if (!GetExitCodeProcess(pi.hProcess, &exitCode)) {
+        std::println(stderr, "GetExitCodeProcess failed. Error: {}", GetLastError());
+        return 1;
+    }
     Sleep(100); // Sleep for 100 milliseconds
 } while (exitCode == STILL_ACTIVE);
 ```
@@ -216,12 +219,21 @@ do {
 ### Linux
 
 ```cpp
+#include <cerrno>
+
 pid_t result;
 do {
     int status;
     result = waitpid(pid, &status, WNOHANG);
+    if (result == -1) {
+        if (errno == EINTR) {
+            continue;
+        }
+        std::println(stderr, "waitpid failed. Error: {}", errno);
+        return 1;
+    }
     usleep(100000); // Sleep for 100 milliseconds
-} while (result == 0);
+} while (result <= 0);
 ```
 
 * O niečo lepšie ako sleep
@@ -234,14 +246,27 @@ do {
 ### Windows
 
 ```cpp
-WaitForSingleObject(pi.hProcess, INFINITE);
+if (WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_FAILED) {
+    std::println(stderr, "WaitForSingleObject failed. Error: {}", GetLastError());
+    return 1;
+}
 ```
 
 ### Linux
 
 ```cpp
+#include <cerrno>
+
 int status;
-waitpid(pid, &status, 0);
+pid_t result;
+do {
+    result = waitpid(pid, &status, 0);
+} while (result == -1 && errno == EINTR);
+
+if (result == -1) {
+    std::println(stderr, "waitpid failed. Error: {}", errno);
+    return 1;
+}
 ```
 
 * Správna synchronizácia
@@ -329,8 +354,17 @@ int main() {
         0,                // default creation flags
         &threadId);       // returns the thread identifier
 
+    if (hThread == nullptr) {
+        std::println(stderr, "CreateThread failed. Error: {}", GetLastError());
+        return 1;
+    }
+
     // Wait for the thread to finish
-    WaitForSingleObject(hThread, INFINITE);
+    if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
+        std::println(stderr, "WaitForSingleObject failed. Error: {}", GetLastError());
+        CloseHandle(hThread);
+        return 1;
+    }
 
     // Close the thread handle
     CloseHandle(hThread);
@@ -358,7 +392,9 @@ int main() {
     }
 
     // Wait for the thread to finish
-    pthread_join(thread, nullptr);
+    if (pthread_join(thread, nullptr) != 0) {
+        return 1;
+    }
 }
 ```
 
@@ -495,7 +531,7 @@ int main() {
 * Konštruktor `std::thread` môže vyhodiť `std::system_error`, ak sa vlákno nedá vytvoriť
 * Metódou `joinable()` zistíme, či je objekt vlákna spojený s vykonávacím agentom
 * `join()` vyhodí `std::system_error`, ak
-    * Vlákno nie je pripojiteľné (joinable)
+    * Vlákno sa nedá joinúť (`joinable() == false`)
     * Zistí sa uviaznutie (vlákno čaká samo na seba)
     * Zlyhá príslušné volanie OS
 
@@ -503,7 +539,7 @@ int main() {
 
 ## Čo robiť v deštruktore?
 
-* Pripojiť či nepripojiť?
+* Joinúť či nejoinúť?
 * Ak má `std::thread` pri volaní deštruktora priradeného vykonávacieho agenta (`joinable() == true`), zavolá sa `std::terminate()`
 * To spravidla nechceme
 * Pred zavolaním deštruktora vždy zavoláme join alebo detach
@@ -527,14 +563,13 @@ struct data {
     std::string text;
 };
 
-void thread_func(data* d) {
-    std::unique_ptr<data> data_ptr(d); // take ownership (ensure cleanup)
-    std::println("Thread: Number: {}, Text: {}", d->number, d->text);
+void thread_func(std::unique_ptr<data> data_ptr) {
+    std::println("Thread: Number: {}, Text: {}", data_ptr->number, data_ptr->text);
 }
 
 int main() {
-    auto data = std::make_unique<data>(42, "Hello, World!");
-    std::thread t(thread_func, data.release()); // release ownership
+    auto data_ptr = std::make_unique<data>(42, "Hello, World!");
+    std::thread t(thread_func, std::move(data_ptr)); // transfer ownership
     t.join();
 }
 ```
@@ -1016,6 +1051,8 @@ for (auto& t : threads) {
 }
 ```
 
+Note: Ak vytváranie ďalšieho vlákna alebo alokácia vo vektore vyhodí výnimku, treba pred zánikom vektora joinúť už vytvorené vlákna, inak ich deštruktory zavolajú `std::terminate`. Rovnako to platí pre neskorší príklad s bariérou. Výnimkovú bezpečnosť tu pre jednoduchosť neriešime; alternatívou je `std::jthread`, pri synchronizácii však treba ošetriť aj chýbajúcich účastníkov.
+
 ---
 
 ## `std::shared_mutex`
@@ -1221,7 +1258,7 @@ int main() {
 
 ## `std::jthread` (C++20)
 
-* Vlákno s automatickým pripojením (joining thread, prípadne Josuttis thread)
+* Vlákno s automatickým joinutím (joining thread, prípadne Josuttis thread)
 * Podobná sémantika ako `std::thread`, ale s niekoľkými rozdielmi
     * V deštruktore automaticky volá join (netreba ručne volať `join()`)
     * Podporuje kooperatívne zrušenie cez `std::stop_token`
@@ -1285,6 +1322,9 @@ std::condition_variable cv; // condition variable for synchronization
 // we will produce and consume fixed number of items
 constexpr int MAX_BUFFER_SIZE = 10;
 constexpr int ITEMS_TO_PRODUCE = 20;
+
+void producer();
+void consumer();
 
 int main() {
     std::thread producer_thread(producer);
@@ -1368,6 +1408,8 @@ void consumer() {
 * Vždy používame verziu `wait` s predikátom alebo podmienku kontrolujeme v cykle
 
 ```cpp
+std::unique_lock<std::mutex> lock(mtx);
+
 cv.wait(lock); // may wake up spuriously
 
 // Always recheck the condition in a loop
@@ -1648,7 +1690,7 @@ public:
             }
         } // release shared lock
 
-        auto result = std::make_shared<ValueType>(expensive_function(key));
+        auto result = std::make_shared<std::string>(expensive_function(key));
 
         {
             std::unique_lock<std::shared_mutex> lock(rw_mutex); // exclusive lock for writing
@@ -1712,7 +1754,7 @@ note: Používame dve podmienkové premenné na samostatné upozorňovanie produ
 
 
 ```cpp
-void send(std::string value) {
+void Channel::send(std::string value) {
     {
         std::unique_lock<std::mutex> lock(mtx_);
 
@@ -1735,7 +1777,7 @@ void send(std::string value) {
 
 
 ```cpp
-std::optional<std::string> receive() {
+std::optional<std::string> Channel::receive() {
     std::optional<std::string> result; // Default-constructed, initially empty
     {
         std::unique_lock<std::mutex> lock(mtx_);
@@ -1763,7 +1805,7 @@ std::optional<std::string> receive() {
 
 
 ```cpp
-void close() {
+void Channel::close() {
     std::unique_lock<std::mutex> lock(mtx_);
     closed_ = true;
     lock.unlock();
@@ -1824,6 +1866,8 @@ std::future<int> fut = std::async(compute_factorial, 15);
 
 int result = fut.get(); // blocks until the result is available
 ```
+
+Note: Faktoriál je tu iba ilustračná funkcia. Pri bežnom 32-bitovom `int` sa už `13!` nezmestí do rozsahu, takže volania s argumentom 15 v tejto časti spôsobia pretečenie so znamienkom a nedefinované správanie. Pri spúšťaní príkladov použime menší argument (napr. 10) alebo vhodný číselný typ s kontrolou rozsahu; `try ... catch` toto pretečenie nezachytí.
 
 
 ## Výnimky v `std::async`
@@ -1889,11 +1933,13 @@ int result = fut.get(); // blocks until the result is available
 * Inak nebude blokovať ani neukončí program, čo môže viesť k nenápadným chybám
 * Pred zánikom future sa vždy snažíme zavolať `get()` alebo `wait()`
 
+Note: Čakanie v deštruktore sa týka posledného vlastníka zdieľaného stavu výpočtu spusteného s politikou `std::launch::async`. Predvolené volanie môže zvoliť `std::launch::deferred`; vtedy deštruktor výpočet nespustí ani naň nečaká a bez `get()` alebo `wait()` sa funkcia vôbec nevykoná.
+
 ```cpp
 {
     std::future<int> fut = std::async(compute_factorial, 15);
     // do some other work
-} // destructor of fut will block until compute_factorial finishes
+} // waits if launched asynchronously; a deferred call is never executed
 ```
 
 ```cpp
