@@ -1,6 +1,6 @@
 # C++
 
-## Multithreading
+## Viacvláknové programovanie
 
 *Peter Koscelanský <cpp@eset.sk>* <!-- .element: class="author" -->
 
@@ -8,12 +8,12 @@
 
 ## Obsah
 
-* Performance of current processors
-* Processes and threads
-* Memory model
-* Synchronization
-* Patterns
-* Async and futures
+* Výkon súčasných procesorov
+* Procesy a vlákna
+* Pamäťový model
+* Synchronizácia
+* Návrhové vzory
+* Asynchrónne výpočty a futures
 
 ---
 
@@ -21,97 +21,97 @@
 
 ---
 
-## MHz vs cores
+## MHz verzus jadrá
 
-![CPU Clock speed vs core count over time](./lectures/threads/50-years-processor-trend.png)<!-- .element: style="max-width: 50%;" -->
+![Vývoj taktovacej frekvencie CPU a počtu jadier v čase](./lectures/threads/50-years-processor-trend.png)<!-- .element: style="max-width: 50%;" -->
 
 <https://github.com/karlrupp/microprocessor-trend-data/tree/master>
 
-* CPU clock speed hit its peak around 2005 and raw performance is currently achieved through other techniques
+* Taktovacia frekvencia CPU dosiahla vrchol okolo roku 2005 a ďalší rast výkonu sa dnes dosahuje inými technikami
 
 
-## Modern CPU
+## Moderné CPU
 
-* Small portion of CPU is actually computing stuff as in good old days of i486
-* Nowadays large portion of CPU is dedicated to other tasks (branch prediction, out of order execution, caching, pipelining, etc.)
-* To truly exploit performance of modern CPUs, parallelism must be exploited
-    * Using vector instructions (SIMD)
-    * Using multiple cores (threads)
-    * Keeping the pipeline full and make branch prediction work
-    * Understanding memory hierarchy and latency
+* Len malá časť CPU skutočne vykonáva výpočty tak ako za starých dobrých čias i486
+* Dnes je veľká časť CPU vyhradená na iné úlohy (predikcia vetvenia, vykonávanie mimo poradia, cache, zreťazené spracovanie atď.)
+* Ak chceme naplno využiť výkon moderných CPU, musíme využiť paralelizmus
+    * Používať vektorové inštrukcie (SIMD)
+    * Využívať viacero jadier (vlákien)
+    * Udržiavať pipeline plnú a pomáhať predikcii vetvenia
+    * Rozumieť hierarchii pamäte a latencii
 
 
-## Architecture
+## Architektúra
 
-![Cache Hierarchy](./lectures/threads/cache.jpg)<!-- .element: style="max-width: 50%;" -->
+![Hierarchia cache](./lectures/threads/cache.jpg)<!-- .element: style="max-width: 50%;" -->
 
 <https://www.linkedin.com/posts/anis-hassen_how-do-cpu-caches-work-cpu-caches-are-a-activity-7218663324123598848-Tmgi>
 
 
-## What about GPUs?
+## A čo GPU?
 
-* Outside the scope of these lectures
-* GPUs are even more parallel than CPUs and require different programming model (CUDA, OpenCL, Vulkan, etc.)
-* There are some libraries to use GPU from C++ (e.g. Thrust, C++ AMP, boost::compute etc.)
-
----
-
-# Exploiting parallelism
+* Mimo rozsahu týchto prednášok
+* GPU sú ešte paralelnejšie ako CPU a vyžadujú iný programovací model (CUDA, OpenCL, Vulkan atď.)
+* Existujú knižnice na využitie GPU z C++ (napr. Thrust, C++ AMP, boost::compute atď.)
 
 ---
 
-## Parallelism in data
+# Využitie paralelizmu
 
-* SIMD (single instruction multiple data)
-* SSE, AVX, etc.
-* One instruction operates on multiple data points simultaneously
-* Poor C++ and compiler support (getting better), hard to get right
-   * [MSVC Support](https://learn.microsoft.com/en-us/cpp/parallel/auto-parallelization-and-auto-vectorization?view=msvc-170)
-   * [GCC Support](https://gcc.gnu.org/projects/tree-ssa/vectorization.html#using)
-* There are libraries to help
+---
+
+## Dátový paralelizmus
+
+* SIMD (single instruction multiple data, jedna inštrukcia nad viacerými údajmi)
+* SSE, AVX atď.
+* Jedna inštrukcia spracúva viacero údajov súčasne
+* Slabá podpora v C++ a kompilátoroch (zlepšuje sa), správne použitie je náročné
+    * [Podpora v MSVC](https://learn.microsoft.com/en-us/cpp/parallel/auto-parallelization-and-auto-vectorization?view=msvc-170)
+    * [Podpora v GCC](https://gcc.gnu.org/projects/tree-ssa/vectorization.html#using)
+* Pomôcť môžu knižnice
    * [NSIMD](https://github.com/agenium-scale/nsimd)
    * C++26 `#include <simd>`
-   * `simdjson` for extremely fast JSON parsing
+    * `simdjson` na mimoriadne rýchle parsovanie JSON
 
 
-## Parallelism in algorithm
+## Algoritmický paralelizmus
 
-* Multi Core (threads)
-* Poor compiler support (getting better), hard to get right
-* Idea is simple, more CPUs result in more power
-   * If one CPU compute one task X seconds, then four CPUs will compute one task in X/4 seconds, right?
-* `std::execution_policy` in C++17 and later
+* Viacero jadier (vlákna)
+* Slabá podpora v kompilátoroch (zlepšuje sa), správne použitie je náročné
+* Myšlienka je jednoduchá: viac CPU znamená vyšší výkon
+    * Ak jedno CPU vypočíta úlohu za X sekúnd, štyri CPU ju vypočítajú za X/4 sekúnd, však?
+* `std::execution_policy` od C++17
    * `std::for_each(std::execution::par, ...)`
    * `std::transform(std::execution::par, ...)`
-   * etc.
+    * atď.
 
 
-## Problems with parallel algorithms
+## Problémy paralelných algoritmov
 
-* Designing algorithms is hard
-* Designing scalable parallel algorithms is (almost) “mission impossible”
-* Code tends to be longer, harder to read and reason about
-* “Nondeterministic bugs”
+* Navrhovať algoritmy je náročné
+* Navrhovať škálovateľné paralelné algoritmy je (takmer) „nemožná misia“
+* Kód býva dlhší, horšie sa číta a ťažšie sa uvažuje o jeho správaní
+* „Nedeterministické chyby“
 
-![Abstract colorful magic box](./lectures/threads/open_box_full_of_junk.png)<!-- .element: style="max-width: 30%;" -->
-
----
-
-# Processes
+![Abstraktná farebná čarovná škatuľa](./lectures/threads/open_box_full_of_junk.png)<!-- .element: style="max-width: 30%;" -->
 
 ---
 
-## Process
-
-* Every process has its own memory
-* Identified by unique PID (process id)
-* “Inside” every process can run 1..n threads
-
-![Threads inside a process](./lectures/threads/process-structure.png)<!-- .element: style="max-width: 50%;" -->
+# Procesy
 
 ---
 
-## Creating new processes
+## Proces
+
+* Každý proces má vlastnú pamäť
+* Je identifikovaný jedinečným PID (identifikátorom procesu)
+* „Vnútri“ každého procesu môže bežať 1..n vlákien
+
+![Vlákna v procese](./lectures/threads/process-structure.png)<!-- .element: style="max-width: 50%;" -->
+
+---
+
+## Vytváranie nových procesov
 
 ### Windows
 
@@ -175,15 +175,15 @@ int main() {
 
 ---
 
-## Waiting for process
+## Čakanie na proces
 
-* In previous examples we just started new process and exited immediately
-* It is not ideal, because child process may outlive parent process
-   * On Linux it will become child of init process (PID 1)
-* There are more ways to wait for process to finish, but only one correct way
+* V predchádzajúcich príkladoch sme len spustili nový proces a hneď skončili
+* Nie je to ideálne, pretože potomok môže prežiť rodičovský proces
+    * Na Linuxe sa stane potomkom procesu init (PID 1)
+* Existuje viacero spôsobov, ako čakať na skončenie procesu, ale iba jeden je správny
 
 
-## Sleep is evil
+## Sleep je zlo
 
 ### Windows
 
@@ -197,11 +197,11 @@ Sleep(1000); // Sleep for 1 second
 sleep(1); // Sleep for 1 second
 ```
 
-* Even if we are sure that process will finish in given time, it may not
-* Sleep is not synchronization
+* Aj keď sme si istí, že proces skončí v danom čase, nemusí to tak byť
+* Sleep nie je synchronizácia
 
 
-## Polling
+## Opakované zisťovanie stavu (polling)
 
 ### Windows
 
@@ -224,12 +224,12 @@ do {
 } while (result == 0);
 ```
 
-* Slightly better than sleep
-* Waste of CPU cycles, since if the child process is long running, we are just polling uselessly
-* Busy waiting
+* O niečo lepšie ako sleep
+* Plytvanie cyklami CPU: ak potomok beží dlho, iba zbytočne opakovane zisťujeme jeho stav
+* Aktívne čakanie (busy waiting)
 
 
-## Proper waiting for process
+## Správne čakanie na proces
 
 ### Windows
 
@@ -244,34 +244,34 @@ int status;
 waitpid(pid, &status, 0);
 ```
 
-* Proper synchronization
-* OS will suspend parent process until child process finishes
+* Správna synchronizácia
+* OS pozastaví rodičovský proces, kým potomok neskončí
 
 ---
 
-## Communication between processes
+## Komunikácia medzi procesmi
 
-* Processes do not share memory (no pointers)
-* Sharing information between processes is more complicated than sharing information between threads
-* Means of communication
-   * Files
-   * Named pipes
+* Procesy nezdieľajú pamäť (smerníky sa nedajú priamo použiť)
+* Zdieľanie informácií medzi procesmi je zložitejšie ako medzi vláknami
+* Spôsoby komunikácie
+    * Súbory
+    * Pomenované rúry (named pipes)
    * RPC / LPC
-   * COM objects
+    * COM objekty
 
 ---
 
-## Processes and C++
+## Procesy a C++
 
-* C++ standard doesn’t recognize concept of a process
-* `boost::process`/`boost::interprocess` is more or less portable
-   * Manages process creation
-   * Shared memory
-   * Named mutexes
-   * Offset ptr
+* Štandard C++ nepozná pojem proces
+* `boost::process`/`boost::interprocess` sú viac-menej prenositeľné
+    * Správa vytvárania procesov
+    * Zdieľaná pamäť
+    * Pomenované mutexy
+    * Smerníky s relatívnym posunom (offset pointers)
 
 
-## `boost::process` example
+## Príklad s `boost::process`
 
 ```cpp
 #include <boost/process.hpp>
@@ -291,22 +291,22 @@ int main() {
 
 ---
 
-# Threads
+# Vlákna
 
 ---
 
-## Main thread
+## Hlavné vlákno
 
-* Our main function starts its execution in newly created thread (system will automatically do this for us)
-* This is the same thread as returned from `CreateProcess` on windows
-* Identified by TID (thread id) – from same enumeration as PID on Windows
-* Code is only executed in threads
+* Funkcia main sa začne vykonávať v novovytvorenom vlákne (systém ho pre nás vytvorí automaticky)
+* Na Windows je to to isté vlákno, ktoré vráti `CreateProcess`
+* Je identifikované TID (identifikátorom vlákna), na Windows z rovnakého číselného priestoru ako PID
+* Kód sa vykonáva iba vo vláknach
 
-![Some threads to illustrate](./lectures/threads/random-threads.jpg)
+![Nite na ilustráciu vlákien](./lectures/threads/random-threads.jpg)
 
 ---
 
-## Starting new thread
+## Spustenie nového vlákna
 
 ### Windows
 
@@ -364,13 +364,13 @@ int main() {
 
 ---
 
-## OS Scheduler
+## Plánovač OS
 
-* Application has limited control over scheduling of its threads
-* OS scheduler is neither predictable, nor fair
-* You should not rely on any specific scheduling behavior, however some OS provide APIs to set thread priorities or affinities
+* Aplikácia má obmedzenú kontrolu nad plánovaním svojich vlákien
+* Plánovač OS nie je predvídateľný ani spravodlivý
+* Nemali by sme sa spoliehať na konkrétne správanie plánovača, hoci niektoré OS poskytujú API na nastavenie priorít alebo afinity vlákien
 
-![Round robin -ish](./lectures/threads/A_bright_little_robin.jpg)<!-- .element: style="max-width: 50%;" -->
+![Červienka ako slovná hračka k round-robin plánovaniu](./lectures/threads/A_bright_little_robin.jpg)<!-- .element: style="max-width: 50%;" -->
 
 <https://commons.wikimedia.org/wiki/File:A_bright_little_robin!_%288420315404%29.jpg>
 
@@ -378,21 +378,21 @@ int main() {
 
 ## Multitasking
 
-* Cooperative multitasking
-   * Threads must explicitly yield
-   * OS will never interrupt a thread
-   * DOS era
-* Preemptive multitasking
-   * OS schedules the threads
-   * When the time slice for a particular thread ends, the OS suspends it and starts another ready thread
-   * Threads can also yield
-   * Default on modern OSes
+* Kooperatívny multitasking
+    * Vlákna musia explicitne odovzdať riadenie
+    * OS vlákno nikdy nepreruší
+    * Éra DOS-u
+* Preemptívny multitasking
+    * Vlákna plánuje OS
+    * Keď vláknu uplynie časový úsek, OS ho pozastaví a spustí iné pripravené vlákno
+    * Vlákna môžu riadenie odovzdať aj samy
+    * Predvolený spôsob v moderných OS
 
 ---
 
-## Passing parameters to thread
+## Odovzdávanie parametrov vláknu
 
-* Let's try Linux pthread example with parameters, Windows implementation is similar
+* Vyskúšajme príklad s pthread na Linuxe s parametrami, implementácia na Windows je podobná
 
 ```cpp
 struct data {
@@ -442,13 +442,13 @@ int main() {
 
 ---
 
-## C++ and threads
+## C++ a vlákna
 
-* Until C++11: What threads?
-* Since C++11:
-   * Standard threads are called execution agents (`std::thread`)
-   * Memory model is clearly and portably defined
-   * Advanced thread support and synchronization primitives
+* Do C++11: Aké vlákna?
+* Od C++11:
+    * Štandard označuje vlákna ako vykonávacích agentov (execution agents, `std::thread`)
+    * Pamäťový model je jasne a prenositeľne definovaný
+    * Pokročilá podpora vlákien a synchronizačných primitív
    * `std::jthread` (C++20)
    * `std::async`
 
@@ -458,7 +458,7 @@ int main() {
 
 ---
 
-## Simple `std::thread` example
+## Jednoduchý príklad s `std::thread`
 
 ```cpp
 #include <thread>
@@ -488,25 +488,25 @@ int main() {
 
 ---
 
-## `std::thread` and exceptions
+## `std::thread` a výnimky
 
-* If thread function throws an exception and it is not caught, `std::terminate` is called
-* Always catch exceptions inside thread function, at least to log them
-* Constructor of `std::thread` may throw `std::system_error` if thread cannot be created
-* To test if thread is associated with execution agent, use `joinable()` method
-* `join()` throws `std::system_error` if
-   * Thread is not joinable
-   * Deadlock is detected (joining itself)
-   * If the underlying OS call fails
+* Ak funkcia vlákna vyhodí výnimku a tá sa nezachytí, zavolá sa `std::terminate`
+* Výnimky vždy zachytávame vo funkcii vlákna, aspoň kvôli ich zalogovaniu
+* Konštruktor `std::thread` môže vyhodiť `std::system_error`, ak sa vlákno nedá vytvoriť
+* Metódou `joinable()` zistíme, či je objekt vlákna spojený s vykonávacím agentom
+* `join()` vyhodí `std::system_error`, ak
+    * Vlákno nie je pripojiteľné (joinable)
+    * Zistí sa uviaznutie (vlákno čaká samo na seba)
+    * Zlyhá príslušné volanie OS
 
 ---
 
-## What to do in destructor?
+## Čo robiť v deštruktore?
 
-* Join or not to join?
-* If `std::thread` has associated execution agent in destructor (`joinable() == true`), `std::terminate()` will be executed.
-* Generally bad stuff
-* Always join or detach the thread before destructor is called
+* Pripojiť či nepripojiť?
+* Ak má `std::thread` pri volaní deštruktora priradeného vykonávacieho agenta (`joinable() == true`), zavolá sa `std::terminate()`
+* To spravidla nechceme
+* Pred zavolaním deštruktora vždy zavoláme join alebo detach
 
 ```cpp
 std::thread t(thread_func);
@@ -516,10 +516,10 @@ t.detach(); // or t.join();
 
 ---
 
-## Multiple parameters
+## Viacero parametrov
 
-* We can do it as in posix threads with `struct`
-* From now on, `try ... catch` blocks are omitted for clarity
+* Môžeme postupovať ako pri POSIX vláknach a použiť `struct`
+* Odteraz pre prehľadnosť vynechávame bloky `try ... catch`
 
 ```cpp
 struct data {
@@ -541,9 +541,9 @@ int main() {
 
 ---
 
-## Type safe parameters
+## Typovo bezpečné parametre
 
-* Parameters are forwarded to thread object
+* Parametre sa preposielajú objektu vlákna
 
 ```cpp
 void thread_func(int number, const std::string& text) {
@@ -559,7 +559,7 @@ int main() {
 ```
 
 
-## Rvalue references?
+## Rvalue referencie?
 
 ```cpp
 void thread_func(std::string&& text) {
@@ -573,10 +573,10 @@ int main() {
 }
 ```
 
-* String is moved to thread function
+* Reťazec sa presunie do funkcie vlákna
 
 
-### But this also works...
+### Ale funguje aj toto...
 
 ```cpp
 void thread_func(std::string&& text) {
@@ -591,17 +591,17 @@ int main() {
 ```
 
 
-### Parameters are always forwarded as temporaries
+### Parametre sa vždy preposielajú ako dočasné objekty
 
-* `std::thread` always keep copies of parameters
-* Thread entry point is called as if the parameters are temporaries
-* So you can move or copy values to thread object (this is done in `std::thread` constructor)
-* Your thread function will always be called with temporaries, so 
-   * rvalue references and 
-   * const lvalue references and 
-   * values 
-  will bind correctly
-* But lvalue references will not bind!
+* `std::thread` si vždy uchováva vlastné kópie parametrov
+* Vstupná funkcia vlákna sa volá, akoby parametre boli dočasné objekty
+* Hodnoty teda môžeme do objektu vlákna presunúť alebo skopírovať (deje sa to v konštruktore `std::thread`)
+* Funkcia vlákna sa vždy volá s dočasnými objektmi, takže
+     * rvalue referencie,
+     * konštantné lvalue referencie a
+     * parametre odovzdávané hodnotou
+    sa naviažu správne
+* Nekonštantné lvalue referencie sa však nenaviažu!
 
 ```cpp
 void thread_func(std::string& text) {
@@ -616,7 +616,7 @@ int main() {
 ```
 
 
-### Use `std::ref` to pass lvalue references
+### Na odovzdanie lvalue referencií použijeme `std::ref`
 
 ```cpp
 #include <functional> // for std::ref
@@ -632,25 +632,25 @@ int main() {
 }
 ```
 
-* Here `std::ref` creates a wrapper that tells `std::thread` to pass the reference instead of making a copy
-* Make sure that the referenced object outlives the thread, otherwise you will have dangling reference and undefined behavior
-* Or obviously you can use pointers and manage lifetime manually
+* `std::ref` tu vytvorí obal, ktorý povie `std::thread`, aby odovzdal referenciu namiesto vytvorenia kópie
+* Odkazovaný objekt musí prežiť vlákno, inak vznikne neplatná referencia a nedefinované správanie
+* Samozrejme, môžeme použiť aj smerníky a životnosť spravovať ručne
 
 ---
 
-## Interthread communication
+## Komunikácia medzi vláknami
 
-* Threads share memory!
-* Pointers can be passed around, so no problem to share data between threads
-* Thread can communicate through shared objects
-* C++ has no special support for interthread communication (unlike for example channels in Go)
-* Third-party libraries exist (e.g. `boost::asio`)
+* Vlákna zdieľajú pamäť!
+* Môžeme medzi nimi odovzdávať smerníky, takže zdieľanie údajov nie je problém
+* Vlákna môžu komunikovať cez zdieľané objekty
+* C++ nemá špeciálnu podporu komunikácie medzi vláknami (na rozdiel napríklad od kanálov v Go)
+* Existujú knižnice tretích strán (napr. `boost::asio`)
 
 ---
 
-## `this_thread` namespace
+## Menný priestor `this_thread`
 
-* Namespace with functions to operate on current thread (sleep, yield)
+* Menný priestor s funkciami na prácu s aktuálnym vláknom (sleep, yield)
 
 ```cpp
 #include <thread>
@@ -674,16 +674,16 @@ int main() {
 
 ---
 
-# Memory model
+# Pamäťový model
 
 ---
 
-## Accessing memory
+## Prístup k pamäti
 
-* Race condition
-* Accessing one resource from multiple thread without proper locking
-* Results in undefined behavior
-* Strange, hard to debug problems
+* Súbeh (race condition)
+* Prístup k jednému zdroju z viacerých vlákien bez správneho zamykania
+* Vedie k nedefinovanému správaniu
+* Zvláštne problémy, ktoré sa ťažko ladia
 
 ```cpp
 int counter = 0;
@@ -705,19 +705,19 @@ int main() {
 ```
 
 
-## HW point of view
+## Z pohľadu hardvéru
 
-* The result of the previous code is undefined, in practice it can be anywhere between 100000 and 200000.
-* Write instruction can be non atomic
-   * Instructions are broken down to microcode and then are executed
-   * Interleaving writes can modify memory inconsistently
-* Every core has its own cache
-   * Greatly speed up things
-   * Changes in one thread are not propagated to another cores
+* Výsledok predchádzajúceho kódu je nedefinovaný, v praxi môže byť kdekoľvek medzi 100000 a 200000
+* Inštrukcia zápisu nemusí byť atomická
+    * Inštrukcie sa rozložia na mikrokód a až potom sa vykonajú
+    * Prelínajúce sa zápisy môžu meniť pamäť nekonzistentne
+* Každé jadro má vlastnú cache
+    * Výrazne zrýchľuje prácu
+    * Zmeny v jednom vlákne sa neprenášajú do ostatných jadier
 
 ---
 
-## Example of race
+## Príklad súbehu
 
 ```cpp
 int a, b; // global, so zero initialized
@@ -737,17 +737,17 @@ int main() {
 
 ---
 
-## How to avoid?
+## Ako sa tomu vyhnúť?
 
-* We can only use one (main) thread, or just use threads for parallel algorithms (e.g. `std::execution_policy`)
-* Even if threads only work on disjoint data we are safe
-* If threads share data, we must synchronize access to shared data
+* Môžeme používať iba jedno (hlavné) vlákno alebo vlákna využívať len cez paralelné algoritmy (napr. `std::execution_policy`)
+* V bezpečí sme aj vtedy, keď vlákna pracujú iba s navzájom oddelenými údajmi
+* Ak vlákna zdieľajú údaje, musíme synchronizovať prístup k nim
 
 ---
 
-## Synchronization
+## Synchronizácia
 
-* C++ provides synchronization primitives to avoid race conditions
+* C++ poskytuje synchronizačné primitíva na predchádzanie súbehom
 * `std::mutex`
 * `std::lock_guard`
 * `std::barrier`
@@ -756,25 +756,25 @@ int main() {
 
 ---
 
-## Contract with the C++ standard
+## Dohoda so štandardom C++
 
-* C++11 standard defines memory model for multithreaded programs
-* Defines what is and what is not allowed
-* The rule is simple: 
+* Štandard C++11 definuje pamäťový model viacvláknových programov
+* Určuje, čo je a čo nie je dovolené
+* Pravidlo je jednoduché:
 
-**One addressable memory location (no bit arrays) can be accessed by two or more threads simultaneously only if all accesses are read-only.**
+**K jednému adresovateľnému miestu v pamäti (nie k jednotlivým bitom bitového poľa) môžu súčasne pristupovať dve alebo viac vlákien iba vtedy, ak všetky prístupy iba čítajú.**
 
-* Basically either one writer or multiple readers are allowed on any given memory location
-* We must ensure this, otherwise our program has undefined behavior
+* K danému miestu v pamäti teda môže pristupovať buď jeden zapisovateľ, alebo viacero čitateľov
+* Musíme to zabezpečiť, inak má program nedefinované správanie
 
 ---
 
 ## `std::mutex`
 
-* Mutual exclusion primitive
-* Only one thread can own the mutex at a time
-* Other threads trying to lock the mutex will be blocked until it is unlocked
-* Under the hood, OS synchronization primitives are used (e.g. critical sections on Windows, futexes on Linux)
+* Primitívum vzájomného vylúčenia
+* Mutex môže v danom okamihu vlastniť iba jedno vlákno
+* Ostatné vlákna, ktoré sa ho pokúsia zamknúť, budú zablokované, kým sa neodomkne
+* Vnútorne sa používajú synchronizačné primitíva OS (napr. kritické sekcie na Windows, futexy na Linuxe)
 
 ```cpp
 std::mutex mtx;
@@ -790,8 +790,8 @@ void func() {
 
 ## `try_lock`
 
-* Attempts to lock the mutex without blocking
-* Returns true if the lock was acquired, false otherwise
+* Pokúsi sa zamknúť mutex bez blokovania
+* Vráti true, ak sa zámok podarilo získať, inak false
 
 ```cpp
 std::mutex mtx;
@@ -809,10 +809,10 @@ void func() {
 ```
 
 
-## RAII with `std::lock_guard`
+## RAII so `std::lock_guard`
 
-* Manually locking and unlocking mutex is error prone
-* If an exception is thrown between lock and unlock, mutex will remain locked, causing deadlock
+* Pri ručnom zamykaní a odomykaní mutexu ľahko vznikajú chyby
+* Ak sa medzi zamknutím a odomknutím vyhodí výnimka, mutex zostane zamknutý a spôsobí uviaznutie
 
 ```cpp
 std::mutex mtx;
@@ -825,10 +825,10 @@ void func() {
 ```
 
 
-## or with `std::unique_lock`
+## Alebo so `std::unique_lock`
 
-* More flexible than `std::lock_guard`
-* Can be locked and unlocked multiple times
+* Flexibilnejší ako `std::lock_guard`
+* Dá sa opakovane zamykať a odomykať
 
 ```cpp
 std::mutex mtx;
@@ -848,10 +848,10 @@ void func() {
 
 ---
 
-## Deadlock
+## Uviaznutie (deadlock)
 
-* Happens when two or more threads are waiting for each other to release resources
-* Results in all threads being blocked indefinitely
+* Nastane, keď dve alebo viac vlákien navzájom čakajú na uvoľnenie zdrojov
+* Všetky zúčastnené vlákna zostanú zablokované na neurčito
 
 ```cpp
 std::mutex mtx1, mtx2;
@@ -870,10 +870,10 @@ void func2() {
 ```
 
 
-## Avoiding deadlock
+## Ako predísť uviaznutiu
 
-* Always lock multiple mutexes in the same order
-* Use `std::lock` to lock multiple mutexes at once
+* Viacero mutexov vždy zamykáme v rovnakom poradí
+* Na zamknutie viacerých mutexov naraz použijeme `std::lock`
 
 ```cpp
 std::mutex mtx1, mtx2;
@@ -886,18 +886,18 @@ void func1() {
 }
 ```
 
-* Using `std::lock` avoids deadlock by locking both mutexes atomically, it will try to lock both and if it cannot lock both, it will unlock any locked mutex and try again (with backoff)
-* `std::adopt_lock` tells `std::lock_guard` that the mutex is already locked, so it should not try to lock it again just unlock it when going out of scope
+* `std::lock` predchádza uviaznutiu pri zamykaní oboch mutexov: pokúsi sa zamknúť oba, a ak sa to nepodarí, už zamknuté mutexy odomkne a skúsi to znova (s odstupom, tzv. backoff)
+* `std::adopt_lock` povie `std::lock_guard`, že mutex je už zamknutý, takže ho nemá znova zamykať, iba odomknúť pri opustení rozsahu platnosti
 
 ---
 
-## Other solutions to `int` synchronization
+## Ďalšie riešenia synchronizácie typu `int`
 
-### Atomic operations
+### Atomické operácie
 
-* `std::atomic` types provide atomic operations on variables
-* No need for mutexes for simple operations
-* Under the hood, CPU atomic instructions are used, they are usually faster than mutexes and ensure proper memory visibility between threads
+* Typy `std::atomic` poskytujú atomické operácie nad premennými
+* Pri jednoduchých operáciách nepotrebujeme mutexy
+* Vnútorne sa používajú atomické inštrukcie CPU, ktoré sú zvyčajne rýchlejšie ako mutexy a zabezpečujú správnu viditeľnosť pamäte medzi vláknami
 
 ```cpp
 #include <atomic>
@@ -910,25 +910,25 @@ void func() {
 ```
 
 
-### `volatile` keyword
+### Kľúčové slovo `volatile`
 
-* `volatile` tells the compiler that the variable can be changed by external factors (e.g. hardware, other threads)
-* Prevents compiler optimizations that assume variable does not change unexpectedly
-* Does NOT provide any synchronization or atomicity
-* Rarely useful in multithreaded programming, prefer `std::atomic` instead
+* `volatile` oznamuje kompilátoru, že premennú môžu meniť vonkajšie vplyvy (napr. hardvér či iné vlákna)
+* Bráni optimalizáciám kompilátora, ktoré predpokladajú, že premenná sa neočakávane nemení
+* NEPOSKYTUJE synchronizáciu ani atomicitu
+* Pri viacvláknovom programovaní je užitočné len zriedka, uprednostňujeme `std::atomic`
 
 
-### Transactional memory
+### Transakčná pamäť
 
-* C++ introduces technical specification for support for transactional memory (not widely supported yet)
-* Allows grouping multiple memory operations into a single atomic transaction
-* If transaction cannot be completed (e.g. due to conflict with another thread), it can be retried
+* C++ má technickú špecifikáciu podpory transakčnej pamäte (zatiaľ nie je široko podporovaná)
+* Umožňuje zoskupiť viacero pamäťových operácií do jednej atomickej transakcie
+* Ak sa transakcia nedá dokončiť (napr. pre konflikt s iným vláknom), možno ju zopakovať
 
 ---
 
-## `thread_local` storage
+## Úložisko `thread_local`
 
-* Variables declared with `thread_local` specifier have separate instances for each thread
+* Premenné deklarované so špecifikátorom `thread_local` majú pre každé vlákno samostatnú inštanciu
 
 ```cpp
 thread_local std::string thread_id = "0";
@@ -941,13 +941,13 @@ void func() {
 
 ---
 
-# Other primitives
+# Ďalšie primitíva
 
 ---
 
 ## `std::call_once`
 
-* Ensures that a piece of code is executed only once, even in the presence of multiple threads
+* Zabezpečí, že sa časť kódu vykoná iba raz, aj pri použití viacerých vlákien
 
 ```cpp
 #include <mutex>
@@ -963,13 +963,13 @@ void func() {
 }
 ```
 
-* If multiple threads call `func`, only one will execute `init`, others will wait until initialization is complete
+* Ak viacero vlákien zavolá `func`, iba jedno vykoná `init`, ostatné počkajú na dokončenie inicializácie
 
 
-## Exceptions and `std::call_once`
+## Výnimky a `std::call_once`
 
-* If exception is thrown during initialization, subsequent calls to `std::call_once` will retry the initialization (if another thread is waiting, it will be unblocked and will try to call the function again)
-* On one flag multiple different functions can be called, but only one will succeed, others will be ignored
+* Ak sa počas inicializácie vyhodí výnimka, nasledujúce volania `std::call_once` inicializáciu zopakujú (ak čaká iné vlákno, odblokuje sa a pokúsi sa funkciu zavolať znova)
+* S jedným príznakom možno volať viacero rôznych funkcií, ale úspešne sa dokončí iba jedna, ostatné sa ignorujú
 
 ```cpp
 std::once_flag flag;
@@ -996,9 +996,9 @@ void func2() {
 
 ## `hardware_concurrency()`
 
-* Returns the number of hardware threads available on the system
-* It is only a hint, the actual number of threads that can run concurrently may be different
-* On my system it returns 14 (2 performance cores with hyperthreading + 8 efficiency cores + 2 low power cores)
+* Vráti počet hardvérových vlákien dostupných v systéme
+* Je to iba odporúčanie, skutočný počet vlákien, ktoré môžu bežať súbežne, môže byť iný
+* Na mojom systéme vracia 14 (2 výkonné jadrá s hyperthreadingom + 8 efektívnych jadier + 2 nízkopríkonové jadrá)
 
 ```cpp
 unsigned int n = std::thread::hardware_concurrency();
@@ -1020,11 +1020,11 @@ for (auto& t : threads) {
 
 ## `std::shared_mutex`
 
-* Allows multiple threads to read shared data simultaneously, but only one thread can write to the data at a time
-* Two new methods: `lock_shared()` and `unlock_shared()` for shared (read) access
-* Basic `lock()` and `unlock()` are for exclusive (write) access
-* Useful for read-heavy scenarios where reads are more frequent than writes
-* New helper classes: `std::shared_lock` for shared locking (`std::unique_lock` is for exclusive locking)
+* Umožňuje viacerým vláknam súčasne čítať zdieľané údaje, ale zapisovať môže v danom okamihu iba jedno vlákno
+* Dve nové metódy: `lock_shared()` a `unlock_shared()` pre zdieľaný prístup (čítanie)
+* Základné `lock()` a `unlock()` slúžia na výlučný prístup (zápis)
+* Užitočné tam, kde čítanie výrazne prevažuje nad zápisom
+* Nové pomocné triedy: `std::shared_lock` na zdieľané zamykanie (`std::unique_lock` slúži na výlučné zamykanie)
 
 
 ```cpp
@@ -1046,28 +1046,28 @@ void writer() {
 
 ---
 
-## Other flavors of mutexes
+## Ďalšie druhy mutexov
 
 * `std::timed_mutex`
-   * Mutex with timeout capabilities
-   * `try_lock_for()`, `try_lock_until()` methods
+    * Mutex s podporou časového limitu
+    * Metódy `try_lock_for()`, `try_lock_until()`
 * `std::recursive_mutex`
-   * Mutex that can be locked multiple times by the same thread
-   * It must be unlocked the same number of times it was locked
+    * Mutex, ktorý môže to isté vlákno zamknúť viackrát
+    * Musí sa odomknúť toľkokrát, koľkokrát bol zamknutý
 * `std::recursive_timed_mutex`
-   * Combination of recursive and timed mutex
+    * Kombinácia rekurzívneho mutexu a mutexu s časovým limitom
 * `std::shared_timed_mutex`
-   * Shared mutex with timeout capabilities
+    * Zdieľaný mutex s podporou časového limitu
 
 ---
 
 ## `std::semaphore` (C++20)
 
-* Counting semaphore or binary semaphore
-* Controls access to a shared resource through a counter
-* `acquire()` decreases the counter, blocking if the counter is zero
-* `try_acquire()` tries to decrease the counter without blocking
-* `release()` increases the counter, potentially unblocking waiting threads
+* Počítací semafor alebo binárny semafor
+* Riadi prístup k zdieľanému zdroju pomocou počítadla
+* `acquire()` zníži počítadlo, pri nulovej hodnote blokuje
+* `try_acquire()` sa pokúsi znížiť počítadlo bez blokovania
+* `release()` zvýši počítadlo a môže odblokovať čakajúce vlákna
 
 ```cpp
 #include <semaphore>
@@ -1085,9 +1085,9 @@ void access_resource() {
 ## `std::binary_semaphore` (C++20)
 
 * `using binary_semaphore = std::counting_semaphore<1>;`
-* Similar to mutex, but with semaphore semantics
-* Mutex can only be owned by one thread at a time, while binary semaphore can be released by a different thread than the one that acquired it
-* So binary semaphore is useful for signaling between threads
+* Podobný mutexu, ale so sémantikou semafora
+* Mutex môže v danom okamihu vlastniť iba jedno vlákno, zatiaľ čo binárny semafor môže uvoľniť aj iné vlákno než to, ktoré ho získalo
+* Binárny semafor je preto užitočný na signalizáciu medzi vláknami
 
 ```cpp
 #include <semaphore>
@@ -1107,29 +1107,29 @@ void waiter() {
 
 ---
 
-## `std::latch` and `std::barrier` (C++20)
+## `std::latch` a `std::barrier` (C++20)
 
-* Synchronization primitives for coordinating multiple threads
-* Can be implemented using semaphores or condition variables, these are just higher level abstractions
+* Synchronizačné primitíva na koordináciu viacerých vlákien
+* Dajú sa implementovať pomocou semaforov alebo podmienkových premenných, ide len o abstrakcie vyššej úrovne
 * `std::latch`
-   * A synchronization primitive that allows one or more threads to wait until a set of operations being performed in other threads completes
-   * Once the counter reaches zero, it cannot be reset
+    * Synchronizačné primitívum, ktoré umožňuje jednému alebo viacerým vláknam čakať na dokončenie súboru operácií v iných vláknach
+    * Keď počítadlo dosiahne nulu, nedá sa obnoviť
 * `std::barrier`
-   * A synchronization primitive that allows a set of threads to wait for each other to reach a common barrier point
-   * The barrier can be reused multiple times
+    * Synchronizačné primitívum, ktoré umožňuje skupine vlákien navzájom na seba čakať v spoločnom bode bariéry
+    * Bariéru možno použiť opakovane
 
 
 ## `std::latch`
 
-* Constructed with a counter
-* Threads call `count_down()` to decrement the counter
-* Threads call `wait()` to block until the counter reaches zero
-* Once the counter reaches zero, all waiting threads are unblocked
-* There is `try_wait()` method to check if the counter is zero without blocking
-* And `arrive_and_wait()` method that combines `count_down()` and `wait()`
+* Vytvára sa s počítadlom
+* Vlákna volaním `count_down()` znižujú počítadlo
+* Volaním `wait()` sa vlákna zablokujú, kým počítadlo nedosiahne nulu
+* Keď počítadlo dosiahne nulu, všetky čakajúce vlákna sa odblokujú
+* Metóda `try_wait()` umožňuje bez blokovania overiť, či je počítadlo nulové
+* Metóda `arrive_and_wait()` kombinuje `count_down()` a `wait()`
 
 
-## `std::latch` example
+## Príklad s `std::latch`
 
 ```cpp
 constexpr int NUM_WORKERS = 5; // Define the number of worker tasks
@@ -1166,14 +1166,14 @@ int main() {
 
 ## `std::barrier`
 
-* Constructed with a count and an optional completion function
-* Threads call `arrive_and_wait()` to signal they have reached the barrier and wait for others
-* Once the specified number of threads have called `arrive_and_wait()`, the optional completion function is executed, and all threads are unblocked
-* Arrive and wait can be split to `arrive()` and `wait()` calls, where arrive signals reaching the barrier and wait blocks until all threads arrive (output of `arrive` must be passed to `wait`), however this is rarely used
-* Call to `arrive_and_drop()` decrements the counter and removes the calling thread from the barrier (it will not wait for it anymore), this is useful for dynamic number of threads
+* Vytvára sa s počtom účastníkov a voliteľnou dokončovacou funkciou
+* Vlákna volaním `arrive_and_wait()` oznámia príchod k bariére a čakajú na ostatné
+* Keď určený počet vlákien zavolá `arrive_and_wait()`, vykoná sa voliteľná dokončovacia funkcia a všetky vlákna sa odblokujú
+* Príchod a čakanie možno rozdeliť na volania `arrive()` a `wait()`: prvé oznámi príchod k bariére, druhé blokuje, kým neprídu všetci (výsledok `arrive` treba odovzdať do `wait`), používa sa to však zriedka
+* Volanie `arrive_and_drop()` zníži počítadlo a vyradí volajúce vlákno z bariéry (už sa naň nebude čakať), čo je užitočné pri dynamickom počte vlákien
 
 
-## `std::barrier` example
+## Príklad s `std::barrier`
 
 ```cpp
 #include <barrier>
@@ -1221,10 +1221,10 @@ int main() {
 
 ## `std::jthread` (C++20)
 
-* Joining thread (or Josuttis thread 😂)
-* Similar semantics as `std::thread`, but with some caveats
-   * Automatically joins in destructor (no need to call `join()` manually)
-   * Supports cooperative cancellation through `std::stop_token`
+* Vlákno s automatickým pripojením (joining thread, prípadne Josuttis thread)
+* Podobná sémantika ako `std::thread`, ale s niekoľkými rozdielmi
+    * V deštruktore automaticky volá join (netreba ručne volať `join()`)
+    * Podporuje kooperatívne zrušenie cez `std::stop_token`
 
 ```cpp
 #include <thread>
@@ -1239,9 +1239,9 @@ int main() {
 
 ## `request_stop`
 
-* `std::jthread` supports cooperative cancellation
-* There is even a way to use one request stop token for multiple threads
-* If callback passed to `std::jthread` takes `std::stop_token` as first, it will be provided automatically
+* `std::jthread` podporuje kooperatívne zrušenie
+* Jeden stop token sa dá použiť aj pre viacero vlákien
+* Ak funkcia odovzdaná do `std::jthread` prijíma ako prvý parameter `std::stop_token`, dostane ho automaticky
 
 ```cpp
 #include <thread>
@@ -1266,15 +1266,15 @@ int main() {
 
 ## `std::condition_variable`
 
-* Synchronization primitive that allows threads to wait for certain conditions to be met
-* Used in conjunction with `std::mutex` to protect shared data
-* `wait()` method blocks the calling thread until notified
-* `notify_one()` wakes up one waiting thread
-* `notify_all()` wakes up all waiting threads
-* Typically used for producer-consumer scenarios
+* Synchronizačné primitívum, ktoré umožňuje vláknam čakať na splnenie určitých podmienok
+* Používa sa spolu so `std::mutex` na ochranu zdieľaných údajov
+* Metóda `wait()` zablokuje volajúce vlákno, kým nedostane upozornenie
+* `notify_one()` prebudí jedno čakajúce vlákno
+* `notify_all()` prebudí všetky čakajúce vlákna
+* Typicky sa používa pri modeli producent-konzument
 
 
-## Producer-consumer example
+## Príklad producent-konzument
 
 ```cpp
 // Shared resources
@@ -1299,7 +1299,7 @@ int main() {
 ```
 
 
-### Producer thread
+### Vlákno producenta
 
 ```cpp
 void producer() {
@@ -1328,7 +1328,7 @@ void producer() {
 ```
 
 
-### Consumer thread
+### Vlákno konzumenta
 
 ```cpp
 void consumer() {
@@ -1362,10 +1362,10 @@ void consumer() {
 ```
 
 
-### `wait` without predicate
+### `wait` bez predikátu
 
-* If `wait` is called without a predicate, it may wake up even if the condition is not met (spurious wakeup)
-* Always use the predicate version of `wait` or check the condition in a loop
+* Ak sa `wait` zavolá bez predikátu, vlákno sa môže prebudiť aj bez splnenia podmienky (falošné prebudenie, spurious wakeup)
+* Vždy používame verziu `wait` s predikátom alebo podmienku kontrolujeme v cykle
 
 ```cpp
 cv.wait(lock); // may wake up spuriously
@@ -1378,14 +1378,14 @@ while (buffer.size() >= MAX_BUFFER_SIZE) {
 
 ---
 
-# Patterns
+# Návrhové vzory
 
 ---
 
-## Double checked locking
+## Zamykanie s dvojitou kontrolou
 
-* Problem: We want to initialize a singleton object in a thread-safe manner.
-* Something like following code, but with lazy initialization and without compiler error 😏
+* Problém: Chceme inicializovať singleton bezpečne z viacerých vlákien
+* Niečo ako nasledujúci kód, ale s odloženou inicializáciou a bez chyby pri kompilácii
 
 ```cpp
 class Singleton {
@@ -1400,7 +1400,7 @@ private:
 ```
 
 
-## Lazy initialization
+## Odložená inicializácia
 
 ```cpp
 class Singleton {
@@ -1418,15 +1418,15 @@ private:
 ```
 
 <ul>
-<li class="fragment"> Problem: multiple threads may call <code>get_instance</code> simultaneously, resulting in multiple instances being created</li>
-<li class="fragment"> Problem: When to delete the instance?</li>
+<li class="fragment"> Problém: viacero vlákien môže súčasne zavolať <code>get_instance</code>, čím vznikne viacero inštancií</li>
+<li class="fragment"> Problém: Kedy inštanciu zmazať?</li>
 </ul>
 
 
-### Deleting
+### Mazanie
 
-* We can use `std::atexit` to register a cleanup function that will delete the instance when the program exits
-* In next slides we will omit cleanup for clarity
+* Pomocou `std::atexit` môžeme zaregistrovať upratovaciu funkciu, ktorá inštanciu zmaže pri ukončení programu
+* Na ďalších snímkach upratovanie pre prehľadnosť vynecháme
 
 ```cpp
 class Singleton {
@@ -1449,7 +1449,7 @@ private:
 ```
 
 
-## Using mutex to synchronize
+## Synchronizácia pomocou mutexu
 
 ```cpp
 class Singleton {
@@ -1468,12 +1468,12 @@ private:
 };
 ```
 
-* This works, but mutex is locked every time `get_instance` is called, even if the instance is already created
+* Toto funguje, ale mutex sa zamyká pri každom volaní `get_instance`, aj keď už inštancia existuje
 
 <!-- .element: class="fragment" -->
 
 
-## Double checked locking
+## Zamykanie s dvojitou kontrolou
 
 ```cpp
 class Singleton {
@@ -1494,15 +1494,15 @@ private:
 };
 ```
 
-* Mutex is only locked when instance is not yet created
+* Mutex sa zamkne iba vtedy, keď inštancia ešte neexistuje
 <!-- .element: class="fragment" -->
-* This is almost correct, but still has problems due to compiler optimizations and CPU reordering
+* Je to takmer správne, ale stále tu sú problémy spôsobené optimalizáciami kompilátora a zmenou poradia operácií v CPU
 <!-- .element: class="fragment" -->
-* Instance pointer may be assigned before the constructor is finished, so another thread may see a non-nullptr instance that is not fully constructed
+* Smerník na inštanciu sa môže priradiť skôr, než sa dokončí konštruktor, takže iné vlákno môže vidieť nenulový smerník na ešte nedokončený objekt
 <!-- .element: class="fragment" -->
 
 
-## Using `std::atomic`
+## Použitie `std::atomic`
 
 ```cpp
 class Singleton {
@@ -1527,15 +1527,15 @@ private:
 ```
 
 
-* Using `std::atomic` for the instance pointer ensures proper memory visibility between threads
-* `memory_order_acquire` ensures that subsequent reads are not reordered before the load
-* `memory_order_release` ensures that previous writes are not reordered after the store
-* This is the correct implementation of double checked locking in C++ (if it would compile, since the static member definitions are missing from source files)
+* Použitie `std::atomic` pre smerník na inštanciu zabezpečí správnu viditeľnosť pamäte medzi vláknami
+* `memory_order_acquire` zabezpečí, že nasledujúce čítania sa nepresunú pred načítanie
+* `memory_order_release` zabezpečí, že predchádzajúce zápisy sa nepresunú za uloženie
+* Toto je správna implementácia zamykania s dvojitou kontrolou v C++ (ak by sa skompilovala, keďže v zdrojových súboroch chýbajú definície statických členov)
 
 
-## Using `static` local variable
+## Použitie lokálnej premennej `static`
 
-* Forget everything, just use `static` local variable
+* Na všetko zabudnime a jednoducho použime lokálnu premennú `static`
 
 ```cpp
 class Singleton {
@@ -1554,10 +1554,10 @@ private:
 
 ---
 
-## Thread safe cache
+## Cache bezpečná pre viacero vlákien
 
-* Imagine we have a function that is expensive to compute and it needs to be called multiple times with the same parameters from different threads
-* It would be nice to cache the results of the function calls to avoid recomputing them
+* Predstavme si výpočtovo náročnú funkciu, ktorú potrebujeme opakovane volať s rovnakými parametrami z rôznych vlákien
+* Bolo by vhodné ukladať výsledky volaní do cache, aby sme ich nemuseli počítať znova
 
 ```cpp
 class ThreadSafeCache {
@@ -1579,7 +1579,7 @@ private:
 ```
 
 
-## Making it thread safe
+## Zabezpečenie prístupu z viacerých vlákien
 
 ```cpp
 class ThreadSafeCache {
@@ -1605,7 +1605,7 @@ private:
 ```
 
 
-## If there are way more reads than writes
+## Ak čítanie výrazne prevažuje nad zápisom
 
 ```cpp
 class ThreadSafeCache {
@@ -1634,7 +1634,7 @@ private:
 ```
 
 
-## If values are expensive to copy
+## Ak je kopírovanie hodnôt nákladné
 
 ```cpp
 class ThreadSafeCache {
@@ -1664,20 +1664,20 @@ private:
 ```
 
 
-## Making it `const`?
+## Môže byť metóda `const`?
 
-* We can make `compute` method `const` by marking the mutex and cache as `mutable`
-* This allows us to modify them even in `const` methods
-* This is useful for caching, as the logical state of the object does not change from the perspective of the caller
-* Also this is one way of thinking about `const` correctness in multithreaded scenarios
-   * Either the object is logically `const` (read-only) and can be accessed from multiple threads simultaneously
-   * Or not and it must be synchronized externally
-* The Standard library uses this approach, so every `const` method of standard containers is thread safe for reading from multiple threads
-* Non-`const` methods are not thread safe and must be synchronized externally
+* Metódu `compute` môžeme označiť ako `const`, ak mutex a cache označíme ako `mutable`
+* To nám umožní meniť ich aj v metódach `const`
+* Pri cachovaní je to užitočné, pretože logický stav objektu sa z pohľadu volajúceho nemení
+* Je to aj jeden zo spôsobov, ako uvažovať o správnom použití `const` pri práci s viacerými vláknami
+    * Objekt je buď logicky `const` (iba na čítanie) a môže k nemu pristupovať viacero vlákien súčasne
+    * Alebo nie je a prístup k nemu sa musí synchronizovať externe
+* Štandardná knižnica používa tento prístup, takže každá metóda `const` štandardných kontajnerov je bezpečná na čítanie z viacerých vlákien
+* Metódy, ktoré nie sú `const`, nie sú bezpečné pri súbežnom prístupe a musia sa synchronizovať externe
 
 ---
 
-## Channel
+## Kanál
 
 ```cpp
 class Channel {
@@ -1708,7 +1708,7 @@ private:
 };
 ```
 
-note: Two condition variables are used to separately notify producers and consumers, improving efficiency. There may be more than one waiting producer or consumer at a time, so if item is consumed only producers should be notified and vice versa.
+note: Používame dve podmienkové premenné na samostatné upozorňovanie producentov a konzumentov, čo zvyšuje efektivitu. Súčasne môže čakať viacero producentov alebo konzumentov, preto po odobratí položky upozorníme iba producentov a naopak.
 
 
 ```cpp
@@ -1804,13 +1804,13 @@ int main() {
 
 ---
 
-# `std::async` and futures
+# `std::async` a futures
 
 ---
 
 ## `std::async`
 
-* Launches a function asynchronously (potentially in a new thread) and returns a `std::future` representing the result of the function
+* Spustí funkciu asynchrónne (prípadne v novom vlákne) a vráti `std::future`, ktorý predstavuje výsledok funkcie
 
 ```cpp
 #include <future>
@@ -1826,10 +1826,10 @@ int result = fut.get(); // blocks until the result is available
 ```
 
 
-## Exceptions in `std::async`
+## Výnimky v `std::async`
 
-* If the function passed to `std::async` throws an exception, it is stored in the `std::future`
-* Calling `get()` on the future will rethrow the exception in the calling thread
+* Ak funkcia odovzdaná do `std::async` vyhodí výnimku, uloží sa do `std::future`
+* Volanie `get()` na future znova vyhodí výnimku vo volajúcom vlákne
 
 ```cpp
 
@@ -1846,12 +1846,12 @@ try {
 ```
 
 
-## Execution policies
+## Politiky spustenia
 
-* `std::async` supports different launch policies
-   * `std::launch::async` - always run in a new thread
-   * `std::launch::deferred` - run only when `get()` or `wait()` is called, in the calling thread
-   * Default is `std::launch::async | std::launch::deferred`, allowing the implementation to choose
+* `std::async` podporuje rôzne politiky spustenia
+    * `std::launch::async` - vždy spustí funkciu v novom vlákne
+    * `std::launch::deferred` - spustí funkciu až pri volaní `get()` alebo `wait()`, a to vo volajúcom vlákne
+    * Predvolené je `std::launch::async | std::launch::deferred`, takže si implementácia môže vybrať
 
 ```cpp
 std::future<int> fut = std::async(std::launch::deferred, compute_factorial, 15);
@@ -1860,9 +1860,9 @@ int result = fut.get(); // compute_factorial runs here (in the calling thread) a
 ```
 
 
-## Manually using `std::promise` and `std::future`
+## Ručné použitie `std::promise` a `std::future`
 
-* `std::promise` allows setting a value or exception that can be retrieved through a `std::future`
+* `std::promise` umožňuje nastaviť hodnotu alebo výnimku, ktorú možno získať cez `std::future`
 
 ```cpp
 #include <future>
@@ -1883,11 +1883,11 @@ int result = fut.get(); // blocks until the result is available
 ```
 
 
-## Future destructor
+## Deštruktor future
 
-* If a `std::future` is destroyed before `get()` or `wait()` is called, and the associated asynchronous task has not completed, the destructor will block **only** if the task was launched with `std::async`
-* Otherwise, it will neither block nor terminate, so it may lead to subtle bugs
-* Try to always call `get()` or `wait()` before destroying the future 
+* Ak `std::future` zanikne pred volaním `get()` alebo `wait()` a súvisiaca asynchrónna úloha ešte neskončila, deštruktor bude blokovať **iba** vtedy, ak bola úloha spustená cez `std::async`
+* Inak nebude blokovať ani neukončí program, čo môže viesť k nenápadným chybám
+* Pred zánikom future sa vždy snažíme zavolať `get()` alebo `wait()`
 
 ```cpp
 {
