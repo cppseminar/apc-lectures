@@ -797,6 +797,7 @@ int main() {
 * Nestačí, že sa prístupy pri konkrétnom behu náhodou neprekrývajú v čase
 * Susedné neatomické bitové polia môžu patriť do jedného pamäťového miesta; pri `std::vector<bool>` tiež nemožno predpokladať nezávislosť jednotlivých bitov
 
+
 ## Happens-before: poradie a viditeľnosť
 
 * Happens-before určuje poradie operácií v pamäťovom modeli, nie iba ich načasovanie
@@ -940,6 +941,7 @@ void func1() {
 
 * `std::lock` predchádza uviaznutiu pri zamykaní oboch mutexov: pokúsi sa zamknúť oba, a ak sa to nepodarí, už zamknuté mutexy odomkne a skúsi to znova (s odstupom, tzv. backoff)
 * `std::adopt_lock` povie `std::lock_guard`, že mutex je už zamknutý, takže ho nemá znova zamykať, iba odomknúť pri opustení rozsahu platnosti
+
 
 ## Jednoduchšie cez `std::scoped_lock` (C++17)
 

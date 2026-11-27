@@ -515,7 +515,8 @@ int main(int argc, char* argv[]) {
 <div class="fragment">
 
 * Používame temporary premennú po tom, čo skončil riadok, na ktorom bola vytvorená
-* Konštantné referencie predlžujú scope temporary premenných
+* Pri takomto priamom naviazaní na lokálnu `const` referenciu sa životnosť temporary objektu predĺži na životnosť referencie (nie jeho scope)
+* Nie každá referencia predlžuje životnosť: temporary naviazané na referenčný parameter funkcie zanikne na konci celého výrazu obsahujúceho volanie; vrátenie referencie z funkcie ho nezachráni
 </div>
 
 ---
@@ -900,7 +901,7 @@ private:
 ```
 
 * Ak zavoláme `Person(s)` s lvalue, urobí sa jedna kópia do parametra `name` a lacný move do `name_`
-* Ak zavoláme `Person("Bjarne")` s rvalue, neurobí sa žiadna kópia – iba move!
+* Pri volaní `Person("Bjarne")` sa z reťazcového literálu skonštruuje parameter `name` a potom sa presunie do `name_` – bez kopírovacieho konštruktora stringu
 
 ---
 
@@ -1225,8 +1226,9 @@ int main() {
 ## rvalue = xvalue + prvalue
 
 * prvalues sú pure rvalues
-    * Temporaries
-    * Literals
+    * Výrazy vytvárajúce nové hodnoty, napr. `std::string{}`
+    * Číselné a znakové literály, napr. `42` alebo `'a'`
+* Reťazcové literály, napr. `"Bjarne"`, sú naopak lvalues typu pole (`const char[7]`)
 * xvalues sú eXpiring values (hodnoty, ktoré nám ďalej už netreba)
 * xvalues sú vytvorené pomocou pretypovania na `&&` alebo pomocou `std::move`, čo je vlastne vnútorne cast na `T&&`
 * Môžeme teda vyvolať *move* explicitne
@@ -1288,9 +1290,10 @@ struct S {
 
 ## Automatické generovanie špeciálnych operácií
 
-* **Move konštruktor a move `operator=`** kompilátor vygeneruje automaticky, iba ak trieda nemá vlastný (*user-declared*) kopírovací konštruktor, kopírovací `operator=` ani deštruktor
-* **Kopírovací konštruktor a kopírovací `operator=`** sa zase nevygenerujú (sú implicitne `= delete`), ak má trieda vlastný move konštruktor alebo move `operator=`
-* Ak chceme generovanie explicitne povoliť alebo zakázať, použijeme `= default` alebo `= delete`:
+* **Move konštruktor a move `operator=`** sa implicitne deklarujú, iba ak trieda nemá vlastný (*user-declared*) copy/move konštruktor, copy/move `operator=` ani deštruktor
+* Vlastný move konštruktor teda potlačí implicitný move `operator=` a naopak; aj `= default` či `= delete` sa počíta ako vlastná deklarácia
+* Ak trieda deklaruje move operáciu, jej **implicitne deklarované kopírovacie operácie** sú definované ako `= delete`
+* Operáciu môžeme explicitne vyžiadať pomocou `= default` alebo zakázať pomocou `= delete`; aj defaultovaná operácia však môže byť deleted, ak ju neumožňujú členy alebo bázy:
 
 ```cpp
 class my_class {
@@ -1460,7 +1463,7 @@ int main() {
 <!-- .element: class="fragment" -->
 
 
-**Zle napísané kompilátory by mohli urobiť kópiu (pred C++11) alebo move (po C++11). Ale už v starom svete (pred C++11) sa prvý kus kódu transformoval na niečo ekvivalentné druhému kusu kódu.**
+**V prvom príklade sa od C++17 string skonštruuje priamo vo výslednom objekte, bez copy aj move. Pred C++17 mohol kompilátor kópiu (alebo od C++11 move) vynechať, ale nebolo to povinné. Výstupný parameter tu nepotrebujeme.**
 
 
 ## copy a move
@@ -1484,15 +1487,15 @@ int main() {
 ## Return value optimization (RVO)
 
 * Pri návrate z funkcie sa objekt vytvorí priamo v pamäti volajúcej funkcie (bez medzikópie a bez move)
-* Aplikuje sa, keď z funkcie vraciame priamo nový dočasný objekt (prvalue)
+* Aplikuje sa, keď z funkcie vraciame prvalue rovnakého typu, ako je návratový typ funkcie
 * Od C++17 je táto optimalizácia **povinná** (*guaranteed copy elision*, niekedy označovaná aj ako URVO – *unnamed RVO*)
 
 ```cpp
 std::string f(int i) {
     if (i < 10) {
-        return "Less than 10";
+        return std::string("Less than 10");
     } else {
-        return "Greater or eq 10";
+        return std::string("Greater or eq 10");
     }
 }
 ```
@@ -1540,7 +1543,7 @@ int main() {
 ```
 
 
-## ... transformuje kompilátor ako
+## Zjednodušená predstava NRVO
 
 ```cpp
 void f(int i, std::string &ret_val) {
@@ -1557,7 +1560,8 @@ int main() {
 }
 ```
 
-* Funkcia môže mať viacero `return`-ov, ale vždy sa musí vracať tá istá premenná
+* V skutočnosti sa výsledný objekt konštruuje priamo v úložisku volajúceho; nejde o všeobecnú náhradu konštrukcie priradením
+* Vracať vždy tú istú premennú uľahčuje NRVO, ale nie je to požiadavka štandardu; NRVO je možné aj pre rôzne lokálne premenné v oddelených vetvách
 
 ---
 
